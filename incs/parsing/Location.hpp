@@ -1,9 +1,13 @@
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
 
-# include <vector>
+# include "Directives.hpp"
 
-class Location
+# include <vector>
+# include <string>
+
+
+class Location : public Directives
 {
 	public:
 
@@ -15,7 +19,7 @@ class Location
 
 	private:
 
-		std::vector<int>	_vector;
+		std::vector<std::string>	_vector;
 };
 
 #endif

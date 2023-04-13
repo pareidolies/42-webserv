@@ -1,9 +1,12 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include "Directives.hpp"
+# include "Location.hpp"
+
 # include <vector>
 
-class Server
+class Server : public Directives
 {
 	public:
 
@@ -15,7 +18,7 @@ class Server
 
 	private:
 
-		std::vector<int>	_vector;
+		std::vector<Location>	_locations;
 };
 
 #endif

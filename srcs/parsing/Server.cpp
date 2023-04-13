@@ -13,7 +13,7 @@ Server::Server(void)
 *                                   COPY                                      *
 ******************************************************************************/
 
-Server::Server(Server const & copy) : _vector(copy._vector)
+Server::Server(Server const & copy) : _locations(copy._locations)
 {
 
 }
@@ -22,7 +22,7 @@ Server	&Server::operator=(Server const & rhs)
 {
 	if (this != &rhs)
 	{
-		_vector = rhs._vector;
+		_locations = rhs._locations;
 	}
 	return (*this);
 }
