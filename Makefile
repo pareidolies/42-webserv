@@ -10,8 +10,8 @@ RM			=	rm -rf
 
 CC			=	c++
 
-CFLAGS		=	-Wall -Werror -Wextra 
-CFLAGS		+=	-std=c++98
+# CFLAGS		=	-Wall -Werror -Wextra 
+CFLAGS		=	-std=c++98
 CFLAGS		+=	-I $(INCS_DIR)
 CFLAGS		+=	-g3 -MMD
 
@@ -35,10 +35,10 @@ INCS_DIR	=	incs
 
 OBJS_DIR	=	objs
 
-# SRCS_DIS	=	display/print_obj.c
+SRCS_SOCKET	=	TcpServer.cpp
 
-# SRCS		+=	$(SRCS_DIS)
-SRCS		=	main.cpp
+SRCS		=	$(SRCS_SOCKET)
+SRCS		+=	main.cpp
 
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
