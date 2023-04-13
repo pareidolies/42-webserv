@@ -11,7 +11,7 @@ class Server
 		Server(Server const & copy);
 		~Server(void);
 
-		Server	&operator=(Server const & rhs); //assignement operator
+		Server	&operator=(Server const & rhs);
 
 	private:
 

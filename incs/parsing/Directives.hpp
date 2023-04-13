@@ -11,7 +11,7 @@ class Directives
 		Directives(Directives const & copy);
 		~Directives(void);
 
-		Directives	&operator=(Directives const & rhs); //assignement operator
+		Directives	&operator=(Directives const & rhs);
 
 	private:
 

@@ -11,7 +11,7 @@ class Location
 		Location(Location const & copy);
 		~Location(void);
 
-		Location	&operator=(Location const & rhs); //assignement operator
+		Location	&operator=(Location const & rhs);
 
 	private:
 

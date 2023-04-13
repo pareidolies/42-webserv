@@ -15,7 +15,7 @@ class Configuration
 		Configuration(Configuration const & copy);
 		~Configuration(void);
 
-		Configuration	&operator=(Configuration const & rhs); //assignement operator
+		Configuration	&operator=(Configuration const & rhs);
 
 	private:
 
