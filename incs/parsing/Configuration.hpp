@@ -17,10 +17,12 @@ class Configuration
 
 		Configuration	&operator=(Configuration const & rhs);
 
+		bool			open_file(void);
+
 	private:
 
 		std::string			_file;
-		std::vector<Server>	_vector;
+		std::vector<Server>	_servers;
 };
 
 #endif

@@ -9,11 +9,11 @@ class Directives
 
 		Directives(void);
 		Directives(Directives const & copy);
-		~Directives(void);
+		virtual ~Directives(void);
 
 		Directives	&operator=(Directives const & rhs);
 
-	private:
+	protected:
 
 		std::vector<int>	_vector;
 };

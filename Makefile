@@ -50,6 +50,8 @@ SRCS		+=	main.cpp
 				
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
+DEPS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.d))
+
 ###############################################################################
 #                                                                             #
 #                                   COMMAND                                   #
@@ -75,5 +77,7 @@ fclean:			clean
 				@echo ${GREEN}"webserv Clean Successfully\n"${X}
 
 re:				fclean all
+
+-include $(DEPS)
 
 .PHONY:			all clean fclean re
