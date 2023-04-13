@@ -20,5 +20,8 @@ int main(const int argc, const char** argv)
 
     Configuration	conf(file);
 
+    TcpServer server = TcpServer("127.0.0.1", 8001);
+    server.startListen();
+    
     return EXIT_SUCCESS;
 }
