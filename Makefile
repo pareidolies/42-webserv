@@ -10,7 +10,7 @@ RM			=	rm -rf
 
 CC			=	c++
 
-# CFLAGS		=	-Wall -Werror -Wextra 
+CFLAGS		=	-Wall -Werror -Wextra 
 CFLAGS		=	-std=c++98
 CFLAGS		+=	-I $(INCS_DIR) -I $(PARSING_DIR)
 CFLAGS		+=	-g3 -MMD

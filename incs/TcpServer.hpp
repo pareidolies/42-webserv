@@ -34,6 +34,8 @@ class TcpServer
         int		startServer();
         void	closeServer();
         void	acceptConnection(int &new_socket);
+        void	getHeader(int &new_socket);
+        void	getPayload(int &new_socket);
         string	buildResponse();
         void	sendResponse();
 };
