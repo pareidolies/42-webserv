@@ -1,3 +1,8 @@
+#ifndef CONFIGURATION_HPP
+# define CONFIGURATION_HPP
+
+# include "Server.hpp"
+
 # include <vector>
 # include <string>
 
@@ -14,6 +19,8 @@ class Configuration
 
 	private:
 
-		std::vector<int>	_vector;
 		std::string			_file;
+		std::vector<Server>	_vector;
 };
+
+#endif

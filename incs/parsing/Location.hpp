@@ -1,3 +1,6 @@
+#ifndef LOCATION_HPP
+# define LOCATION_HPP
+
 # include <vector>
 
 class Location
@@ -14,3 +17,5 @@ class Location
 
 		std::vector<int>	_vector;
 };
+
+#endif

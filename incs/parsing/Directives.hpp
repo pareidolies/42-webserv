@@ -1,3 +1,6 @@
+#ifndef DIRECTIVES_HPP
+# define DIRECTIVES_HPP
+
 # include <vector>
 
 class Directives
@@ -14,3 +17,5 @@ class Directives
 
 		std::vector<int>	_vector;
 };
+
+#endif
