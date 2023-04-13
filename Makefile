@@ -12,7 +12,7 @@ CC			=	c++
 
 # CFLAGS		=	-Wall -Werror -Wextra 
 CFLAGS		=	-std=c++98
-CFLAGS		+=	-I $(INCS_DIR)
+CFLAGS		+=	-I $(INCS_DIR) -I $(PARSING_DIR)
 CFLAGS		+=	-g3 -MMD
 
 Y			= "\033[33m"
@@ -31,15 +31,23 @@ CUT			= "\033[K"
 
 SRCS_DIR	=	srcs
 
-INCS_DIR	=	incs
+INCS_DIR	=	incs 
+
+PARSING_DIR =	incs/parsing
 
 OBJS_DIR	=	objs
 
 SRCS_SOCKET	=	TcpServer.cpp
 
-SRCS		=	$(SRCS_SOCKET)
-SRCS		+=	main.cpp
+SRCS_PARSER	=	parsing/Configuration.cpp \
+				parsing/Server.cpp \
+				parsing/Directives.cpp \
+				parsing/Location.cpp
 
+SRCS		=	$(SRCS_SOCKET)
+SRCS		+=	$(SRCS_PARSER)
+SRCS		+=	main.cpp
+				
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
 ###############################################################################
