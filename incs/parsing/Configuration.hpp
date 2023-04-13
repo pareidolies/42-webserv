@@ -7,7 +7,6 @@ class Configuration
 
 		Configuration(void);
 		Configuration(std::string file);
-		Configuration(unsigned int n);
 		Configuration(Configuration const & copy);
 		~Configuration(void);
 

@@ -5,7 +5,6 @@ class Server
 	public:
 
 		Server(void);
-		Server(unsigned int n);
 		Server(Server const & copy);
 		~Server(void);
 

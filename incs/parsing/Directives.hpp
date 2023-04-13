@@ -5,7 +5,6 @@ class Directives
 	public:
 
 		Directives(void);
-		Directives(unsigned int n);
 		Directives(Directives const & copy);
 		~Directives(void);
 

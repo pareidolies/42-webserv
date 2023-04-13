@@ -5,7 +5,6 @@ class Location
 	public:
 
 		Location(void);
-		Location(unsigned int n);
 		Location(Location const & copy);
 		~Location(void);
 
