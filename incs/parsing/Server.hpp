@@ -1,0 +1,17 @@
+# include <vector>
+
+class Server
+{
+	public:
+
+		Server(void);
+		Server(unsigned int n);
+		Server(Server const & copy);
+		~Server(void);
+
+		Server	&operator=(Server const & rhs); //assignement operator
+
+	private:
+
+		std::vector<int>	_vector;
+};
