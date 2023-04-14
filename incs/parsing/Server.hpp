@@ -1,12 +1,13 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include "Directives.hpp"
 # include "Location.hpp"
 
 # include <vector>
+# include <netinet/in.h>
+# include <sys/types.h>
 
-class Server : public Directives
+class Server
 {
 	public:
 
@@ -18,7 +19,17 @@ class Server : public Directives
 
 	private:
 
-		std::vector<Location>	_locations;
+		std::vector<Location>				_locations;
+		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
+		int									_service; //SOCK_STREAM, SOCK_DGRAM
+		int									_protocol; //use 0 for "any"
+		u_long								_interface; //needs to be set to INADDR_ANY
+		int									_port;
+		int									_backlog; //maximum number of queued clients
+		struct sockaddr_in					_address;
+		int									_socket;
+		std::string							_serverName;
+		int									_clientMaxBodySize;
 };
 
 #endif

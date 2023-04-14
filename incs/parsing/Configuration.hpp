@@ -18,11 +18,16 @@ class Configuration
 		Configuration	&operator=(Configuration const & rhs);
 
 		bool			open_file(void);
+		void			print_vector(std::vector<std::string> _vector);
+		std::string		trim(const std::string & str);
 
 	private:
 
-		std::string			_file;
-		std::vector<Server>	_servers;
+		std::string					_file;
+		std::vector<Server>			_servers;
+		std::vector<std::string>	_split;
 };
+
+std::ostream &operator<<( std::ostream & o, Configuration const & rhs);
 
 #endif
