@@ -21,6 +21,7 @@ int main(const int argc, const char** argv)
     Configuration	conf(file);
     conf.open_and_read_file();
     conf.init_config();
+    conf.print_all();
 
     //TcpServer server = TcpServer("127.0.0.1", 8001);
     //server.startListen();

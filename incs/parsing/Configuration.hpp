@@ -2,6 +2,7 @@
 # define CONFIGURATION_HPP
 
 # include "Server.hpp"
+# include "utils.hpp"
 
 # include <vector>
 # include <string>
@@ -20,6 +21,7 @@ class Configuration
 		bool			open_and_read_file(void);
 		void			init_config(void);
 		bool			check_second_bracket(std::vector<std::string>::iterator it);
+		void			print_all(void);
 
 	private:
 

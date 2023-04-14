@@ -17,7 +17,8 @@ Configuration::Configuration(void)
 
 Configuration::Configuration(std::string file) : _file(file)
 {
-	
+	for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
+		delete	*it;
 }
 
 /******************************************************************************
@@ -140,4 +141,15 @@ void	Configuration::init_config(void)
 		}
 	}
 	print_vector(_split);
+}
+
+void	Configuration::print_all(void)
+{
+	int i  = 0;
+
+	for(std::vector<Server*>::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
+	{	
+		std::cout << ANSI_YELLOW << "------ SERVER " << ++i <<" ------" << ANSI_RESET << std::endl;
+		(*it)->print_server();
+	}
 }

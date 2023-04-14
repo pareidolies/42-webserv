@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include "General.hpp"
 #include "TcpServer.hpp"
+#include "utils.hpp"
 
 using namespace std;
 

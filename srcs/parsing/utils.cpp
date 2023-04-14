@@ -3,7 +3,7 @@
 # include <vector>
 # include <iostream>
 
-std::string	trim(const std::string & str, const std::string & whitespace)
+std::string	trim(const std::string & str, std::string & whitespace)
 {
 	;
     size_t strBegin = str.find_first_not_of(whitespace);

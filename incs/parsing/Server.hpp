@@ -21,6 +21,8 @@ class Server
 
 		void			init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
 		std::string		check_semicolon(std::string str);
+		bool			check_client_max_body_size(std::string parameter);
+		void			print_server(void);
 
 	private:
 
@@ -35,6 +37,10 @@ class Server
 		int									_socket;
 		std::string							_serverName;
 		int									_clientMaxBodySize;
+		std::string							_root;
+		bool								_get;
+		bool								_post;
+		bool								_delete;
 		//error_pages
 };
 
