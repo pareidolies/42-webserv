@@ -5,7 +5,6 @@
 # include <fstream>
 # include <sstream>
 
-
 /******************************************************************************
 *                              CONSTRUCTORS                                   *
 ******************************************************************************/
@@ -75,7 +74,7 @@ std::string	Configuration::trim(const std::string & str)
     return str.substr(strBegin, strRange);
 }
 
-bool	Configuration::open_file(void) 
+bool	Configuration::open_and_read_file(void) 
 {
 	std::ifstream				ifs(_file.c_str());
 	std::string					line;
@@ -96,8 +95,8 @@ bool	Configuration::open_file(void)
   		if (bracket!=std::string::npos)
 		{
 			getline(ss, tmp, '{');
-			if (!tmp.empty())
-				_split.push_back(tmp);
+			if (!trim(tmp).empty())
+				_split.push_back(trim(tmp));
 			_split.push_back("{");
 			continue;
 		}
@@ -105,16 +104,15 @@ bool	Configuration::open_file(void)
 		if (bracket!=std::string::npos)
 		{
 			getline(ss, tmp, '}');
-			if (!tmp.empty())
-				_split.push_back(tmp);
+			if (!trim(tmp).empty())
+				_split.push_back(trim(tmp));
 			_split.push_back("}");
 			continue;
 		}
 		getline(ss, tmp);
-		if (!trim(tmp).empty())
+		if (!trim(tmp).empty() && line.find("#")==std::string::npos) //remove empty lines and comments lines
 			_split.push_back(trim(tmp));
 	}
-	print_vector(_split);
 	/*if (this->_servers.empty())
 	{
 		std::cout << ANSI_RED << "Error: No server information in the file" << ANSI_RESET << std::endl;
@@ -124,3 +122,38 @@ bool	Configuration::open_file(void)
 	return true;
 }
 
+bool	Configuration::check_second_bracket(std::vector<std::string>::iterator it)
+{
+	while (it != _split.end() && (*it).compare("}") != 0)
+	{
+		if((*it).compare("server") == 0)
+		{
+			std::cout << ANSI_RED << "Error: server detected within another server" << ANSI_RESET << std::endl;
+			return false;
+		}
+		it++;
+	}
+	if (it == _split.end())
+	{
+		std::cout << ANSI_RED << "Error: missing closing bracket for server block" << ANSI_RESET << std::endl;
+		return false;
+	}
+	return (true);
+}
+
+void	Configuration::init_config(void)
+{
+	for(std::vector<std::string>::iterator beg = _split.begin(); beg != _split.end(); beg++)
+	{
+		if ((*beg).compare("server") == 0 && (*(beg + 1)).compare("{") == 0)
+		{
+			if(check_second_bracket(++beg))
+			{
+				Server *server = new Server();
+				//server->init_server_config(beg, _split);
+				_servers.push_back(server);
+			}
+		}
+	}
+	print_vector(_split);
+}

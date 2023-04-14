@@ -17,14 +17,16 @@ class Configuration
 
 		Configuration	&operator=(Configuration const & rhs);
 
-		bool			open_file(void);
+		bool			open_and_read_file(void);
 		void			print_vector(std::vector<std::string> _vector);
 		std::string		trim(const std::string & str);
+		void			init_config(void);
+		bool			check_second_bracket(std::vector<std::string>::iterator it);
 
 	private:
 
 		std::string					_file;
-		std::vector<Server>			_servers;
+		std::vector<Server*>		_servers;
 		std::vector<std::string>	_split;
 };
 

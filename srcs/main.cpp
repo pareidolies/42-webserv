@@ -19,7 +19,8 @@ int main(const int argc, const char** argv)
         file = "./conf_files/default.conf";
 
     Configuration	conf(file);
-    conf.open_file();
+    conf.open_and_read_file();
+    conf.init_config();
 
     //TcpServer server = TcpServer("127.0.0.1", 8001);
     //server.startListen();
