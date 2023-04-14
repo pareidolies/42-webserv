@@ -1,5 +1,6 @@
 # include "Configuration.hpp"
 # include "webserv.hpp"
+# include "utils.hpp"
 
 # include <iostream>
 # include <fstream>
@@ -61,26 +62,13 @@ void	Configuration::print_vector(std::vector<std::string> _vector)
 		std::cout << _vector[i] << std::endl;
 }
 
-std::string	Configuration::trim(const std::string & str)
-{
-	const std::string & whitespace = " \t\n\r\v\f";
-    size_t strBegin = str.find_first_not_of(whitespace);
-    if (strBegin == std::string::npos)
-        return "";
-
-	size_t	strEnd = str.find_last_not_of(whitespace);
-    size_t	strRange = strEnd - strBegin + 1;
-
-    return str.substr(strBegin, strRange);
-}
-
 bool	Configuration::open_and_read_file(void) 
 {
 	std::ifstream				ifs(_file.c_str());
 	std::string					line;
 
 
-	if (ifs.fail())
+	if (ifs.fail()) //need to check if directory
     {
         std::cout << ANSI_RED << "Error: could not open file" << ANSI_RESET << std::endl;
         return false;
@@ -89,6 +77,7 @@ bool	Configuration::open_and_read_file(void)
 	{
 		std::stringstream ss(line);
 		std::string tmp;
+		std::string	whitespace = " \t\n\r\v\f";
 		std::size_t bracket;
 		
 		//splitting bracket from data and trimming spaces
@@ -96,8 +85,8 @@ bool	Configuration::open_and_read_file(void)
   		if (bracket!=std::string::npos)
 		{
 			getline(ss, tmp, '{');
-			if (!trim(tmp).empty())
-				_split.push_back(trim(tmp));
+			if (!trim(tmp, whitespace).empty())
+				_split.push_back(trim(tmp, whitespace));
 			_split.push_back("{");
 			continue;
 		}
@@ -105,14 +94,14 @@ bool	Configuration::open_and_read_file(void)
 		if (bracket!=std::string::npos)
 		{
 			getline(ss, tmp, '}');
-			if (!trim(tmp).empty())
-				_split.push_back(trim(tmp));
+			if (!trim(tmp, whitespace).empty())
+				_split.push_back(trim(tmp, whitespace));
 			_split.push_back("}");
 			continue;
 		}
 		getline(ss, tmp);
-		if (!trim(tmp).empty() && line.find("#")==std::string::npos) //remove empty lines and comments lines
-			_split.push_back(trim(tmp));
+		if (!trim(tmp, whitespace).empty() && line.find("#")==std::string::npos) //remove empty lines and comments lines
+			_split.push_back(trim(tmp, whitespace));
 	}
 	/*if (this->_servers.empty())
 	{
@@ -151,7 +140,7 @@ void	Configuration::init_config(void)
 			if(check_second_bracket(++beg))
 			{
 				Server *server = new Server();
-				//server->init_server_config(beg, _split);
+				server->init_server_config(beg, _split);
 				_servers.push_back(server);
 			}
 		}

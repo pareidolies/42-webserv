@@ -2,6 +2,8 @@
 # define SERVER_HPP
 
 # include "Location.hpp"
+# include "webserv.hpp"
+# include "utils.hpp"
 
 # include <vector>
 # include <netinet/in.h>
@@ -17,11 +19,12 @@ class Server
 
 		Server	&operator=(Server const & rhs);
 
-		void	Server::init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
+		void			init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
+		std::string		check_semicolon(std::string str);
 
 	private:
 
-		std::vector<Location>				_locations;
+		std::vector<Location*>				_locations;
 		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
 		int									_service; //SOCK_STREAM, SOCK_DGRAM
 		int									_protocol; //use 0 for "any"

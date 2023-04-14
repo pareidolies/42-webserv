@@ -41,7 +41,8 @@ SRCS_SOCKET	=	TcpServer.cpp
 
 SRCS_PARSER	=	parsing/Configuration.cpp \
 				parsing/Server.cpp \
-				parsing/Location.cpp
+				parsing/Location.cpp \
+				parsing/utils.cpp
 
 SRCS		=	$(SRCS_SOCKET)
 SRCS		+=	$(SRCS_PARSER)
