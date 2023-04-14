@@ -173,18 +173,18 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 
 void			Server::print_server(void)
 {
-	std::cout << ANSI_BLUE << "port: " << _port << std::endl;
-	std::cout << "server name: " << _serverName << std::endl;
-	std::cout << "root: " << _root << std::endl;
-	std::cout << "client max body size: " << _clientMaxBodySize << std::endl;
-	std::cout << "domain ip: " << _domain << std::endl;
-	std::cout << "service: " << _service << std::endl;
-	std::cout << "protocol: " << _protocol << std::endl;
-	std::cout << "interface: " << _interface << std::endl;
-	std::cout << "maximum number of queued clients: " << _backlog << std::endl;
-	std::cout << "GET: " << _get << std::endl;
-	std::cout << "POST: " << _post << std::endl;
-	std::cout << "DELETE: " << _delete << std::endl << ANSI_RESET;
+	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
+	std::cout << ANSI_BLUE << "server name: " << ANSI_RESET << _serverName << std::endl;
+	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
+	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
+	std::cout << ANSI_BLUE << "domain ip: " << ANSI_RESET << _domain << std::endl;
+	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
+	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
+	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
+	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
+	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl << ANSI_RESET;
 }
 
 /******************************************************************************
