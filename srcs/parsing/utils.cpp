@@ -1,4 +1,7 @@
-#include "utils.hpp"
+# include "utils.hpp"
+
+# include <vector>
+# include <iostream>
 
 std::string	trim(const std::string & str, const std::string & whitespace)
 {
@@ -11,4 +14,10 @@ std::string	trim(const std::string & str, const std::string & whitespace)
     size_t	strRange = strEnd - strBegin + 1;
 
     return str.substr(strBegin, strRange);
+}
+
+void	print_vector(std::vector<std::string> _vector)
+{
+	for (size_t i = 0; i < _vector.size(); i++)
+		std::cout << _vector[i] << std::endl;
 }

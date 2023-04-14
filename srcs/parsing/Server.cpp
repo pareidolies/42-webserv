@@ -6,7 +6,7 @@
 
 Server::Server(void)
 {
-
+	//initialize values
 }
 
 /******************************************************************************
@@ -92,7 +92,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		if(directive.compare("location") == 0)
 		{
 			Location *location = new Location();
-			//location->init_location_config(it, _split);
+			//location->init_location_config(it, split);
 			_locations.push_back(location);
 		}
 		else if (directive.compare("listen") == 0)
@@ -106,10 +106,26 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			parameter = check_semicolon(parameter);
 			this->_serverName = parameter;	
 		}
+		else if (directive.compare("root") == 0)
+		{
+			
+		}
+		else if (directive.compare("index") == 0)
+		{
+			
+		}
+		else if (directive.compare("allowed_methods") == 0)
+		{
+			
+		}
+		else if (directive.compare("cgi") == 0)
+		{
+			
+		}
 		else if (directive.compare("error_pages") == 0)
-			set_error_page(it);
+			add_error_page(it);
 		else if (directive.compare("client_max_body_size") == 0)
-			set_client_max_body_size(it);
+			check_client_max_body_size(it);
 		else
 		{
 			std::cout << ANSI_RED << "Error: unknown option detected" << ANSI_RESET << std::endl;

@@ -12,7 +12,7 @@
 
 Configuration::Configuration(void)
 {
-
+	//initialize values
 }
 
 Configuration::Configuration(std::string file) : _file(file)
@@ -55,12 +55,6 @@ Configuration::~Configuration(void)
 /******************************************************************************
 *                             MEMBER FUNCTIONS                                *
 ******************************************************************************/
-
-void	Configuration::print_vector(std::vector<std::string> _vector)
-{
-	for (size_t i = 0; i < _vector.size(); i++)
-		std::cout << _vector[i] << std::endl;
-}
 
 bool	Configuration::open_and_read_file(void) 
 {

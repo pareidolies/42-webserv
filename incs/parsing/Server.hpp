@@ -35,6 +35,7 @@ class Server
 		int									_socket;
 		std::string							_serverName;
 		int									_clientMaxBodySize;
+		//error_pages
 };
 
 #endif

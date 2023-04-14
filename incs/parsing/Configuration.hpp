@@ -18,7 +18,6 @@ class Configuration
 		Configuration	&operator=(Configuration const & rhs);
 
 		bool			open_and_read_file(void);
-		void			print_vector(std::vector<std::string> _vector);
 		void			init_config(void);
 		bool			check_second_bracket(std::vector<std::string>::iterator it);
 
