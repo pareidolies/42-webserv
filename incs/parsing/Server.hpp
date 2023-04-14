@@ -17,6 +17,8 @@ class Server
 
 		Server	&operator=(Server const & rhs);
 
+		void	Server::init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
+
 	private:
 
 		std::vector<Location>				_locations;

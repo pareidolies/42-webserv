@@ -91,6 +91,7 @@ bool	Configuration::open_and_read_file(void)
 		std::string tmp;
 		std::size_t bracket;
 		
+		//splitting bracket from data and trimming spaces
 		bracket = line.find("{");
   		if (bracket!=std::string::npos)
 		{
