@@ -13,7 +13,7 @@ Location::Location(void)
 *                                   COPY                                      *
 ******************************************************************************/
 
-Location::Location(Location const & copy) : _vector(copy._vector)
+Location::Location(Location const & copy) : _root(copy._root)
 {
 
 }
@@ -22,7 +22,7 @@ Location	&Location::operator=(Location const & rhs)
 {
 	if (this != &rhs)
 	{
-		_vector = rhs._vector;
+		_root = rhs._root;
 	}
 	return (*this);
 }

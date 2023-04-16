@@ -6,7 +6,7 @@
 
 Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 					   _protocol(0), _interface(INADDR_ANY), \
-					   _backlog(200), _socket(-1), _clientMaxBodySize(0)
+					   _backlog(200), _clientMaxBodySize(0)
 {
 	//initialize values
 }
@@ -73,7 +73,7 @@ std::string	Server::check_semicolon(std::string str)
 	str = trim(str, delimiter);
 	if (str.empty())
 	{
-		std::cout << ANSI_RED << "Error: port missing" << ANSI_RESET << std::endl;
+		std::cout << ANSI_RED << "Error: value missing" << ANSI_RESET << std::endl;
 		return "";
 	}
 	return (str);
@@ -99,14 +99,23 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 	
 	while (it != split.end() && (*it).compare("}") != 0)
 	{
-		std::stringstream ss(*it);
-		std::string directive;
-		std::string parameter;
-		std::string tmp;
-		size_t		find;
+		//std::stringstream ss(*it);
+		std::string 			directive;
+		std::string 			parameter;
+		std::string 			tmp;
+		size_t					find;
 
-		getline(ss, directive, ' '); //check if it's a tab which separates data
-		getline(ss, parameter);
+		std::string	whitespace = " \t\n\r\v\f";
+
+		//getline(ss, directive, ' '); //check if it's a tab which separates data OK
+		//getline(ss, parameter);
+
+		find = (*it).find_first_of(whitespace);
+		if (find == string::npos) 
+			find  = (*it).length();
+		directive = (*it).substr(0, find);
+		if (find != (*it).length()) 
+			parameter = (*it).substr(find + 1, (*it).length());
 
 		if(directive.compare("location") == 0)
 		{
@@ -171,9 +180,14 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		std::cout << ANSI_RED << "Error: listening port not set or wrong port value" << ANSI_RESET << std::endl;
 }
 
+/******************************************************************************
+*                                   PRINTER                                   *
+******************************************************************************/
+
 void			Server::print_server(void)
 {
 	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
+	std::cout << ANSI_BLUE << "localhost: " << ANSI_RESET << _localhost << std::endl;
 	std::cout << ANSI_BLUE << "server name: " << ANSI_RESET << _serverName << std::endl;
 	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
 	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;

@@ -26,18 +26,23 @@ class Server
 
 	private:
 
-		std::vector<Location*>				_locations;
+		//set at initialization
 		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
 		int									_service; //SOCK_STREAM, SOCK_DGRAM
 		int									_protocol; //use 0 for "any"
 		u_long								_interface; //needs to be set to INADDR_ANY
-		int									_port;
 		int									_backlog; //maximum number of queued clients
-		struct sockaddr_in					_address;
-		int									_socket;
+		//parsing
+		std::vector<Location*>				_locations;
+		int									_port;
+		std::string							_localhost;
 		std::string							_serverName;
 		int									_clientMaxBodySize;
 		std::string							_root;
+		std::string							_index;
+		bool								_autoindex;
+		std::string							_cgiFileExtension;
+		std::string							_cgiPathToScript;
 		bool								_get;
 		bool								_post;
 		bool								_delete;

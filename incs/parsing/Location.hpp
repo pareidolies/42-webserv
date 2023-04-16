@@ -18,19 +18,18 @@ class Location
 
 	private:
 
-		std::vector<std::string>	_vector;
+		std::string					_locate;
 		bool						_get;
 		bool						_post;
 		bool						_delete;
 		int							_returnCode;
-		std::string					_redirectionPath;
-		std::string					_rootPath;
-		std::string					_indexPath;
+		std::string					_redir;
+		std::string					_root;
+		std::string					_index;
 		bool						_autoindex;
 		std::string					_cgiFileExtension;
 		std::string					_cgiPathToScript;
-		std::string					_uploadDir;
-		std::string					_locate;
+		std::string					_upload;
 };
 
 #endif
