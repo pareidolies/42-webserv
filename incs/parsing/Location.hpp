@@ -11,14 +11,19 @@ class Location
 	public:
 
 		Location(void);
+		Location(std::string locate);
 		Location(Location const & copy);
 		~Location(void);
 
 		Location	&operator=(Location const & rhs);
 
+		void	init_location_config(std::vector<std::string>::iterator it, std::vector<std::string> split);
+		void	print_location(void);
+
 	private:
 
 		std::string					_locate;
+
 		bool						_get;
 		bool						_post;
 		bool						_delete;

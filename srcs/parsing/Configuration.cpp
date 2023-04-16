@@ -70,10 +70,10 @@ bool	Configuration::open_and_read_file(void)
     }
 	while (std::getline(ifs, line))
 	{
-		std::stringstream ss(line);
-		std::string tmp;
-		std::string	whitespace = " \t\n\r\v\f";
-		std::size_t bracket;
+		std::stringstream	ss(line);
+		std::string 		tmp;
+		std::string			whitespace = " \t\n\r\v\f";
+		std::size_t			bracket;
 		
 		//splitting bracket from data and trimming spaces
 		bracket = line.find("{");

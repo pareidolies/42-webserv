@@ -85,8 +85,9 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		std::string 			parameter;
 		std::string 			tmp;
 		size_t					find;
-
+		
 		std::string	whitespace = " \t\n\r\v\f";
+		std::string	type = "location";
 
 		//getline(ss, directive, ' '); //check if it's a tab which separates data OK
 		//getline(ss, parameter);
@@ -100,9 +101,14 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 
 		if(directive.compare("location") == 0)
 		{
-			Location *location = new Location();
-			//location->init_location_config(it, split);
-			_locations.push_back(location);
+			if(check_second_bracket(++it, split, type))
+			{
+				Location *location = new Location(trim(parameter, whitespace));
+				location->init_location_config(it, split);
+				_locations.push_back(location);
+				while ((*it) != "}")
+					it++;
+			}
 		}
 		else if (directive.compare("listen") == 0) //if multiple listen?
 		{
@@ -129,7 +135,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("index") == 0)
 		{
 			parameter = check_semicolon(parameter);
-			this->_serverName = parameter;
+			this->_index = parameter;
 		}
 		else if (directive.compare("upload") == 0)
 		{
@@ -225,6 +231,12 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
 	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;
+	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
+	{	
+		std::cout << ANSI_YELLOW << "------ LOCATION  ------" << ANSI_RESET << std::endl;
+		(*it)->print_location();
+		std::cout << std::endl;
+	}
 }
 
 /******************************************************************************

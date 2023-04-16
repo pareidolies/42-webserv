@@ -48,7 +48,6 @@ class Server
 		bool								_post;
 		bool								_delete;
 		std::map<int, std::string>			_errorPages;
-		//error_pages
 };
 
 #endif
