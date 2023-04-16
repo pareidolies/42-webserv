@@ -97,6 +97,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 {
 	bool listening = false;
 	
+	it++;
 	while (it != split.end() && (*it).compare("}") != 0)
 	{
 		//std::stringstream ss(*it);
@@ -150,6 +151,11 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			parameter = check_semicolon(parameter);
 			this->_serverName = parameter;
 		}
+		else if (directive.compare("upload") == 0)
+		{
+			parameter = check_semicolon(parameter);
+			this->_upload = parameter;
+		}
 		else if (directive.compare("http_methods") == 0)
 		{
 			parameter = check_semicolon(parameter);
@@ -163,13 +169,35 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
   			if (find!=std::string::npos)
 				this->_delete = true;
 		}
-		/*else if (directive.compare("cgi") == 0)
+		else if (directive.compare("cgi") == 0) //if multiple
 		{
-			
+			parameter = check_semicolon(parameter);
+			find = parameter.find_first_of(whitespace);
+			if (find != string::npos)
+			{
+				this->_cgiFileExtension = parameter.substr(0, find);
+				parameter.erase(0, find + 1);
+				this->_cgiPathToScript = trim(parameter, whitespace);
+			}
+			else
+				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
 		}
-		else if (directive.compare("error_pages") == 0)
-			add_error_page(it);
-		*/
+		else if (directive.compare("error_page") == 0)
+		{
+			std::string	num_str;
+			int			num;
+			std::string	path;
+
+			parameter = check_semicolon(parameter);
+			find = parameter.find_first_of(whitespace);
+			if (find != string::npos)
+			{
+				num_str = parameter.substr(0, find);
+				parameter.erase(0, find + 1);
+				path = trim(parameter, whitespace);
+			}
+			this->_errorPages.insert(std::make_pair(atoi(num_str.c_str()), path));
+		}
 		else if (directive.compare("client_max_body_size") == 0)
 		{
 			parameter = check_semicolon(parameter);
@@ -178,7 +206,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		}
 		else
 		{
-			std::cout << ANSI_RED << "Error: unknown option detected" << ANSI_RESET << std::endl;
+			std::cout << ANSI_RED << "Error: unknown option detected: " << (*it) << ANSI_RESET << std::endl;
 		}
 		it++;
 	}
@@ -201,10 +229,15 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
+	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
+	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
 	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
 	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
-	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl << ANSI_RESET;
+	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
+	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
+		std::cout << "[" << it->first << "] " << it->second << std::endl;
 }
 
 /******************************************************************************

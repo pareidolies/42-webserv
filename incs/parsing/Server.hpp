@@ -6,6 +6,7 @@
 # include "utils.hpp"
 
 # include <vector>
+# include <map>
 # include <netinet/in.h>
 # include <sys/types.h>
 
@@ -43,9 +44,11 @@ class Server
 		bool								_autoindex;
 		std::string							_cgiFileExtension;
 		std::string							_cgiPathToScript;
+		std::string							_upload;
 		bool								_get;
 		bool								_post;
 		bool								_delete;
+		std::map<int, std::string>			_errorPages;
 		//error_pages
 };
 
