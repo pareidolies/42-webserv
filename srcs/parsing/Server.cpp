@@ -123,13 +123,19 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			//location->init_location_config(it, split);
 			_locations.push_back(location);
 		}
-		else if (directive.compare("listen") == 0) //if multiple listen ?
+		else if (directive.compare("listen") == 0) //if multiple listen?
 		{
 			parameter = check_semicolon(parameter);
+			find = parameter.find_first_of(":");
+			if (find != string::npos)
+			{
+				this->_localhost = parameter.substr(0, find);
+				parameter.erase(0, find + 1);
+			}
 			this->_port = atoi(((parameter).c_str()));
 			listening = true;
 		}
-		else if (directive.compare("server_name") == 0)
+		else if (directive.compare("server_name") == 0) //if multiple server names?
 		{
 			parameter = check_semicolon(parameter);
 			this->_serverName = parameter;	
