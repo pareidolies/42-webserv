@@ -6,7 +6,8 @@
 
 Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 					   _protocol(0), _interface(INADDR_ANY), \
-					   _backlog(200), _clientMaxBodySize(0)
+					   _backlog(200), _clientMaxBodySize(0), \
+					   _autoindex(false)
 {
 	//initialize values
 }
@@ -57,27 +58,6 @@ Server::~Server(void)
 *                             MEMBER FUNCTIONS                                *
 ******************************************************************************/
 
-std::string	Server::check_semicolon(std::string str)
-{
-	std::string	delimiter = " \t\n\r\v\f;";
-	std::string	whitespace = " \t\n\r\v\f";
-	size_t		semicolon;
-
-	str = trim(str, whitespace);
-	semicolon = str.find(";");
-  	if (str.begin() + semicolon != str.end() - 1)
-	{
-		std::cout << ANSI_RED << "Error: missing semicolon" << ANSI_RESET << std::endl;
-		return "";
-	}
-	str = trim(str, delimiter);
-	if (str.empty())
-	{
-		std::cout << ANSI_RED << "Error: value missing" << ANSI_RESET << std::endl;
-		return "";
-	}
-	return (str);
-}
 
 bool	Server::check_client_max_body_size(std::string parameter)
 {
@@ -198,6 +178,14 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			}
 			this->_errorPages.insert(std::make_pair(atoi(num_str.c_str()), path));
 		}
+		else if (directive.compare("autoindex") == 0)
+		{
+			parameter = check_semicolon(parameter);
+			if (parameter.compare("on") == 0)
+				this->_autoindex = true;
+			else if (parameter.compare("off") == 0)
+				this->_autoindex = false;
+		}
 		else if (directive.compare("client_max_body_size") == 0)
 		{
 			parameter = check_semicolon(parameter);
@@ -205,9 +193,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 				this->_clientMaxBodySize = atoi(parameter.c_str());
 		}
 		else
-		{
 			std::cout << ANSI_RED << "Error: unknown option detected: " << (*it) << ANSI_RESET << std::endl;
-		}
 		it++;
 	}
 	if (listening == false || _port < 0)
@@ -235,6 +221,7 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
 	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;

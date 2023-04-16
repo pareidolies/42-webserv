@@ -107,32 +107,15 @@ bool	Configuration::open_and_read_file(void)
 	return true;
 }
 
-bool	Configuration::check_second_bracket(std::vector<std::string>::iterator it)
-{
-	while (it != _split.end() && (*it).compare("}") != 0)
-	{
-		if((*it).compare("server") == 0)
-		{
-			std::cout << ANSI_RED << "Error: server detected within another server" << ANSI_RESET << std::endl;
-			return false;
-		}
-		it++;
-	}
-	if (it == _split.end())
-	{
-		std::cout << ANSI_RED << "Error: missing closing bracket for server block" << ANSI_RESET << std::endl;
-		return false;
-	}
-	return (true);
-}
-
 void	Configuration::init_config(void)
 {
+	std::string	type = "server";
+
 	for(std::vector<std::string>::iterator beg = _split.begin(); beg != _split.end(); beg++)
 	{
 		if ((*beg).compare("server") == 0 && (*(beg + 1)).compare("{") == 0)
 		{
-			if(check_second_bracket(++beg))
+			if(check_second_bracket(++beg, _split, type))
 			{
 				Server *server = new Server();
 				server->init_server_config(beg, _split);
@@ -140,8 +123,12 @@ void	Configuration::init_config(void)
 			}
 		}
 	}
-	print_vector(_split);
+	//print_vector(_split);
 }
+
+/******************************************************************************
+*                                  PRINTER                                    *
+******************************************************************************/
 
 void	Configuration::print_all(void)
 {
@@ -151,5 +138,6 @@ void	Configuration::print_all(void)
 	{	
 		std::cout << ANSI_YELLOW << "------ SERVER " << ++i <<" ------" << ANSI_RESET << std::endl;
 		(*it)->print_server();
+		std::cout << std::endl;
 	}
 }

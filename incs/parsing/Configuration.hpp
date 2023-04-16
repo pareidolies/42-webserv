@@ -20,7 +20,6 @@ class Configuration
 
 		bool			open_and_read_file(void);
 		void			init_config(void);
-		bool			check_second_bracket(std::vector<std::string>::iterator it);
 		void			print_all(void);
 
 	private:

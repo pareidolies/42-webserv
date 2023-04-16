@@ -21,7 +21,6 @@ class Server
 		Server	&operator=(Server const & rhs);
 
 		void			init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
-		std::string		check_semicolon(std::string str);
 		bool			check_client_max_body_size(std::string parameter);
 		void			print_server(void);
 
