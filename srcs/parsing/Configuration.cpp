@@ -27,7 +27,7 @@ Configuration::Configuration(std::string file) : _file(file)
 
 Configuration::Configuration(Configuration const & copy) : _servers(copy._servers)
 {
-
+	//to complete
 }
 
 Configuration	&Configuration::operator=(Configuration const & rhs)
@@ -35,6 +35,7 @@ Configuration	&Configuration::operator=(Configuration const & rhs)
 	if (this != &rhs)
 	{
 		_servers = rhs._servers;
+		//to complete
 	}
 	return (*this);
 }

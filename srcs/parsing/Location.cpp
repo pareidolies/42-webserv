@@ -135,12 +135,12 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 
 void			Location::print_location(void)
 {
-	std::cout << ANSI_PURPLE << "location: " << ANSI_RESET << _locate << std::endl;
-	std::cout << ANSI_PURPLE << "root: " << ANSI_RESET << _root << std::endl;
-	std::cout << ANSI_PURPLE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
-	std::cout << ANSI_PURPLE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
-	std::cout << ANSI_PURPLE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
-	std::cout << ANSI_PURPLE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
-	std::cout << ANSI_PURPLE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
-	std::cout << ANSI_PURPLE << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_CYAN << "location: " << ANSI_RESET << _locate << std::endl;
+	std::cout << ANSI_CYAN << "root: " << ANSI_RESET << _root << std::endl;
+	std::cout << ANSI_CYAN << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
+	std::cout << ANSI_CYAN << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
+	std::cout << ANSI_CYAN << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_CYAN << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_CYAN << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_CYAN << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
 }

@@ -58,7 +58,6 @@ Server::~Server(void)
 *                             MEMBER FUNCTIONS                                *
 ******************************************************************************/
 
-
 bool	Server::check_client_max_body_size(std::string parameter)
 {
 	const char *str = parameter.c_str();
@@ -233,7 +232,7 @@ void			Server::print_server(void)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;
 	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
 	{	
-		std::cout << ANSI_YELLOW << "------ LOCATION  ------" << ANSI_RESET << std::endl;
+		std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
 		(*it)->print_location();
 		std::cout << std::endl;
 	}
