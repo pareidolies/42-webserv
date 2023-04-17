@@ -4,11 +4,21 @@
 # include <string>
 # include <iostream>
 
+int	check_filename(const char *name, const char *ext)
+{
+	int	x;
+
+	x = strlen(name) - strlen(ext);
+	if (strncmp(name + x, ext, strlen(ext)))
+		return (0);
+	return (1);
+}
+
 int main(const int argc, const char** argv)
 {
     std::string file;
 
-    if (argc > 2)
+    if (argc > 2 || (argc == 2 && !check_filename(argv[1], "conf")))
 	{
 		std::cerr << ANSI_RED << "Error: only one configuration file expected" << ANSI_RESET << std::endl;
 		return EXIT_FAILURE;

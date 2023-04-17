@@ -5,6 +5,7 @@
 # include "webserv.hpp"
 # include "utils.hpp"
 
+# include <cstring>
 # include <vector>
 # include <map>
 # include <netinet/in.h>
