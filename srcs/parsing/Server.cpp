@@ -74,8 +74,8 @@ bool	Server::check_client_max_body_size(std::string parameter)
 
 void	Server::init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> split)
 {
+
 	bool listening = false;
-	
 	it++;
 	while (it != split.end() && (*it).compare("}") != 0)
 	{
@@ -84,20 +84,16 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		std::string 			parameter;
 		std::string 			tmp;
 		size_t					find;
-		
 		std::string	whitespace = " \t\n\r\v\f";
 		std::string	type = "location";
-
 		//getline(ss, directive, ' '); //check if it's a tab which separates data OK
 		//getline(ss, parameter);
-
 		find = (*it).find_first_of(whitespace);
 		if (find == string::npos) 
 			find  = (*it).length();
 		directive = (*it).substr(0, find);
 		if (find != (*it).length()) 
 			parameter = (*it).substr(find + 1, (*it).length());
-
 		if(directive.compare("location") == 0)
 		{
 			if(check_second_bracket(++it, split, type))
@@ -115,7 +111,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			find = parameter.find_first_of(":");
 			if (find != string::npos)
 			{
-				this->_localhost = parameter.substr(0, find);
+				this->_host = parameter.substr(0, find);
 				parameter.erase(0, find + 1);
 			}
 			this->_port = atoi(((parameter).c_str()));
@@ -172,7 +168,6 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			std::string	num_str;
 			int			num;
 			std::string	path;
-
 			parameter = check_semicolon(parameter);
 			find = parameter.find_first_of(whitespace);
 			if (find != string::npos)
@@ -198,11 +193,14 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 				this->_clientMaxBodySize = atoi(parameter.c_str());
 		}
 		else
-			std::cout << ANSI_RED << "Error: unknown option detected: " << (*it) << ANSI_RESET << std::endl;
+		{
+			std::cout << ANSI_RED << "Error: [" << (*it) << "]" << ANSI_RESET;
+			throw Server::WrongConfLine();
+		}
 		it++;
 	}
 	if (listening == false || _port < 0)
-		std::cout << ANSI_RED << "Error: listening port not set or wrong port value" << ANSI_RESET << std::endl;
+		throw Server::NotListening();
 }
 
 /******************************************************************************
@@ -212,7 +210,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 void			Server::print_server(void)
 {
 	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
-	std::cout << ANSI_BLUE << "localhost: " << ANSI_RESET << _localhost << std::endl;
+	std::cout << ANSI_BLUE << "host: " << ANSI_RESET << _host << std::endl;
 	std::cout << ANSI_BLUE << "server name: " << ANSI_RESET << _serverName << std::endl;
 	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
 	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
@@ -242,3 +240,12 @@ void			Server::print_server(void)
 *                                 EXCEPTIONS                                  *
 ******************************************************************************/
 
+const char *	Server::WrongConfLine::what(void) const throw()
+{
+	return (" found in configuration file is unknown");
+}
+
+const char *	Server::NotListening::what(void) const throw()
+{
+	return ("Error: listening port not set or wrong port value");
+}

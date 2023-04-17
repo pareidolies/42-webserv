@@ -124,7 +124,10 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 				this->_autoindex = false;
 		}
 		else
-			std::cout << ANSI_RED << "Error: unknown option detected: " << (*it) << ANSI_RESET << std::endl;
+		{
+			std::cout << ANSI_RED << "Error: [" << (*it) << "]" << ANSI_RESET;
+			throw Location::WrongConfLine();
+		}
 		it++;
 	}
 }
@@ -143,4 +146,13 @@ void			Location::print_location(void)
 	std::cout << ANSI_CYAN << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_CYAN << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_CYAN << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
+}
+
+/******************************************************************************
+*                                 EXCEPTIONS                                  *
+******************************************************************************/
+
+const char *	Location::WrongConfLine::what(void) const throw()
+{
+	return (" found in configuration file is unknown");
 }

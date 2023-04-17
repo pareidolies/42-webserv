@@ -10,6 +10,12 @@ class Location
 {
 	public:
 
+		class WrongConfLine : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
+		
 		Location(void);
 		Location(std::string locate);
 		Location(Location const & copy);

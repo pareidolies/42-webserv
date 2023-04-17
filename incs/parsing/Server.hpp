@@ -8,12 +8,25 @@
 # include <cstring>
 # include <vector>
 # include <map>
+# include <exception>
 # include <netinet/in.h>
 # include <sys/types.h>
 
 class Server
 {
 	public:
+
+		class WrongConfLine : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
+
+		class NotListening : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
 
 		Server(void);
 		Server(Server const & copy);
@@ -36,7 +49,8 @@ class Server
 		//parsing
 		std::vector<Location*>				_locations;
 		int									_port;
-		std::string							_localhost;
+		std::string							_host;
+
 		std::string							_serverName;
 		int									_clientMaxBodySize;
 		std::string							_root;

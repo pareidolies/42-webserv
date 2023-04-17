@@ -28,10 +28,18 @@ int main(const int argc, const char** argv)
     else
         file = "./conf_files/default.conf";
 
-    Configuration	conf(file);
-    conf.open_and_read_file();
-    conf.init_config();
-    conf.print_all();
+    try
+    {
+        Configuration	conf(file);
+        conf.open_and_read_file();
+        conf.init_config();
+        conf.print_all();
+    }
+    catch(std::exception & e)
+	{
+		std::cout << ANSI_RED << e.what() << ANSI_RESET << std::endl;;
+	}
+   
 
     //TcpServer server = TcpServer("127.0.0.1", 8001);
     //server.startListen();
