@@ -219,6 +219,8 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		std::string path = "www/site/errorPages/404.html";
 		this->_errorPages.insert(std::make_pair(404, path));
 	}
+	if (_upload.empty()) //setting default upload
+		this->_upload = "/www/site";
 }
 
 /******************************************************************************
