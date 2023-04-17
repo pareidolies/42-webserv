@@ -40,18 +40,19 @@ class Server
 
 	private:
 
-		//set at initialization
+		//** set at initialization **
 		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
 		int									_service; //SOCK_STREAM, SOCK_DGRAM
 		int									_protocol; //use 0 for "any"
 		u_long								_interface; //needs to be set to INADDR_ANY
 		int									_backlog; //maximum number of queued clients
-		//parsing
+		//** parsing **
+		//-> only in server
 		std::vector<Location*>				_locations;
 		int									_port;
 		std::string							_host;
-
-		std::string							_serverName;
+		//-> both in server and location
+		std::vector<std::string>			_serverName;
 		int									_clientMaxBodySize;
 		std::string							_root;
 		std::string							_index;

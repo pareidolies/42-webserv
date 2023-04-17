@@ -120,7 +120,20 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("server_name") == 0) //if multiple server names?
 		{
 			parameter = check_semicolon(parameter);
-			this->_serverName = parameter;	
+			while (!parameter.empty())
+			{
+				find = parameter.find_first_of(whitespace);
+				if (find != string::npos)
+				{
+					_serverName.push_back(parameter.substr(0, find));
+					parameter = parameter.erase(0, find + 1);
+				}
+				else
+				{
+					_serverName.push_back(parameter);
+					break;
+				}
+			}
 		}
 		else if (directive.compare("root") == 0)
 		{
@@ -211,7 +224,11 @@ void			Server::print_server(void)
 {
 	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
 	std::cout << ANSI_BLUE << "host: " << ANSI_RESET << _host << std::endl;
-	std::cout << ANSI_BLUE << "server name: " << ANSI_RESET << _serverName << std::endl;
+	std::cout << ANSI_BLUE << "server names: " << ANSI_RESET << std::endl;
+	for(std::vector<std::string>::iterator it = this->_serverName.begin(); it != this->_serverName.end(); it++)
+	{	
+		std::cout << (*it) << ANSI_RESET << std::endl;
+	}
 	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
 	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
 	std::cout << ANSI_BLUE << "domain ip: " << ANSI_RESET << _domain << std::endl;
