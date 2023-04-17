@@ -214,6 +214,11 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 	}
 	if (listening == false || _port < 0)
 		throw Server::NotListening();
+	if (_errorPages.empty()) //setting default page
+	{
+		std::string path = "www/site/errorPages/404.html";
+		this->_errorPages.insert(std::make_pair(404, path));
+	}
 }
 
 /******************************************************************************
