@@ -1,5 +1,6 @@
 # include "webserv.hpp"
 # include "Configuration.hpp"
+# include "cgi.hpp"
 
 # include <string>
 # include <iostream>
@@ -33,6 +34,9 @@ int main(const int argc, const char** argv)
     conf.init_config();
     conf.print_all();
 
+    CGI cgi(conf);
+    cgi.execute();
+    
     // if (isCGI(file_.getMimeExtension()))
     {
         // CGI cgi(file_, config_, config_.getHeaders(), config_.getBody());
@@ -46,8 +50,8 @@ int main(const int argc, const char** argv)
         // return status_code_;
     }
 
-    TcpServer server = TcpServer("127.0.0.1", 8080);
-    server.startListen();
+    // TcpServer server = TcpServer("127.0.0.1", 8000);
+    // server.startListen();
     
     return EXIT_SUCCESS;
 }
