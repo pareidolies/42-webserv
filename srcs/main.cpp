@@ -33,8 +33,21 @@ int main(const int argc, const char** argv)
     conf.init_config();
     conf.print_all();
 
-    //TcpServer server = TcpServer("127.0.0.1", 8001);
-    //server.startListen();
+    // if (isCGI(file_.getMimeExtension()))
+    {
+        // CGI cgi(file_, config_, config_.getHeaders(), config_.getBody());
+        // cgi.init();
+        // cgi.init(worker_id_);
+        // if ((status_code_ = cgi.execute()) > 400)
+        //     return status_code_;
+        // cgi.parseHeaders(headers_);
+        // body_ = cgi.getBody();
+        // headers_["Content-Length"] = ft::to_string(body_.length());
+        // return status_code_;
+    }
+
+    // TcpServer server = TcpServer("127.0.0.1", 8080);
+    // server.startListen();
     
     return EXIT_SUCCESS;
 }

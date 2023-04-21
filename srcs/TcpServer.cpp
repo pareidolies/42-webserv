@@ -83,7 +83,7 @@ void TcpServer::startListen()
 void	TcpServer::getPayload(int &new_socket)
 {
 	int bytesReceived;
-	char buffer[BUFFER_SIZE] = {0};
+	char buffer[1024] = {0};
 
 	int valread = recv(m_new_socket, buffer, 1024, 0);
 	if (valread == -1)
