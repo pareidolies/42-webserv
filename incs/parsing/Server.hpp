@@ -27,6 +27,11 @@ class Server
 			public:
 				virtual const char * what(void) const throw(); 
 		};
+		class DirOrFileError : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
 
 		Server(void);
 		Server(Server const & copy);

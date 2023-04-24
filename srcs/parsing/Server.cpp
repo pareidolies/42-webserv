@@ -74,7 +74,6 @@ bool	Server::check_client_max_body_size(std::string parameter)
 
 void	Server::init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> split)
 {
-
 	bool listening = false;
 	it++;
 	while (it != split.end() && (*it).compare("}") != 0)
@@ -138,6 +137,11 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("root") == 0)
 		{
 			parameter = check_semicolon(parameter);
+			if (!dir_exists(parameter))
+			{
+				std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+				throw Server::DirOrFileError();
+			}
 			this->_root = parameter;
 		}
 		else if (directive.compare("index") == 0)
@@ -266,10 +270,15 @@ void			Server::print_server(void)
 
 const char *	Server::WrongConfLine::what(void) const throw()
 {
-	return (" found in configuration file is unknown");
+	return (" option found in configuration file is unknown");
 }
 
 const char *	Server::NotListening::what(void) const throw()
 {
 	return ("Error: listening port not set or wrong port value");
+}
+
+const char *	Server::DirOrFileError::what(void) const throw()
+{
+	return (" directory or file does not exist");
 }

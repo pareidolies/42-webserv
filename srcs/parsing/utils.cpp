@@ -3,6 +3,7 @@
 
 # include <vector>
 # include <iostream>
+# include <sys/stat.h>
 
 std::string	trim(const std::string & str, std::string & whitespace)
 {
@@ -61,4 +62,30 @@ bool	    check_second_bracket(std::vector<std::string>::iterator it, std::vector
 		return false;
 	}
 	return (true);
+}
+
+bool	    dir_exists(std::string str)
+{
+	struct stat		sb;
+
+	if (stat(str.c_str(), &sb) == 0)
+        return true;
+    return false;
+}
+
+bool	    file_exists(std::string str)
+{
+	std::ifstream	ifs(str.c_str());
+	
+	if (ifs.fail())
+        return false;
+	ifs.close();
+	return true; 
+}
+
+bool	    is_extension(std::string str)
+{
+	if((str).compare(".cgi") == 0 || (str).compare(".py") == 0)
+		return true;
+	return false;
 }

@@ -3,6 +3,7 @@
 
 # include <vector>
 # include <string>
+# include <map>
 
 # include "utils.hpp"
 
@@ -30,17 +31,18 @@ class Location
 
 		std::string					_locate;
 
+		std::vector<std::string>	_serverName;
+		int							_clientMaxBodySize;
 		bool						_get;
 		bool						_post;
 		bool						_delete;
-		int							_returnCode;
-		std::string					_redir;
 		std::string					_root;
 		std::string					_index;
 		bool						_autoindex;
 		std::string					_cgiFileExtension;
 		std::string					_cgiPathToScript;
 		std::string					_upload;
+		std::map<int, std::string>	_errorPages;
 };
 
 #endif
