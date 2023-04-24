@@ -77,6 +77,11 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 		if (directive.compare("root") == 0)
 		{
 			parameter = check_semicolon(parameter);
+			if (!dir_exists(parameter))
+			{
+				std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+				throw Location::DirOrFileError();
+			}
 			this->_root = parameter;
 		}
 		else if (directive.compare("index") == 0)
@@ -87,6 +92,11 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 		else if (directive.compare("upload") == 0)
 		{
 			parameter = check_semicolon(parameter);
+			if (!dir_exists(parameter))
+			{
+				std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+				throw Location::DirOrFileError();
+			}
 			this->_upload = parameter;
 		}
 		else if (directive.compare("http_methods") == 0)
@@ -111,6 +121,11 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 				this->_cgiFileExtension = parameter.substr(0, find);
 				parameter.erase(0, find + 1);
 				this->_cgiPathToScript = trim(parameter, whitespace);
+				if (!is_extension(this->_cgiFileExtension))
+				{
+					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+					throw Location::DirOrFileError();
+				}
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -155,4 +170,9 @@ void			Location::print_location(void)
 const char *	Location::WrongConfLine::what(void) const throw()
 {
 	return (" found in configuration file is unknown");
+}
+
+const char *	Location::DirOrFileError::what(void) const throw()
+{
+	return (" directory or file or extension does not exist");
 }

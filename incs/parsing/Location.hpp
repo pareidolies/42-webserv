@@ -16,6 +16,11 @@ class Location
 			public:
 				virtual const char * what(void) const throw(); 
 		};
+		class DirOrFileError : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
 		
 		Location(void);
 		Location(std::string locate);
