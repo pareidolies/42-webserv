@@ -75,7 +75,7 @@ bool	Configuration::open_and_read_file(void)
 		std::string 		tmp;
 		std::string			whitespace = " \t\n\r\v\f";
 		std::size_t			bracket;
-		
+
 		//splitting bracket from data and trimming spaces
 		bracket = line.find("{");
   		if (bracket!=std::string::npos)
@@ -105,6 +105,8 @@ bool	Configuration::open_and_read_file(void)
         return false;
 	}*/
 	ifs.close();
+	if (!check_brackets_number(_split))
+		throw Configuration::WrongBracketsNbr();
 	return true;
 }
 
@@ -141,4 +143,13 @@ void	Configuration::print_all(void)
 		(*it)->print_server();
 		std::cout << std::endl;
 	}
+}
+
+/******************************************************************************
+*                                 EXCEPTIONS                                  *
+******************************************************************************/
+
+const char *	Configuration::WrongBracketsNbr::what(void) const throw()
+{
+	return ("Error: Wrong brackets number");
 }
