@@ -152,6 +152,11 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("upload") == 0)
 		{
 			parameter = check_semicolon(parameter);
+			if (!dir_exists(parameter))
+			{
+				std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+				throw Server::DirOrFileError();
+			}
 			this->_upload = parameter;
 		}
 		else if (directive.compare("http_methods") == 0)
@@ -176,6 +181,11 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 				this->_cgiFileExtension = parameter.substr(0, find);
 				parameter.erase(0, find + 1);
 				this->_cgiPathToScript = trim(parameter, whitespace);
+				if (!is_extension(this->_cgiFileExtension))
+				{
+					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+					throw Server::DirOrFileError();
+				}
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -192,6 +202,11 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 				num_str = parameter.substr(0, find);
 				parameter.erase(0, find + 1);
 				path = trim(parameter, whitespace);
+				if (!file_exists(path))
+				{
+					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+					throw Server::DirOrFileError();
+				}
 			}
 			this->_errorPages.insert(std::make_pair(atoi(num_str.c_str()), path));
 		}
@@ -246,6 +261,7 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
+	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
 	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
 	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
 	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
@@ -280,5 +296,5 @@ const char *	Server::NotListening::what(void) const throw()
 
 const char *	Server::DirOrFileError::what(void) const throw()
 {
-	return (" directory or file does not exist");
+	return (" directory or file or extension does not exist");
 }

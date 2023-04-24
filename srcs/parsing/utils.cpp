@@ -85,7 +85,7 @@ bool	    file_exists(std::string str)
 
 bool	    is_extension(std::string str)
 {
-	if((str).compare(".cgi") == 0 || (str).compare(".py") == 0)
+	if((str).compare(".php") == 0 || (str).compare(".py") == 0 || (str).compare(".cgi") == 0)
 		return true;
 	return false;
 }
