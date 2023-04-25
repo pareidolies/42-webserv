@@ -21,7 +21,6 @@ class Server
 			public:
 				virtual const char * what(void) const throw(); 
 		};
-
 		class NotListening : public std::exception
 		{
 			public:

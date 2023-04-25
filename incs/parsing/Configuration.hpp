@@ -16,6 +16,11 @@ class Configuration
 			public:
 				virtual const char * what(void) const throw(); 
 		};
+		class NoServer : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
 
 		Configuration(void);
 		Configuration(std::string file);
