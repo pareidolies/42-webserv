@@ -162,15 +162,26 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("http_methods") == 0)
 		{
 			parameter = check_semicolon(parameter);
-			find = parameter.find("GET"); //+ check if separated by space
-  			if (find!=std::string::npos)
-				this->_get = true;
-			find = parameter.find("POST");
-  			if (find!=std::string::npos)
-				this->_post = true;
-			find = parameter.find("DELETE");
-  			if (find!=std::string::npos)
-				this->_delete = true;
+			while (!parameter.empty())
+			{
+				std::cout << parameter << std::endl;
+				find = parameter.find_first_of(whitespace);
+				if (find == string::npos)
+					find = parameter.end() - parameter.begin();
+
+				if (parameter.substr(0, find).compare("GET") == 0)
+					this->_get = true;
+				else if (parameter.substr(0, find).compare("POST") == 0)
+					this->_post = true;
+				else if (parameter.substr(0, find).compare("DELETE") == 0)
+					this->_delete = true;
+				else
+				{
+					std::cout << ANSI_RED << "Error: [" << (*it) << "]" << ANSI_RESET;
+					throw Server::WrongConfLine();
+				}
+				parameter = parameter.erase(0, find + 1);
+			}
 		}
 		else if (directive.compare("cgi") == 0) //if multiple
 		{

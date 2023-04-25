@@ -42,8 +42,8 @@ int main(const int argc, const char** argv)
 	}
    
 
-    CGI cgi(conf);
-    cgi.execute();
+    //CGI cgi(conf);
+    //cgi.execute();
     
     // if (isCGI(file_.getMimeExtension()))
     {
