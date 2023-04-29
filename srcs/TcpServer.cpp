@@ -99,17 +99,10 @@ void TcpServer::create_poll()
     int timeout = (3 * 60 * 1000);
     do
     {
-        printf("Waiting on poll()...\n");
         if ((rc = poll(fds, nfds, timeout)) < 0)
-        {
-            perror("  poll() failed");
             break;
-        }
         if (rc == 0)
-        {
-            printf("  poll() timed out.  End program.\n");
             break;
-        }
         current_size = nfds;
         for (int i = 0; i < current_size; i++)
         {
@@ -118,8 +111,8 @@ void TcpServer::create_poll()
             if (fds[i].revents != POLLIN)
             {
                 printf("  Error! revents = %d\n", fds[i].revents);
-            //     end_server = 1;
-                // break;
+                end_server = 1;
+                break;
             }
             if (fds[i].fd == m_socket)
             {
@@ -130,10 +123,7 @@ void TcpServer::create_poll()
                     if (new_sd < 0)
                     {
                         if (errno != EWOULDBLOCK)
-                        {
-                            perror("  accept() failed");
                             end_server = 1;
-                        }
                         break;
                     }
                     printf("  New incoming connection - %d\n", new_sd);
@@ -152,10 +142,7 @@ void TcpServer::create_poll()
                     if (rc < 0)
                     {
                         if (errno != EWOULDBLOCK)
-                        {
-                            perror("  recv() failed");
                             close_conn = 1;
-                        }
                         break;
                     }
                     if (rc == 0)
