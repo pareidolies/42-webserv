@@ -53,15 +53,10 @@ class TcpServer
         void	getHeader(int &new_socket);
         void	getPayload(int &new_socket);
         string	buildResponse();
-        void	sendResponse();
-
-
-        void create_socket();
-        void listen_server();
-        void create_poll();
-
-        Request& parse_request();
-        std::string process_request(const Request& request);
+        void	sendResponse(std::string response_str);
 };
+
+Request& parse_request(Request &m_request, char *m_buffer);
+std::string process_request(const Request& request);
 
 #endif
