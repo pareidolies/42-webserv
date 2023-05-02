@@ -6,12 +6,14 @@
 /*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/02 19:36:51 by sdesseau         ###   ########.fr       */
+/*   Updated: 2023/05/02 19:42:37 by sdesseau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include <sstream> // pour std::ostringstream
+
+std::string search_content_type(std::string filename);
 
 template <typename T>
 std::string to_string_custom(const T& value)

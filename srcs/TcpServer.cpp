@@ -74,7 +74,6 @@ void TcpServer::startListen()
 	int bytesReceived;
 	while (42)
 	{
-		char buffer[BUFFER_SIZE] = {0};
 		General::log("\n====== Waiting for a new connection ======");
 		acceptConnection(m_new_socket);
 		getPayload(m_new_socket);
