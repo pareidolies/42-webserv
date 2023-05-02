@@ -15,7 +15,7 @@ int	check_filename(const char *name, const char *ext)
 	return (1);
 }
 
-int main(const int argc, const char** argv)
+int main(const int argc, const char** argv, char **env)
 {
     std::string file;
 
@@ -35,7 +35,7 @@ int main(const int argc, const char** argv)
     conf.print_all();
 
     CGI cgi(conf);
-    cgi.execute();
+    cgi.execute(env);
     
     // if (isCGI(file_.getMimeExtension()))
     {

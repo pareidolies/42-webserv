@@ -30,7 +30,7 @@ public:
 
     void parsing();
     void init(int worker_id);
-    int execute();
+    int execute(char **env);
     bool setCGIEnv();
     void parseHeaders(map<string, string> &headers);
     string &getBody();

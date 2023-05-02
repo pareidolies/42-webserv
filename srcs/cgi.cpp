@@ -1,4 +1,6 @@
 #include "cgi.hpp"
+#include <fcntl.h>
+
 
 CGI::CGI(Configuration &conf) : _conf(conf)
 {
@@ -211,41 +213,92 @@ bool CGI::setCGIEnv() {
 #define WRITEEND 1
 #define READEND 0
 
-int CGI::execute()
+int CGI::execute(char **envp)
 {
-	char *args[] = { "/mnt/nfs/homes/ykuo/project/github/42-webserv/cgi/php-cgi_ubuntu", "/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php", NULL };
-	char *env[] = {
-        "REQUEST_METHOD=GET",
-        "QUERY_STRING=",
-        "CONTENT_TYPE=text/html",
-        "CONTENT_LENGTH=0",
-        NULL
-    };
+	(void ) envp;
+	std::string l1 = "/mnt/nfs/homes/ykuo/project/github/42-webserv/cgi/ubuntu_cgi_tester";
+	std::string l2 = "/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php";
+	std::string l3 = "REQUEST_METHOD=GET";
+	std::string l4 = "CONTENT_TYPE=text/html";
+	std::string l5 = "CONTENT_LENGTH=0";
+	std::string l6 = "SERVER_PROTOCOL=HTTP/1.1";
+	std::string l7 = "GATEWAY_INTERFACE=Cgi/1.1";
+	std::string l8 = "PATH_INFO=/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php";
+	std::string l9 = "PATH_TRANSLATED=/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php";
+	std::string l10 = "QUERY_STRING=";
+	std::string l11 = "REDIRECT_STATUS=200";
+	std::string l12 = "SERVER_PORT=8000";
+	
+	char *c1 = strdup(l1.c_str());
+	char *c2 = strdup(l2.c_str());
+	const char *c3 = l3.c_str();
+	const char *c4 = l4.c_str();
+	const char *c5 = l5.c_str();
+	const char *c6 = l6.c_str();
+	const char *c7 = l7.c_str();
+	const char *c8 = l8.c_str();
+	const char *c9 = l9.c_str();
+	const char *c10 = l10.c_str();
+	const char *c11 = l11.c_str();
+	const char *c12 = l12.c_str();
+	
 
-	int pipefd[2];
-	pipe(pipefd);
+	// char *args[] = { "/mnt/nfs/homes/ykuo/project/github/42-webserv/file.cgi", "/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php", NULL };
+	// char *env[] = {
+	// 	"REQUEST_METHOD=GET",
+	// 	"CONTENT_TYPE=text/html",
+	// 	"CONTENT_LENGTH=0",
+	// 	"SERVER_PROTOCOL=HTTP/1.1",
+	// 	"GATEWAY_INTERFACE=Cgi/1.1",
+	// 	"PATH_INFO=/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php",
+	// 	"PATH_TRANSLATED=/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php",	
+	// 	"QUERY_STRING=",
+	// 	"REDIRECT_STATUS=200",
+	// 	"SERVER_PORT=8000",
+	// 	NULL
+	// };
+
+	char *args[] = {c1, c2 , NULL };
+	char       **env;
+
+	env = (char**)malloc(sizeof(char *) * 10 + 1);
+	env[0] = strdup(l3.c_str());
+	env[1] = strdup(l4.c_str());
+	env[2] = strdup(l5.c_str());
+	env[3] = strdup(l6.c_str());
+	env[4] = strdup(l7.c_str());
+	env[5] = strdup(l8.c_str());
+	env[6] = strdup(l9.c_str());
+	env[7] = strdup(l10.c_str());
+	env[8] = strdup(l11.c_str());
+	env[9] = strdup(l12.c_str());
+	env[10] = NULL;
+
+	// int pipefd[2];
+	// pipe(pipefd);
 
 	pid_t pid = fork();
 	if (pid == 0)
 	{
 		// Child process: execute the CGI script
-		close(pipefd[READEND]);
-		dup2(pipefd[WRITEEND], STDOUT_FILENO);
-		int ret = execve("/mnt/nfs/homes/ykuo/project/github/42-webserv/cgi/php-cgi_ubuntu", args, env);
+		// close(pipefd[READEND]);
+		// dup2(pipefd[WRITEEND], STDOUT_FILENO);
+		//std::cout << "child" << std::endl;
+		int ret = execve(args[0], args, env);
 		perror("execve() failed");
 	} else if (pid > 0)
 	{
 		// Parent process: read the output of the CGI script
-		close(pipefd[WRITEEND]);
-		char buffer[1024];
-		int nread = read(pipefd[READEND], buffer, sizeof(buffer));
-		cout << "exec: " << nread << endl;
-		if (nread > 0)
-		{
-			cout << "exec_result" << endl;
-			printf("%.*s", nread, buffer);
-		}
-		close(pipefd[READEND]);
+		// close(pipefd[WRITEEND]);
+		// char buffer[1024];
+		// int nread = read(pipefd[READEND], buffer, sizeof(buffer));
+		cout << "exec: " <<  endl;
+		// if (nread > 0)
+		// {
+		// 	cout << "exec_result" << endl;
+		// 	printf("%.*s", nread, buffer);
+		// }
+		// close(pipefd[READEND]);
 	}
 
 	return (200);
