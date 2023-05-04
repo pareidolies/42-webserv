@@ -34,7 +34,10 @@ int main(const int argc, const char** argv)
         Configuration	conf(file);
         conf.open_and_read_file();
         conf.init_config();
-        conf.print_all();
+        // conf.print_all(); CGI cgi(conf);
+        // cgi.execute();
+        TcpServer server = TcpServer("127.0.0.1", 8000);
+        server.startListen();
     }
     catch(std::exception & e)
 	{
@@ -42,8 +45,7 @@ int main(const int argc, const char** argv)
 	}
    
 
-    //CGI cgi(conf);
-    //cgi.execute();
+   
     
     // if (isCGI(file_.getMimeExtension()))
     {
@@ -58,8 +60,6 @@ int main(const int argc, const char** argv)
         // return status_code_;
     }
 
-    TcpServer server = TcpServer("127.0.0.1", 8000);
-    server.startListen();
     
     return EXIT_SUCCESS;
 }

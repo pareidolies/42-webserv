@@ -6,7 +6,7 @@
 /*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/02 19:42:37 by sdesseau         ###   ########.fr       */
+/*   Updated: 2023/05/04 18:51:17 by sdesseau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,63 @@
 #include <sstream> // pour std::ostringstream
 
 std::string search_content_type(std::string filename);
+
+std::string get_boundary(const std::map<std::string, std::string>& headers)
+{
+    // Chercher la clé "Content-Type" dans les en-têtes de la requête
+    std::map<std::string, std::string>::const_iterator it = headers.find("Content-Type");
+    if (it != headers.end())
+    {
+        // Extraire la valeur du paramètre "boundary"
+        std::string content_type = it->second;
+        std::string boundary = content_type.substr(content_type.find("boundary=") + 9);
+        std::cout << "BIUNDARU = " << boundary << std::endl;
+        return "--" + boundary;
+    }
+    return "";
+}
+
+std::string get_filename(const std::string& content, const std::string& boundary)
+{
+    std::string filename = "";
+    std::istringstream stream(content);
+
+    // Ignorer les premières lignes jusqu'à la ligne de séparation
+    std::string line;
+    while (std::getline(stream, line))
+    {
+        if (line == boundary)
+            break;
+    }
+
+    // Chercher la ligne contenant le nom de fichier
+    while (std::getline(stream, line))
+    {
+        if (line.find("filename=") != std::string::npos)
+        {
+            filename = line.substr(line.find("filename=") + 10);
+            filename.erase(0, filename.find_first_not_of("\""));
+            filename.erase(filename.find_last_not_of("\"") + 1);
+            break;
+        }
+    }
+    std::cout << "FILENAME = " << filename << std::endl;
+    return filename;
+}
+
+void save_file(const std::string& path, const std::string& content)
+{
+    std::cout << "PATH = " << path << std::endl;
+    std::ofstream file(path.c_str());
+        std::cout << "SAVE FILE OPEN" << std::endl;
+    if (file.is_open())
+    {
+        std::cout << "FILE OPEN" << std::endl;
+        file << content;
+        file.close();
+    }
+    std::cout << "END FILE OPEN" << std::endl;
+}
 
 template <typename T>
 std::string to_string_custom(const T& value)
@@ -42,7 +99,7 @@ std::string process_request(const Request& request)
         // Traitement de la requête GET
         if (request.uri == "/")
         {
-            std::string body = read_file("pages/index.html");
+            std::string body = read_file("www/site/pages/index.html");
             std::string body_size = to_string_custom(body.size());
             response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
         }
@@ -54,7 +111,6 @@ std::string process_request(const Request& request)
             std::string body = read_file(filename);
             if (body == "") {
                 // Si le fichier n'existe pas, renvoyer une réponse 404
-
                 std::string content_type = "text/html";
 				body = read_file("www/site/errorPages/404.html");
                 std::string body_size = to_string_custom(body.size());
@@ -81,7 +137,30 @@ std::string process_request(const Request& request)
     else if (request.method == "POST")
     {
         // Traitement de la requête POST
-        response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+        if (request.uri == "/upload")
+        {
+            // Extraire les données du corps de la requête
+            std::string boundary = get_boundary(request.headers);
+            std::cout << "boundary = " << boundary << std::endl;
+            std::string content = request.body;
+            std::string filename = get_filename(content, boundary);
+
+            // Stocker le fichier dans un dossier spécifique
+            save_file(filename, content);
+
+            // Envoyer une réponse au client
+            std::string body = "<h1>Fichier enregistre</h1>";
+            std::string body_size = to_string_custom(body.size());
+            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+        }
+        // else if (request.uri == "/form")
+        // {
+        // }
+        else
+        {
+            // Si l'URI n'est pas "/upload", renvoyer une réponse 404
+            response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+        }
     }
     else
     {

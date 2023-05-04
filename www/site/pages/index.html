@@ -1,9 +1,46 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>This is the title of the webpage!</title>
-  </head>
-  <body>
-    <p>This is an example paragraph. Anything in the <strong>body</strong> tag will appear on the page, just like this <strong>p</strong> tag and its contents.</p>
-  </body>
+<head>
+	<meta charset="UTF-8">
+	<title>Accueil</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f0f0f0;
+		}
+		h1 {
+			text-align: center;
+			margin-top: 50px;
+			color: #444;
+		}
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 50px;
+		}
+		.button {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			background-color: #008CBA;
+			color: white;
+			font-weight: bold;
+			text-decoration: none;
+			text-align: center;
+			margin-bottom: 20px;
+		}
+		.button:hover {
+			background-color: #004555;
+		}
+	</style>
+</head>
+<body>
+	<h1>Bienvenue sur notre WEBSERV</h1>
+	<div class="container">
+		<a class="button" href="/www/site/pages/form.html">Formulaire</a>
+		<a class="button" href="/www/site/pages/comments.html">Commentaires</a>
+		<a class="button" href="/www/site/pages/upload.html">Upload/Download</a>
+	</div>
+</body>
 </html>

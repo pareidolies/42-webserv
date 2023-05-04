@@ -10,9 +10,9 @@ void CGI::parsing()
 {
 	cout << "parsing CGI." << endl;
 	
-	// // char *argv_tmp[3] = { "php-cgi", "/mnt/nfs/homes/ykuo/project/github/42-webserv/wwww/info.php", NULL };
+	// // char *argv_tmp[3] = { "php-cgi", "/mnt/nfs/homes/sdesseau/Desktop/webserv/new-untouched-04/wwww/info.php", NULL };
 	// this->_argv[0] = "php-cgi";
-	// this->_argv[1] = "/mnt/nfs/homes/ykuo/project/github/42-webserv/wwww/info.php";
+	// this->_argv[1] = "/mnt/nfs/homes/sdesseau/Desktop/webserv/new-untouched-04/wwww/info.php";
 	// this->_argv[2] = NULL;
 	// this->_env = {
 	// 	"REQUEST_METHOD=GET",
@@ -21,7 +21,7 @@ void CGI::parsing()
 	// 	"CONTENT_LENGTH=0",
 	// 	NULL
 	// };
-	this->_cgi_exe = "/mnt/nfs/homes/ykuo/project/github/42-webserv/cgi/php-cgi";
+	this->_cgi_exe = "/mnt/nfs/homes/sdesseau/Desktop/webserv/new-untouched-04/cgi/php-cgi";
 }
 
 // CGI::CGI(File &file, RequestConfig &config, std::map<std::string, std::string, ft::comp> &req_headers) : 
@@ -213,7 +213,7 @@ bool CGI::setCGIEnv() {
 
 int CGI::execute()
 {
-	char *args[] = { "/mnt/nfs/homes/ykuo/project/github/42-webserv/cgi/php-cgi_ubuntu", "/mnt/nfs/homes/ykuo/project/github/42-webserv/www/info.php", NULL };
+	char *args[] = { "/mnt/nfs/homes/sdesseau/Desktop/webserv/new-untouched-04/cgi/php-cgi_ubuntu", "/mnt/nfs/homes/sdesseau/Desktop/webserv/new-untouched-04/www/info.php", NULL };
 	char *env[] = {
         "REQUEST_METHOD=GET",
         "QUERY_STRING=",
@@ -231,8 +231,9 @@ int CGI::execute()
 		// Child process: execute the CGI script
 		close(pipefd[READEND]);
 		dup2(pipefd[WRITEEND], STDOUT_FILENO);
-		int ret = execve("/mnt/nfs/homes/ykuo/project/github/42-webserv/cgi/php-cgi_ubuntu", args, env);
+		int ret = execve("/mnt/nfs/homes/sdesseau/Desktop/webserv/new-untouched-04/cgi/php-cgi_ubuntu", args, env);
 		perror("execve() failed");
+		std::cout << "RET = " << ret << std::endl;
 	} else if (pid > 0)
 	{
 		// Parent process: read the output of the CGI script

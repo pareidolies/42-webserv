@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
+#include <string>
 #include "General.hpp"
 #include "TcpServer.hpp"
 #include "utils.hpp"
@@ -11,6 +13,8 @@
 #include "Request.hpp"
 
 using namespace std;
+
+#define FILEENAME_MAX 4096
 
 
 /******************************************************************************
