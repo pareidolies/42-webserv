@@ -45,7 +45,9 @@ Server::~Server(void)
 *                                  GETTERS                                    *
 ******************************************************************************/
 
+std::string					Server::getHost() const { return this->_host; }
 
+std::string					Server::getPort() const { return this->_port; }
 
 /******************************************************************************
 *                                  SETTERS                                    *

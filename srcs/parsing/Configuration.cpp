@@ -53,6 +53,7 @@ Configuration::~Configuration(void)
 *                                  GETTERS                                    *
 ******************************************************************************/
 
+std::vector<Server>	Configuration::getServers() const { return this->_servers; }
 
 /******************************************************************************
 *                             MEMBER FUNCTIONS                                *

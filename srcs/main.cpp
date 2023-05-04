@@ -58,7 +58,7 @@ int main(const int argc, const char** argv)
         // return status_code_;
     }
 
-    TcpServer server = TcpServer("127.0.0.1", 8000);
+    TcpServer server = TcpServer(conf);
     server.startListen();
     
     return EXIT_SUCCESS;

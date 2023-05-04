@@ -42,6 +42,9 @@ class Server
 		bool			check_client_max_body_size(std::string parameter);
 		void			print_server(void);
 
+		std::string		getHost() const;
+		std::string		getPort() const;
+
 	private:
 
 		//** set at initialization **

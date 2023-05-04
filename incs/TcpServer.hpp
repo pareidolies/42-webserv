@@ -16,6 +16,7 @@
 #include <sys/ioctl.h> // for ioctl
 
 #define BUFFER_SIZE 100
+#define NB_EVENTS 255
 
 using namespace std;
 
@@ -30,11 +31,15 @@ using namespace std;
 class TcpServer
 {
 	public:
-		TcpServer(string ip_address, int port);
+		TcpServer(Configuration conf);
 		~TcpServer();
 		void startListen();
 
 	private:
+
+		std::vector<Server*>		_servers;
+		std::vector<size_t>			_servers_fd;
+
 		string				m_ip_address;
 		int					m_port;
 		int					m_socket;

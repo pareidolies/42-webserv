@@ -33,6 +33,8 @@ class Configuration
 		void			init_config(void);
 		void			print_all(void);
 
+		std::vector<Server>	getServers() const;
+
 	private:
 
 		std::string					_file;
