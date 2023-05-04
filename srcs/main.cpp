@@ -58,8 +58,13 @@ int main(const int argc, const char** argv)
         // return status_code_;
     }
 
+<<<<<<< HEAD
     // TcpServer server = TcpServer("127.0.0.1", 8000);
     // server.startListen();
+=======
+    TcpServer server = TcpServer("127.0.0.1", 8000);
+    server.startListen();
+>>>>>>> origin/sdesseau
     
     return EXIT_SUCCESS;
 }

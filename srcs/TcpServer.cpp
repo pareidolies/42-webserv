@@ -43,9 +43,19 @@ TcpServer::~TcpServer()
 
 int TcpServer::startServer()
 {
+<<<<<<< HEAD
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_socket < 0)
 		General::exitWithError("Cannot create socket");
+=======
+    int optval = 1;
+
+	m_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_socket < 0)
+		General::exitWithError("Cannot create socket");
+    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
+        General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
+>>>>>>> origin/sdesseau
 	if (bind(m_socket, (sockaddr *)&m_socketAddress, m_socketAddress_len) < 0)
 		General::exitWithError("Cannot connect socket to address");
 	return (0);
@@ -70,12 +80,21 @@ void TcpServer::startListen()
 	int bytesReceived;
 	while (42)
 	{
+<<<<<<< HEAD
 		char buffer[BUFFER_SIZE] = {0};
 		General::log("\n====== Waiting for a new connection ======");
 		acceptConnection(m_new_socket);
 		getHeader(m_new_socket);
 		getPayload(m_new_socket);
 		sendResponse();
+=======
+		General::log("\n====== Waiting for a new connection ======");
+		acceptConnection(m_new_socket);
+		getPayload(m_new_socket);
+        parse_request(m_request, m_buffer);
+        std::string response_str = process_request(m_request);
+		sendResponse(response_str);
+>>>>>>> origin/sdesseau
 		close(m_new_socket);
 	}
 }
@@ -83,6 +102,7 @@ void TcpServer::startListen()
 void	TcpServer::getPayload(int &new_socket)
 {
 	int bytesReceived;
+<<<<<<< HEAD
 	char buffer[1024] = {0};
 
 	int valread = recv(m_new_socket, buffer, 1024, 0);
@@ -104,6 +124,14 @@ void	TcpServer::getHeader(int &new_socket)
 	string method = requestString.substr(0, requestString.find(' '));
 	General::log("Received HTTP method: " + method);
 	General::log("\nReceived header: \n" + string(requestString));
+=======
+
+	int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+	if (valread == -1)
+		General::exitWithError("Error in recv()");
+	else
+		General::log("\nReceived message: \n" + string(m_buffer));
+>>>>>>> origin/sdesseau
 }
 
 void TcpServer::acceptConnection(int &new_socket)
@@ -128,6 +156,7 @@ string TcpServer::buildResponse()
 	return ss.str();
 }
 
+<<<<<<< HEAD
 void TcpServer::sendResponse()
 {
 	long bytesSent;
@@ -141,4 +170,15 @@ void TcpServer::sendResponse()
 	}
 	else
 		General::log("Error sending response to client");
+=======
+void TcpServer::sendResponse(std::string response_str)
+{
+    if (send(m_new_socket, response_str.c_str(), response_str.size(), 0) < 0)
+	    General::log("Error sending response to client");
+    else
+    {
+	    General::log("------ Server Response sent to client ------\n");
+	    // General::log("Responsed message: \n" + response_str);
+    }
+>>>>>>> origin/sdesseau
 }

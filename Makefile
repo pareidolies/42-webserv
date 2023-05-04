@@ -48,7 +48,13 @@ SRCS_PARSER	=	parsing/Configuration.cpp \
 SRCS		=	$(SRCS_PARSER)
 SRCS		+=	$(SRCS_SOCKET)
 SRCS		+=	$(SRCS_CGI)
+<<<<<<< HEAD
 SRCS		+=	main.cpp
+=======
+SRCS		+=	main.cpp \
+				Request.cpp \
+				Response.cpp
+>>>>>>> origin/sdesseau
 				
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
