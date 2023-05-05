@@ -25,6 +25,7 @@ using namespace std;
         std::string uri;                             // URI de la ressource demandée
         std::map<std::string, std::string> headers;  // en-têtes de la requête
         std::string body;                            // corps de la requête
+		std::string raw_request;
     };
 
 class TcpServer

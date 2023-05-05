@@ -80,19 +80,44 @@ void TcpServer::startListen()
         parse_request(m_request, m_buffer);
         std::string response_str = process_request(m_request);
 		sendResponse(response_str);
+		memset(m_buffer, 0, sizeof(m_buffer));
 		close(m_new_socket);
 	}
 }
 
-void	TcpServer::getPayload(int &new_socket)
+void TcpServer::getPayload(int &new_socket)
 {
-	int bytesReceived;
+    int content_length = 0;
+    char *body_start = NULL;
+    char *content_length_str = NULL;
+    int bytesReceived = 0;
 
-	int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-	if (valread == -1)
-		General::exitWithError("Error in recv()");
-	else
-		General::log("\nReceived message: \n" + string(m_buffer));
+    // Read the request headers to find the Content-Length header
+    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+    if (valread == -1)
+        General::exitWithError("Error in recv()");
+
+    // Find the start of the request body
+    body_start = strstr(m_buffer, "\r\n\r\n");
+    if (body_start != NULL) {
+        body_start += 4;
+        // Look for the Content-Length header
+        content_length_str = strstr(m_buffer, "Content-Length: ");
+        if (content_length_str != NULL) {
+            content_length_str += strlen("Content-Length: ");
+            content_length = atoi(content_length_str);
+            // Make sure we have enough space in the buffer
+            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
+                General::exitWithError("Payload too large for buffer");
+            }
+            // Read the payload
+            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
+            if (bytesReceived == -1)
+                General::exitWithError("Error in recv()");
+        }
+    }
+	m_request.raw_request = std::string(m_buffer);
+    General::log("\nReceived message: \n" + string(m_buffer));
 }
 
 void TcpServer::acceptConnection(int &new_socket)

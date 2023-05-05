@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: stan <stan@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/04 18:51:17 by sdesseau         ###   ########.fr       */
+/*   Updated: 2023/05/05 18:52:24 by stan             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,17 +15,21 @@
 
 std::string search_content_type(std::string filename);
 
-std::string get_boundary(const std::map<std::string, std::string>& headers)
+std::string get_boundary(const std::string& request)
 {
-    // Chercher la clé "Content-Type" dans les en-têtes de la requête
-    std::map<std::string, std::string>::const_iterator it = headers.find("Content-Type");
-    if (it != headers.end())
+    // Chercher la clé "Content-Type" dans la requête
+    size_t pos = request.find("Content-Type: multipart/form-data;");
+    if (pos != std::string::npos)
     {
         // Extraire la valeur du paramètre "boundary"
-        std::string content_type = it->second;
-        std::string boundary = content_type.substr(content_type.find("boundary=") + 9);
-        std::cout << "BIUNDARU = " << boundary << std::endl;
-        return "--" + boundary;
+        pos = request.find("boundary=", pos);
+        if (pos != std::string::npos) {
+            pos += 9;
+            size_t end_pos = request.find("\r\n", pos);
+            std::string boundary = request.substr(pos, end_pos - pos);
+            std::cout << "BOUNDARY = " << boundary << std::endl;
+            return "--" + boundary;
+        }
     }
     return "";
 }
@@ -46,8 +50,10 @@ std::string get_filename(const std::string& content, const std::string& boundary
     // Chercher la ligne contenant le nom de fichier
     while (std::getline(stream, line))
     {
+        std::cout << "LINE = " << line << std::endl;
         if (line.find("filename=") != std::string::npos)
         {
+            std::cout << "FIND FILENAME" << std::endl;
             filename = line.substr(line.find("filename=") + 10);
             filename.erase(0, filename.find_first_not_of("\""));
             filename.erase(filename.find_last_not_of("\"") + 1);
@@ -137,19 +143,19 @@ std::string process_request(const Request& request)
     else if (request.method == "POST")
     {
         // Traitement de la requête POST
-        if (request.uri == "/upload")
+        if (request.uri == "/www/site/pages/upload_complete.html")
         {
             // Extraire les données du corps de la requête
-            std::string boundary = get_boundary(request.headers);
-            std::cout << "boundary = " << boundary << std::endl;
-            std::string content = request.body;
+            std::string boundary = get_boundary(request.raw_request);
+            std::string content = request.raw_request;
+            std::cout << "CONTENT = " << content << std::endl;
             std::string filename = get_filename(content, boundary);
 
             // Stocker le fichier dans un dossier spécifique
             save_file(filename, content);
 
             // Envoyer une réponse au client
-            std::string body = "<h1>Fichier enregistre</h1>";
+            std::string body = read_file("www/site/pages/upload_complete.html");
             std::string body_size = to_string_custom(body.size());
             response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
         }

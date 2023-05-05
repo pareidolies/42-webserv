@@ -11,8 +11,8 @@
 		<nav>
 			<ul>
 				<li><a href="/">Accueil</a></li>
-				<li><a href="/form">Formulaire de contact</a></li>
-				<li><a href="/comments">Commentaires</a></li>
+				<li><a href="/www/site/pages/form.html">Formulaire de contact</a></li>
+				<li><a href="/www/site/pages/comments.html">Commentaires</a></li>
 			</ul>
 		</nav>
 	</header>
@@ -20,47 +20,13 @@
 	<main>
 		<section>
 			<h2>Uploader un fichier</h2>
-			<form action="/upload" method="post" enctype="multipart/form-data">
+			<form action="/www/site/pages/upload_complete.html" method="post" enctype="multipart/form-data">
 				<label for="file">Fichier :</label>
 				<input type="file" id="file" name="file" required>
 				<button type="submit">Uploader</button>
 			</form>
 		</section>
 
-		<section>
-			<h2>Liste des fichiers uploadés</h2>
-			<ul id="files">
-				<!-- les fichiers seront affichés ici dynamiquement avec JavaScript -->
-			</ul>
-		</section>
 	</main>
-
-	<footer>
-		<p>© 2023 MonSiteWeb.com</p>
-	</footer>
-	
-	<script src="app.js"></script>
-	<script>
-		// Code pour afficher la liste des fichiers uploadés
-		const filesList = document.getElementById('files');
-
-		// Fonction pour récupérer la liste des fichiers
-		function getFilesList() {
-			fetch('/files')
-			.then(response => response.json())
-			.then(data => {
-				// Créer un élément "li" pour chaque fichier et l'ajouter à la liste
-				data.forEach(file => {
-					const li = document.createElement('li');
-					li.innerHTML = file.name;
-					filesList.appendChild(li);
-				});
-			})
-			.catch(error => console.error(error));
-		}
-
-		// Appeler la fonction pour afficher la liste des fichiers au chargement de la page
-		getFilesList();
-	</script>
 </body>
 </html>

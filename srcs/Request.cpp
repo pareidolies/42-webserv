@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
+/*   By: stan <stan@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:41:57 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/04 18:49:41 by sdesseau         ###   ########.fr       */
+/*   Updated: 2023/05/05 18:42:28 by stan             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,12 @@ void print_headers(const std::map<std::string, std::string>& headers)
     std::cout << "Content-Type: " << it->second << std::endl;
 }
 
-Request& parse_request(Request &m_request, char *m_buffer) {
+Request& parse_request(Request &m_request, char *buffer) {
     std::stringstream request_stream;                                                                                   
-    request_stream << m_buffer;                                                                      
+    request_stream << buffer;                                                                      
     std::string line;                                                                               
     bool headers_done = false;   
-    std::cout << "BUFFER :::: "<< m_buffer << "END BUFFER          " << std::endl;  
+    // std::cout << "BUFFER :::: "<< request_stream.str() << "END BUFFER          " << std::endl;  
     if (std::getline(request_stream, line) && !line.empty())
     {
         m_request.method = line.substr(0, line.find(" "));
