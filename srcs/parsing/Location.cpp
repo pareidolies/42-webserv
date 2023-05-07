@@ -77,6 +77,11 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 		if (directive.compare("root") == 0)
 		{
 			parameter = check_semicolon(parameter);
+			if (!dir_exists(parameter))
+			{
+				std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+				throw Location::DirOrFileError();
+			}
 			this->_root = parameter;
 		}
 		else if (directive.compare("index") == 0)
@@ -87,20 +92,36 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 		else if (directive.compare("upload") == 0)
 		{
 			parameter = check_semicolon(parameter);
+			if (!dir_exists(parameter))
+			{
+				std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+				throw Location::DirOrFileError();
+			}
 			this->_upload = parameter;
 		}
 		else if (directive.compare("http_methods") == 0)
 		{
 			parameter = check_semicolon(parameter);
-			find = parameter.find("GET"); //+ check if separated by space
-  			if (find!=std::string::npos)
-				this->_get = true;
-			find = parameter.find("POST");
-  			if (find!=std::string::npos)
-				this->_post = true;
-			find = parameter.find("DELETE");
-  			if (find!=std::string::npos)
-				this->_delete = true;
+			while (!parameter.empty())
+			{
+				std::cout << parameter << std::endl;
+				find = parameter.find_first_of(whitespace);
+				if (find == string::npos)
+					find = parameter.end() - parameter.begin();
+
+				if (parameter.substr(0, find).compare("GET") == 0)
+					this->_get = true;
+				else if (parameter.substr(0, find).compare("POST") == 0)
+					this->_post = true;
+				else if (parameter.substr(0, find).compare("DELETE") == 0)
+					this->_delete = true;
+				else
+				{
+					std::cout << ANSI_RED << "Error: [" << (*it) << "]" << ANSI_RESET;
+					throw Location::WrongConfLine();
+				}
+				parameter = parameter.erase(0, find + 1);
+			}
 		}
 		else if (directive.compare("cgi") == 0) //if multiple
 		{
@@ -111,6 +132,11 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 				this->_cgiFileExtension = parameter.substr(0, find);
 				parameter.erase(0, find + 1);
 				this->_cgiPathToScript = trim(parameter, whitespace);
+				if (!is_extension(this->_cgiFileExtension))
+				{
+					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
+					throw Location::DirOrFileError();
+				}
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -124,7 +150,10 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 				this->_autoindex = false;
 		}
 		else
-			std::cout << ANSI_RED << "Error: unknown option detected: " << (*it) << ANSI_RESET << std::endl;
+		{
+			std::cout << ANSI_RED << "Error: [" << (*it) << "]" << ANSI_RESET;
+			throw Location::WrongConfLine();
+		}
 		it++;
 	}
 }
@@ -143,4 +172,18 @@ void			Location::print_location(void)
 	std::cout << ANSI_CYAN << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_CYAN << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_CYAN << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
+}
+
+/******************************************************************************
+*                                 EXCEPTIONS                                  *
+******************************************************************************/
+
+const char *	Location::WrongConfLine::what(void) const throw()
+{
+	return (" found in configuration file is unknown");
+}
+
+const char *	Location::DirOrFileError::what(void) const throw()
+{
+	return (" directory or file or extension does not exist");
 }

@@ -75,7 +75,6 @@ bool	Configuration::open_and_read_file(void)
 		std::string 		tmp;
 		std::string			whitespace = " \t\n\r\v\f";
 		std::size_t			bracket;
-		
 		//splitting bracket from data and trimming spaces
 		bracket = line.find("{");
   		if (bracket!=std::string::npos)
@@ -99,12 +98,9 @@ bool	Configuration::open_and_read_file(void)
 		if (!trim(tmp, whitespace).empty() && line.find("#")==std::string::npos) //remove empty lines and comments lines
 			_split.push_back(trim(tmp, whitespace));
 	}
-	/*if (this->_servers.empty())
-	{
-		std::cout << ANSI_RED << "Error: No server information in the file" << ANSI_RESET << std::endl;
-        return false;
-	}*/
 	ifs.close();
+	if (!check_brackets_number(_split))
+		throw Configuration::WrongBracketsNbr();
 	return true;
 }
 
@@ -124,6 +120,8 @@ void	Configuration::init_config(void)
 			}
 		}
 	}
+	if (this->_servers.empty())
+		throw Configuration::NoServer();
 	//print_vector(_split);
 }
 
@@ -141,4 +139,18 @@ void	Configuration::print_all(void)
 		(*it)->print_server();
 		std::cout << std::endl;
 	}
+}
+
+/******************************************************************************
+*                                 EXCEPTIONS                                  *
+******************************************************************************/
+
+const char *	Configuration::WrongBracketsNbr::what(void) const throw()
+{
+	return ("Error: Wrong brackets number");
+}
+
+const char *	Configuration::NoServer::what(void) const throw()
+{
+	return ("Error: No server information in the file");
 }

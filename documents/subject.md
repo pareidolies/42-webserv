@@ -1,16 +1,14 @@
 ### Parts
 
-- Socket
-- Parsing
-- Response
-- cgi
-- Configuration
+- [X] Socket
+- [ ] Parsing
+- [ ] Event Manager / Client
+- [ ] Response / Request (header, body)
+- [ ] cgi
 
-- Request
-- Default Page
-- Header
-- Event Manager
-- Client
+- [ ] Default Page
+- [X] Error pages
+- [ ] Website
 
 
 ---

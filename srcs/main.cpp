@@ -30,13 +30,22 @@ int main(const int argc, const char** argv, char **env)
     else
         file = "./conf_files/default.conf";
 
-    Configuration	conf(file);
-    conf.open_and_read_file();
-    conf.init_config();
-    // conf.print_all();
-
-    CGI cgi(conf);
-    cgi.execute();
+    try
+    {
+        Configuration	conf(file);
+        conf.open_and_read_file();
+        conf.init_config();
+        // conf.print_all(); 
+        CGI cgi(conf);
+        cgi.execute();
+        TcpServer server = TcpServer("127.0.0.1", 8000);
+        server.startListen();
+    }
+    catch(std::exception & e)
+	{
+		std::cout << ANSI_RED << e.what() << ANSI_RESET << std::endl;;
+	}
+   
     
     // if (isCGI(file_.getMimeExtension()))
     {
@@ -51,8 +60,6 @@ int main(const int argc, const char** argv, char **env)
         // return status_code_;
     }
 
-    // TcpServer server = TcpServer("127.0.0.1", 8000);
-    // server.startListen();
     
     return EXIT_SUCCESS;
 }

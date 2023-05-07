@@ -8,12 +8,29 @@
 # include <cstring>
 # include <vector>
 # include <map>
+# include <exception>
 # include <netinet/in.h>
 # include <sys/types.h>
 
 class Server
 {
 	public:
+
+		class WrongConfLine : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
+		class NotListening : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
+		class DirOrFileError : public std::exception
+		{
+			public:
+				virtual const char * what(void) const throw(); 
+		};
 
 		Server(void);
 		Server(Server const & copy);
@@ -27,17 +44,19 @@ class Server
 
 	private:
 
-		//set at initialization
+		//** set at initialization **
 		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
 		int									_service; //SOCK_STREAM, SOCK_DGRAM
 		int									_protocol; //use 0 for "any"
 		u_long								_interface; //needs to be set to INADDR_ANY
 		int									_backlog; //maximum number of queued clients
-		//parsing
+		//** parsing **
+		//-> only in server
 		std::vector<Location*>				_locations;
 		int									_port;
-		std::string							_localhost;
-		std::string							_serverName;
+		std::string							_host;
+		//-> both in server and location
+		std::vector<std::string>			_serverName;
 		int									_clientMaxBodySize;
 		std::string							_root;
 		std::string							_index;

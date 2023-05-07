@@ -3,6 +3,7 @@
 
 # include <vector>
 # include <iostream>
+# include <sys/stat.h>
 
 std::string	trim(const std::string & str, std::string & whitespace)
 {
@@ -44,6 +45,24 @@ std::string check_semicolon(std::string str)
 	return (str);
 }
 
+bool	    check_brackets_number(std::vector<std::string> _vector)
+{
+	std::vector<std::string>::iterator	it;
+	int									open = 0;
+	int									close = 0;
+
+	for (it = _vector.begin(); it != _vector.end(); it++)
+	{
+		if (*it == "{")
+			open++;
+		if (*it == "}")
+			close++;
+	}
+	if (open == close)
+		return true;
+	return false;
+}
+
 bool	    check_second_bracket(std::vector<std::string>::iterator it, std::vector<std::string> vector, std::string & type)
 {
 	while (it != vector.end() && (*it).compare("}") != 0)
@@ -61,4 +80,30 @@ bool	    check_second_bracket(std::vector<std::string>::iterator it, std::vector
 		return false;
 	}
 	return (true);
+}
+
+bool	    dir_exists(std::string str)
+{
+	struct stat		sb;
+
+	if (stat(str.c_str(), &sb) == 0)
+        return true;
+    return false;
+}
+
+bool	    file_exists(std::string str)
+{
+	std::ifstream	ifs(str.c_str());
+	
+	if (ifs.fail())
+        return false;
+	ifs.close();
+	return true; 
+}
+
+bool	    is_extension(std::string str)
+{
+	if((str).compare(".php") == 0 || (str).compare(".py") == 0 || (str).compare(".cgi") == 0)
+		return true;
+	return false;
 }

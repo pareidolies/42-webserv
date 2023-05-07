@@ -1,6 +1,5 @@
 # include "webserv.hpp"
 
-
 /*
 	TCP server setup flow:
 		socket: create socket
@@ -43,9 +42,13 @@ TcpServer::~TcpServer()
 
 int TcpServer::startServer()
 {
+    int optval = 1;
+
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_socket < 0)
 		General::exitWithError("Cannot create socket");
+    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
+        General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
 	if (bind(m_socket, (sockaddr *)&m_socketAddress, m_socketAddress_len) < 0)
 		General::exitWithError("Cannot connect socket to address");
 	return (0);
@@ -70,40 +73,50 @@ void TcpServer::startListen()
 	int bytesReceived;
 	while (42)
 	{
-		char buffer[BUFFER_SIZE] = {0};
 		General::log("\n====== Waiting for a new connection ======");
 		acceptConnection(m_new_socket);
-		getHeader(m_new_socket);
 		getPayload(m_new_socket);
-		sendResponse();
+        parse_request(m_request, m_buffer);
+        std::string response_str = process_request(m_request);
+		sendResponse(response_str);
+		memset(m_buffer, 0, sizeof(m_buffer));
 		close(m_new_socket);
 	}
 }
 
-void	TcpServer::getPayload(int &new_socket)
+void TcpServer::getPayload(int &new_socket)
 {
-	int bytesReceived;
-	char buffer[1024] = {0};
+    int content_length = 0;
+    char *body_start = NULL;
+    char *content_length_str = NULL;
+    int bytesReceived = 0;
 
-	int valread = recv(m_new_socket, buffer, 1024, 0);
-	if (valread == -1)
-		General::exitWithError("Error in recv()");
-	else
-		General::log("\nReceived message: \n" + string(buffer));
-}
+    // Read the request headers to find the Content-Length header
+    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+    if (valread == -1)
+        General::exitWithError("Error in recv()");
 
-void	TcpServer::getHeader(int &new_socket)
-{
-	int bytesReceived;
-	char buffer[BUFFER_SIZE] = {0};
-
-	bytesReceived = read(m_new_socket, buffer, BUFFER_SIZE);
-	if (bytesReceived < 0)
-		General::exitWithError("Failed to read bytes from client socket connection");
-	string requestString(buffer);
-	string method = requestString.substr(0, requestString.find(' '));
-	General::log("Received HTTP method: " + method);
-	General::log("\nReceived header: \n" + string(requestString));
+    // Find the start of the request body
+    body_start = strstr(m_buffer, "\r\n\r\n");
+    if (body_start != NULL) {
+        body_start += 4;
+        // Look for the Content-Length header
+        content_length_str = strstr(m_buffer, "Content-Length: ");
+        if (content_length_str != NULL) {
+            content_length_str += strlen("Content-Length: ");
+            content_length = atoi(content_length_str);
+            // Make sure we have enough space in the buffer
+            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
+                General::exitWithError("Payload too large for buffer");
+            }
+            // Read the payload
+            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
+            if (bytesReceived == -1)
+                General::exitWithError("Error in recv()");
+        }
+    }
+	m_request.raw_request = std::string(m_buffer);
+    General::log("\nReceived message: \n" + string(m_buffer));
 }
 
 void TcpServer::acceptConnection(int &new_socket)
@@ -128,17 +141,13 @@ string TcpServer::buildResponse()
 	return ss.str();
 }
 
-void TcpServer::sendResponse()
+void TcpServer::sendResponse(std::string response_str)
 {
-	long bytesSent;
-
-	bytesSent = write(m_new_socket, m_serverMessage.c_str(), m_serverMessage.size());
-
-	if (bytesSent == m_serverMessage.size())
-	{
-		General::log("------ Server Response sent to client ------\n");
-		General::log("Responsed message: \n" + m_serverMessage);
-	}
-	else
-		General::log("Error sending response to client");
+    if (send(m_new_socket, response_str.c_str(), response_str.size(), 0) < 0)
+	    General::log("Error sending response to client");
+    else
+    {
+	    General::log("------ Server Response sent to client ------\n");
+	    // General::log("Responsed message: \n" + response_str);
+    }
 }
