@@ -63,8 +63,6 @@ void CGI::init(int worker_id)
 	this->_cgi_env["CONTENT_LENGTH"] = "0";
 	this->_cgi_env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_cgi_env["GATEWAY_INTERFACE"] = "Cgi/1.1";
-	this->_cgi_env["PATH_INFO"] = this->_file_path;
-	this->_cgi_env["PATH_TRANSLATED"] = this->_file_path;
 	this->_cgi_env[ "SERVER_PORT"] = "8080";
 }
 
@@ -91,8 +89,8 @@ bool CGI::setCGIEnv()
 	// 	_cgi_env["CONTENT_LENGTH"] = General::to_string(_req_body.length());
 	// }
 	_cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	// _cgi_env["PATH_INFO"] = _file_path;
-	// _cgi_env["PATH_TRANSLATED"] = _file_path;
+	_cgi_env["PATH_INFO"] = this->_file_path;
+	_cgi_env["PATH_TRANSLATED"] = this->_file_path;
 	// _cgi_env["QUERY_STRING"] = _config.getQuery();
 	// _cgi_env["REMOTE_ADDR"] = _config.getClient().getAddr();
 
@@ -161,13 +159,13 @@ int CGI::execute()
 	{
 		// if (chdir(_file_path.substr(0, _file_path.find_last_of('/')).c_str()) == -1)
 		// 	return (500);
-		close(pip[READEND]);
-		dup2(pip[WRITEEND], STDOUT_FILENO);
+		if (dup2(pip[WRITEEND], STDOUT_FILENO) == -1)
+			return (500);
 		// if (dup2(pip[0], 0) == -1)
 		// 	return (500);
 		// if (dup2(_tmp_file.getFd(), 1) == -1)
 		// 	return (500);
-		// close(pip[0]);
+		close(pip[READEND]);
 		execve(_argv[0], _argv, _env);
 		exit(1);
 	}
