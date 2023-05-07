@@ -17,6 +17,7 @@ int	check_filename(const char *name, const char *ext)
 
 int main(const int argc, const char** argv, char **env)
 {
+    (void)env;
     std::string file;
 
     if (argc > 2 || (argc == 2 && !check_filename(argv[1], "conf")))
@@ -32,10 +33,10 @@ int main(const int argc, const char** argv, char **env)
     Configuration	conf(file);
     conf.open_and_read_file();
     conf.init_config();
-    conf.print_all();
+    // conf.print_all();
 
     CGI cgi(conf);
-    cgi.execute(env);
+    cgi.execute();
     
     // if (isCGI(file_.getMimeExtension()))
     {
