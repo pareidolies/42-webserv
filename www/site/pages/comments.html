@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Commentaires</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<header>
+		<h1>Commentaires</h1>
+		<nav>
+			<ul>
+				<li><a href="/">Accueil</a></li>
+				<li><a href="/www/site/pages/form.html">Formulaire de contact</a></li>
+				<li><a href="/www/site/pages/upload.html">Upload de fichiers</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		<section>
+			<h2>Laissez un commentaire</h2>
+			<form action="/comment" method="post">
+				<label for="name">Nom :</label>
+				<input type="text" id="name" name="name" required>
+				<label for="email">Email :</label>
+				<input type="text" id="email" name="email" required>
+				<label for="comment">Commentaire :</label>
+				<textarea id="comment" name="comment" required></textarea>
+				<button type="submit">Envoyer</button>
+			</form>
+		</section>
+
+		<section>
+			<h2>Liste des commentaires</h2>
+			<ul id="comments">
+				<!-- les commentaires seront ajoutés ici dynamiquement avec JavaScript -->
+			</ul>
+		</section>
+	</main>
+
+	<footer>
+		<p>© 2023 MonSiteWeb.com</p>
+	</footer>
+	
+	<script src="app.js"></script>
+</body>
+</html>

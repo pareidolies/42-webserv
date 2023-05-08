@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Upload de fichiers</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<header>
+		<h1>Upload de fichiers</h1>
+		<nav>
+			<ul>
+				<li><a href="/">Accueil</a></li>
+				<li><a href="/www/site/pages/form.html">Formulaire de contact</a></li>
+				<li><a href="/www/site/pages/comments.html">Commentaires</a></li>
+			</ul>
+		</nav>
+	</header>
+
+	<main>
+		<section>
+			<h2>Uploader un fichier</h2>
+			<form action="/www/site/pages/upload_complete.html" method="post" enctype="multipart/form-data">
+				<label for="file">Fichier :</label>
+				<input type="file" id="file" name="file" required>
+				<button type="submit">Uploader</button>
+			</form>
+		</section>
+
+	</main>
+</body>
+</html>
