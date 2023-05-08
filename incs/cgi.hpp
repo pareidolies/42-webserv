@@ -46,7 +46,7 @@ class CGI {
         string              _cwd;
         string              _file_path;
         string              _body;
-        // string          _req_body;
+        string              _req_body;
         // File            _tmp_file;
         map<string, string> _cgi_env;
         char                **_env;

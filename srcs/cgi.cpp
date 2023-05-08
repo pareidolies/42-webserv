@@ -59,11 +59,11 @@ void CGI::init(int worker_id)
 	this->_file_path = this->_cwd + "/www/info.php";
 
 	this->_cgi_env["REQUEST_METHOD"] = "GET";
-	this->_cgi_env["CONTENT_TYPE"] = "text/html";
+	this->_cgi_env["CONTENT_TYPE"] = "application/x-www-form-urlencoded";
 	this->_cgi_env["CONTENT_LENGTH"] = "0";
 	this->_cgi_env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	this->_cgi_env["GATEWAY_INTERFACE"] = "Cgi/1.1";
-	this->_cgi_env[ "SERVER_PORT"] = "8080";
+	this->_cgi_env[ "SERVER_PORT"] = "8000";
 }
 
 // CGI::CGI(File &file, RequestConfig &config, std::map<std::string, std::string, General::comp> &req_headers) : 
@@ -91,7 +91,12 @@ bool CGI::setCGIEnv()
 	_cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	_cgi_env["PATH_INFO"] = this->_file_path;
 	_cgi_env["PATH_TRANSLATED"] = this->_file_path;
-	// _cgi_env["QUERY_STRING"] = _config.getQuery();
+	_cgi_env["QUERY_STRING"] = "name=John+Doe&age=38";
+	_cgi_env["REQUEST_METHOD"] = "POST";
+	_cgi_env["CONTENT_LENGTH"] = "19";
+	_cgi_env["CONTENT_TYPE"] = "application/x-www-form-urlencoded"; //"application/x-www-form-urlencoded";
+	// _cgi_env["PAYLOAD"] = "name=John+Doe&age=39";
+	
 	// _cgi_env["REMOTE_ADDR"] = _config.getClient().getAddr();
 
 	// if (_config.getAuth() != "off")
@@ -107,10 +112,10 @@ bool CGI::setCGIEnv()
 	// _cgi_env["SCRIPT_NAME"] = _cgi_path;
 	// _cgi_env["SERVER_NAME"] = _config.getHost();
 	// _cgi_env["SERVER_PROTOCOL"] = _config.getProtocol();
-	this->_cgi_env["SERVER_PORT"] = General::to_string(8080);
+	this->_cgi_env["SERVER_PORT"] = General::to_string(8000);
 	this->_cgi_env["SERVER_SOFTWARE"] = "WEBSERV/1.0";
 
-	if (this->_extension == ".php")
+	if (this->_extension == "php")
 		this->_cgi_env["REDIRECT_STATUS"] = "200";
 
 	// for (std::map<std::string, std::string>::iterator it = _req_headers.begin(); it != _req_headers.end(); it++)
@@ -137,63 +142,61 @@ bool CGI::setCGIEnv()
 	_env[i] = NULL;
 	return (true);
 }
-
 int CGI::execute()
 {
-	if (!this->setCGIEnv())
-    	return (500);
-  	if (!(_argv[0] = strdup(this->_cgi_exe.c_str())))
-    	return (500);
-  	if (!(_argv[1] = strdup(this->_file_path.c_str())))
- 	   return (500);
-  	_argv[2] = NULL;
+    _req_body = "name=John+Doe&age=3";
 
-	int pip[2];
+    if (!this->setCGIEnv())
+        return (500);
 
-	if (pipe(pip) != 0)
-		return (500);
+    if (!(_argv[0] = strdup(this->_cgi_exe.c_str())))
+        return (500);
 
-	pid_t pid = fork();
+    if (!(_argv[1] = strdup(this->_file_path.c_str())))
+        return (500);
 
-	if (pid == 0)
-	{
-		// if (chdir(_file_path.substr(0, _file_path.find_last_of('/')).c_str()) == -1)
-		// 	return (500);
-		if (dup2(pip[WRITEEND], STDOUT_FILENO) == -1)
-			return (500);
-		// if (dup2(pip[0], 0) == -1)
-		// 	return (500);
-		// if (dup2(_tmp_file.getFd(), 1) == -1)
-		// 	return (500);
-		close(pip[READEND]);
-		execve(_argv[0], _argv, _env);
-		exit(1);
-	}
-	else if (pid > 0)
-	{
-		close(pip[WRITEEND]);
-		char buffer[1024];
-		int nread = read(pip[READEND], buffer, sizeof(buffer));
-		if (nread > 0)
-		{
-			cout << "exec_result: " << endl;
-			printf("%.*s", nread, buffer);
-		}
-		close(pip[READEND]);
-		// if (_req_body.length() && write(pip[WRITEEND], _req_body.c_str(), _req_body.length()) <= 0)
-		// 	return (500);
+    _argv[2] = NULL;
 
-		int status;
-		if (waitpid(pid, &status, 0) == -1)
-			return (500);
-		if (WIFEXITED(status) && WEXITSTATUS(status))
-			return (502);
-	}
-	else
-		return (502);
+    // print env
+    for (int i = 0; _env[i]; i++)
+        std::cout << _env[i] << std::endl;
 
-	// _body = _tmp_file.getContent();
-	return (200);
+    int pip[2];
+
+    if (pipe(pip) != 0)
+        return (500);
+
+    pid_t pid = fork();
+
+    if (pid == 0)
+    {
+        // Child process: redirect STDIN to the read end of the pipe
+        close(pip[WRITEEND]);
+        if (dup2(pip[READEND], STDIN_FILENO) == -1)
+            return (500);
+
+        execve(_argv[0], _argv, _env);
+        exit(1);
+    }
+    else if (pid > 0)
+    {
+        // Parent process: write the request body to the write end of the pipe
+        close(pip[READEND]);
+        if (_req_body.length() && write(pip[WRITEEND], _req_body.c_str(), _req_body.length()) <= 0)
+            return (500);
+        close(pip[WRITEEND]);
+
+        int status;
+        if (waitpid(pid, &status, 0) == -1)
+            return (500);
+        if (WIFEXITED(status) && WEXITSTATUS(status))
+            return (502);
+    }
+    else
+        return (502);
+
+    // _body = _tmp_file.getContent();
+    return (200);
 }
 
 // void CGI::parseHeaders(std::map<std::string, std::string> &headers) {
