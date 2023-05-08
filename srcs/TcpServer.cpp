@@ -1,88 +1,106 @@
 # include "webserv.hpp"
 
-
-/*
-	TCP server setup flow:
-		socket: create socket
-		bind: bind socket address
-		listen: waiting for incoming request
-		accept: accept incoming request
-	
-	chosen option:
-		AF_INET		IPv4 Internet protocols
-		SOCK_STREAM	Provides sequenced, reliable, two-way, connection-based byte streams.
-		define 20 as the maximum length to which the queue of pending connections for sockfd may grow. 
-*/
-
-TcpServer::TcpServer(string ip_address, int port) : 
-	m_ip_address(ip_address), \
-	m_port(port), m_new_socket(),\
-	m_incomingMessage(), \
-	m_socketAddress(),\
-	m_socketAddress_len(sizeof(m_socketAddress)),\
-	m_serverMessage(buildResponse())
+void TcpServer::TcpServer(std::vector<Server*> _servers) :
+	_servers(conf._servers)
 {
-	cout << "Initalizing the server." << endl;
-	m_socketAddress.sin_family = AF_INET;
-	m_socketAddress.sin_port = htons(m_port);
-	m_socketAddress.sin_addr.s_addr = inet_addr(m_ip_address.c_str());
+	// create sockets
+	std::vector<Server*>::iterator it = _servers.begin();
 
-	if (startServer() != 0)
+	std::cout << ANSI_GREEN << "Virtual servers set:" << ANSI_RESET << std::endl;
+
+	int i = 1;
+	for (; it != _servers.end(); it++)
 	{
-		ostringstream ss;
-		ss << "Failed to start server with PORT: " << ntohs(m_socketAddress.sin_port);
-		General::log(ss.str());
+		std::cout << ANSI_GREEN << i << ". "<< it.getHost() << ":"
+				<< it.getPort() << std::endl << ANSI_RESET;
+		socketList.push_back(Socket(it.getHost(), it.getPort()));
+		++i;
 	}
 }
 
-TcpServer::~TcpServer()
+static void add_event(int epollfd,int fd,int state)
 {
-	cout << "Terminating the server." << endl;
-	closeServer();
+	struct epoll_event ev;
+
+	ev.events = state;
+	ev.data.fd = fd;
+
+	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev) == -1)
+		General::exitWithError("epoll_ctl");
 }
 
-int TcpServer::startServer()
+static std::vector<Socket>::iterator check_event_fd(int event_fd, std::vector<Socket> &socket_list) 
 {
-    int optval = 1;
-
-	m_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (m_socket < 0)
-		General::exitWithError("Cannot create socket");
-    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
-        General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
-	if (bind(m_socket, (sockaddr *)&m_socketAddress, m_socketAddress_len) < 0)
-		General::exitWithError("Cannot connect socket to address");
-	return (0);
+	std::vector<Socket>::iterator it = socket_list.begin();
+	for (; it != socket_list.end(); it++)
+		if (event_fd == (*it).getSockFd())
+			break;
+	return it;
 }
 
-void TcpServer::closeServer()
+void	TcpServer::run(void)
 {
-	close(m_socket);
-	close(m_new_socket);
-	exit(0);
-}
+	std::map<std::string, std::map<std::string, std::string> > sessions; // Holding sessions cookies
+	struct epoll_event ev, events[MAX_EVENTS];
+	int event_fds, epollfd;
+	std::map<int, Client> clients;
+	bool done;
 
-void TcpServer::startListen()
-{
-	if (listen(m_socket, 20) < 0)
-		General::exitWithError("Socket listen failed");
-	ostringstream ss;
-	ss << "\n*** Listening on ADDRESS: "  << inet_ntoa(m_socketAddress.sin_addr) 
-		<< " PORT: "  << ntohs(m_socketAddress.sin_port) << " ***";
-	General::log(ss.str());
+	// create the epoll instance
+	epollfd = epoll_create(1);
+	if (epollfd == -1)
+		General::exitWithError("epoll_create");
+	for(int i = 0;i < (int)_socketList.size();i++)
+		add_event(epollfd, _socketList[i].getSocketFd(), EPOLLIN);
 
-	int bytesReceived;
-	while (42)
+	while (42) 
 	{
+		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+
+		if (event_fds == -1 && errno != EINTR)
+			General::exitWithError("epoll_wait");
+
+		// Loop that handle events happening on server fd and connections fds
 		General::log("\n====== Waiting for a new connection ======");
-		acceptConnection(m_new_socket);
-		getPayload(m_new_socket);
-        parse_request(m_request, m_buffer);
-        std::string response_str = process_request(m_request);
-		sendResponse(response_str);
-		memset(m_buffer, 0, sizeof(m_buffer));
-		close(m_new_socket);
+		for (int n = 0; n < event_fds; ++n) {
+
+			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP)
+			{
+				General::exitWithError("event error");
+				continue;
+			}
+
+			// Accepting a new connection
+			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd, _socketList);
+			if (it != _socketList.end()) 
+			{
+				acceptConnection(m_new_socket, events[n], epollfd);
+				
+			}
+
+			// Receiving request
+			else if (events[n].events & EPOLLIN) 
+			{
+				getPayload(m_new_socket);
+				parse_request(m_request, m_buffer);
+				
+			}
+
+			// Sending response
+			else if (events[n].events & EPOLLOUT) 
+			{
+				std::string response_str = process_request(m_request);
+				sendResponse(response_str);
+				memset(m_buffer, 0, sizeof(m_buffer));
+				close(m_new_socket);
+			}
+			else 
+				continue ;
+		}
 	}
+	if (close(epollfd) == -1)
+		General::exitWithError("close");
+	return (0);
 }
 
 void TcpServer::getPayload(int &new_socket)
@@ -120,9 +138,12 @@ void TcpServer::getPayload(int &new_socket)
     General::log("\nReceived message: \n" + string(m_buffer));
 }
 
-void TcpServer::acceptConnection(int &new_socket)
+void TcpServer::acceptConnection(int &new_socket, struct epoll_event ev, int epollfd)
 {
-	new_socket = accept(m_socket, (sockaddr *)&m_socketAddress, &m_socketAddress_len);
+	struct sockaddr_storage addr;
+	socklen_t socklen = sizeof(addr);
+
+	new_socket = accept(m_socket, (sockaddr *)&addr, &socklen);
 	if (new_socket < 0)
 	{
 		ostringstream ss;
@@ -131,6 +152,8 @@ void TcpServer::acceptConnection(int &new_socket)
 			<< "; PORT: " << ntohs(m_socketAddress.sin_port);
 		General::exitWithError(ss.str());
 	}
+	//fcntl
+	add_event(epollfd, new_socket, EPOLLIN);
 }
 
 string TcpServer::buildResponse()
