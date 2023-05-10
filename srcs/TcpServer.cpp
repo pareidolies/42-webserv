@@ -1,6 +1,5 @@
 # include "webserv.hpp"
 
-
 /*
 	TCP server setup flow:
 		socket: create socket
@@ -13,6 +12,46 @@
 		SOCK_STREAM	Provides sequenced, reliable, two-way, connection-based byte streams.
 		define 20 as the maximum length to which the queue of pending connections for sockfd may grow. 
 */
+
+void TcpServer::init_var(Server serv)
+{
+	_domain = serv.getDomain();
+	_service = serv.getService();
+	_protocol = serv.getProtocol();
+	_interface = serv.getInterface();
+	_backlog = serv.getBacklogs();
+	_locations = serv.getLocations();
+	_port = serv.getPort();
+	_host = serv.getHost();
+	_serverName = serv.getServerName();
+	_clientMaxBodySize = serv.getClientMaxBodySize();
+	_root = serv.getRoot();
+	_index = serv.getIndex();
+	_autoindex = serv.getAutoIndex();
+	_cgiFileExtension = serv.getCgiFileExtension();
+	_cgiPathToScript = serv.getCgiPathToScript();
+	_upload = serv.getUpload();
+	_get = serv.getGet();
+	_post = serv.getPost();
+	_delete = serv.getDelete();
+	_errorPages = serv.getErrorPages();
+}
+
+TcpServer::TcpServer(Server serv)
+{
+	init_var(serv);
+	cout << "Initalizing the server." << endl;
+	m_socketAddress.sin_family = _domain;
+	m_socketAddress.sin_port = htons(_port);
+	m_socketAddress.sin_addr.s_addr = inet_addr(_host.c_str());
+
+	if (startServer() != 0)
+	{
+		ostringstream ss;
+		ss << "Failed to start server with PORT: " << ntohs(m_socketAddress.sin_port);
+		General::log(ss.str());
+	}
+}
 
 TcpServer::TcpServer(string ip_address, int port) : 
 	m_ip_address(ip_address), \
@@ -45,7 +84,7 @@ int TcpServer::startServer()
 {
     int optval = 1;
 
-	m_socket = socket(AF_INET, SOCK_STREAM, 0);
+	m_socket = socket(_domain, _service, _protocol);
 	if (m_socket < 0)
 		General::exitWithError("Cannot create socket");
     if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)

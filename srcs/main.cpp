@@ -36,8 +36,8 @@ int main(const int argc, const char** argv)
         conf.init_config();
         // conf.print_all(); CGI cgi(conf);
         // cgi.execute();
-        TcpServer server = TcpServer("127.0.0.1", 8000);
-        server.startListen();
+        // TcpServer server = TcpServer("127.0.0.1", 8000);
+        // server.startListen();
     }
     catch(std::exception & e)
 	{

@@ -253,6 +253,8 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		this->_upload = "www/site";
 	if (_root.empty()) //setting default root
 		this->_root = "www/site";
+	TcpServer server = TcpServer(_host, _port);
+	server.startListen();
 }
 
 /******************************************************************************
