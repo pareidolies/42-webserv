@@ -6,7 +6,7 @@
 /*   By: stan <stan@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/05 18:52:24 by stan             ###   ########.fr       */
+/*   Updated: 2023/05/10 21:06:18 by stan             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,55 +27,40 @@ std::string get_boundary(const std::string& request)
             pos += 9;
             size_t end_pos = request.find("\r\n", pos);
             std::string boundary = request.substr(pos, end_pos - pos);
-            std::cout << "BOUNDARY = " << boundary << std::endl;
-            return "--" + boundary;
+            // std::cout << "BOUNDARY = " << boundary << std::endl;
+            return ("--" + boundary);
         }
     }
-    return "";
+    return ("");
 }
 
-std::string get_filename(const std::string& content, const std::string& boundary)
+std::string get_filename(const std::string& content)
 {
-    std::string filename = "";
-    std::istringstream stream(content);
+    std::string filename;
 
-    // Ignorer les premières lignes jusqu'à la ligne de séparation
-    std::string line;
-    while (std::getline(stream, line))
-    {
-        if (line == boundary)
-            break;
-    }
-
-    // Chercher la ligne contenant le nom de fichier
-    while (std::getline(stream, line))
-    {
-        std::cout << "LINE = " << line << std::endl;
-        if (line.find("filename=") != std::string::npos)
-        {
-            std::cout << "FIND FILENAME" << std::endl;
-            filename = line.substr(line.find("filename=") + 10);
-            filename.erase(0, filename.find_first_not_of("\""));
-            filename.erase(filename.find_last_not_of("\"") + 1);
-            break;
+    // Recherche de la ligne "Content-Disposition" qui contient le nom de fichier
+    std::string disposition = "Content-Disposition: form-data; name=\"file\"; filename=\"";
+    std::size_t dispositionStart = content.find(disposition);
+    if (dispositionStart != std::string::npos) {
+        // Recherche du début et de la fin du nom de fichier dans la ligne
+        std::size_t filenameStart = dispositionStart + disposition.length();
+        std::size_t filenameEnd = content.find("\"", filenameStart);
+        if (filenameEnd != std::string::npos) {
+            // Extrait le nom de fichier de la ligne
+            filename = content.substr(filenameStart, filenameEnd - filenameStart);
         }
     }
-    std::cout << "FILENAME = " << filename << std::endl;
-    return filename;
+    return (filename);
 }
 
 void save_file(const std::string& path, const std::string& content)
 {
-    std::cout << "PATH = " << path << std::endl;
     std::ofstream file(path.c_str());
-        std::cout << "SAVE FILE OPEN" << std::endl;
     if (file.is_open())
     {
-        std::cout << "FILE OPEN" << std::endl;
         file << content;
         file.close();
     }
-    std::cout << "END FILE OPEN" << std::endl;
 }
 
 template <typename T>
@@ -83,17 +68,60 @@ std::string to_string_custom(const T& value)
 {
     std::ostringstream os;
     os << value;
-    return os.str();
+    return (os.str());
 }
 
 std::string read_file(const std::string& filename) {
     std::ifstream file(filename.c_str());
     if (!file.is_open()) {
-        return "";
+        return ("");
     }
     std::stringstream buffer;
     buffer << file.rdbuf();
-    return buffer.str();
+    return (buffer.str());
+}
+
+std::string find_body(const std::string& request, const std::string& boundary)
+{
+    std::string data;
+
+    // Find the starting position of the first boundary
+    std::string::size_type start = request.find(boundary);
+    if (start == std::string::npos) {
+        // Boundary not found
+        return (data);
+    }
+
+    // Find the ending position of the first boundary
+    std::string::size_type end = request.find(boundary, start + boundary.length());
+    if (end == std::string::npos) {
+        // Boundary not found
+        return (data);
+    }
+
+    // Extract the data between the boundaries
+    data = request.substr(start + boundary.length(), end - (start + boundary.length()));
+
+    return (data);
+}
+
+void removeFirstFourLines(std::string& data)
+{
+    // Find the position of the fourth occurrence of "\r\n"
+    std::string::size_type lineStart = 0;
+    for (int i = 0; i < 4; ++i) {
+        lineStart = data.find("\r\n", lineStart);
+        if (lineStart == std::string::npos) {
+            // Not enough lines to skip
+            return ;
+        }
+        lineStart += 2; // Move past the current "\r\n"
+    }
+
+    // Erase the first 4 lines
+    if (lineStart != std::string::npos) {
+        data.erase(0, lineStart);
+    }
 }
 
 std::string process_request(const Request& request) 
@@ -143,25 +171,28 @@ std::string process_request(const Request& request)
     else if (request.method == "POST")
     {
         // Traitement de la requête POST
-        if (request.uri == "/www/site/pages/upload_complete.html")
+        if (request.uri == "/upload")
         {
             // Extraire les données du corps de la requête
             std::string boundary = get_boundary(request.raw_request);
-            std::string content = request.raw_request;
-            std::cout << "CONTENT = " << content << std::endl;
-            std::string filename = get_filename(content, boundary);
+            std::string content = find_body(request.raw_request, boundary);
+            std::string filename = get_filename(content);
+            removeFirstFourLines(content);
 
             // Stocker le fichier dans un dossier spécifique
-            save_file(filename, content);
+            save_file("www/site/files/downloads/" + filename, content);
 
             // Envoyer une réponse au client
             std::string body = read_file("www/site/pages/upload_complete.html");
             std::string body_size = to_string_custom(body.size());
             response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
         }
-        // else if (request.uri == "/form")
-        // {
-        // }
+        else if (request.uri == "/form" || request.uri == "/comment")
+        {
+            std::string body = read_file("www/site/pages/upload_complete.html");
+            std::string body_size = to_string_custom(body.size());
+            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+        }
         else
         {
             // Si l'URI n'est pas "/upload", renvoyer une réponse 404

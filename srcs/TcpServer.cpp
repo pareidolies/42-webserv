@@ -85,39 +85,51 @@ void TcpServer::startListen()
 	}
 }
 
-void TcpServer::getPayload(int &new_socket)
+void TcpServer::getPayload(int& new_socket)
 {
+    std::string request_headers;
+    std::string request_body;
     int content_length = 0;
-    char *body_start = NULL;
-    char *content_length_str = NULL;
     int bytesReceived = 0;
 
-    // Read the request headers to find the Content-Length header
-    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-    if (valread == -1)
-        General::exitWithError("Error in recv()");
+    // Read the request headers
+    while (true) {
+        int valread = recv(new_socket, m_buffer, sizeof(m_buffer), 0);
+        if (valread == -1)
+            General::exitWithError("Error in recv()");
 
-    // Find the start of the request body
-    body_start = strstr(m_buffer, "\r\n\r\n");
-    if (body_start != NULL) {
-        body_start += 4;
-        // Look for the Content-Length header
-        content_length_str = strstr(m_buffer, "Content-Length: ");
-        if (content_length_str != NULL) {
-            content_length_str += strlen("Content-Length: ");
-            content_length = atoi(content_length_str);
-            // Make sure we have enough space in the buffer
-            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
-                General::exitWithError("Payload too large for buffer");
-            }
-            // Read the payload
-            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
-            if (bytesReceived == -1)
-                General::exitWithError("Error in recv()");
+        request_headers += std::string(m_buffer, valread);
+        if (request_headers.find("\r\n\r\n") != std::string::npos)
+            break; // Found the end of headers
+    }
+
+    // Find the Content-Length header
+    std::string content_length_str = "Content-Length: ";
+    std::string::size_type content_length_pos = request_headers.find(content_length_str);
+    if (content_length_pos != std::string::npos) {
+        content_length_pos += content_length_str.length();
+        std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
+        if (end_of_line_pos != std::string::npos) {
+            std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
+            content_length = std::stoi(content_length_value);
         }
     }
-	m_request.raw_request = std::string(m_buffer);
-    General::log("\nReceived message: \n" + string(m_buffer));
+
+    // Read the request body if content length is specified
+    if (content_length > 0) {
+        request_body.resize(content_length);
+
+        while (bytesReceived < content_length) {
+            int bytesRead = recv(new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
+            if (bytesRead == -1)
+                General::exitWithError("Error in recv()");
+            bytesReceived += bytesRead;
+        }
+    }
+
+    // Process the received payload
+    m_request.raw_request = request_headers + request_body;
+    General::log("\nReceived message: \n" + m_request.raw_request);
 }
 
 void TcpServer::acceptConnection(int &new_socket)
