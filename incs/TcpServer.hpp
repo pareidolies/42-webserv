@@ -35,10 +35,11 @@ class TcpServer
 {
 	public:
 		TcpServer(string ip_address, int port);
-		TcpServer(Server serv);
+		TcpServer(Server *serv);
 		~TcpServer();
 		void startListen();
-		void init_var(Server serv);
+		void init_var(Server *serv);
+		void print_server();
 
 	private:
 		string				m_ip_address;

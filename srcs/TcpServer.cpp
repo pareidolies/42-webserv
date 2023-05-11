@@ -1,4 +1,5 @@
 # include "webserv.hpp"
+#include "parsing/Server.hpp"
 
 /*
 	TCP server setup flow:
@@ -13,38 +14,76 @@
 		define 20 as the maximum length to which the queue of pending connections for sockfd may grow. 
 */
 
-void TcpServer::init_var(Server serv)
+void			TcpServer::print_server(void)
 {
-	_domain = serv.getDomain();
-	_service = serv.getService();
-	_protocol = serv.getProtocol();
-	_interface = serv.getInterface();
-	_backlog = serv.getBacklogs();
-	_locations = serv.getLocations();
-	_port = serv.getPort();
-	_host = serv.getHost();
-	_serverName = serv.getServerName();
-	_clientMaxBodySize = serv.getClientMaxBodySize();
-	_root = serv.getRoot();
-	_index = serv.getIndex();
-	_autoindex = serv.getAutoIndex();
-	_cgiFileExtension = serv.getCgiFileExtension();
-	_cgiPathToScript = serv.getCgiPathToScript();
-	_upload = serv.getUpload();
-	_get = serv.getGet();
-	_post = serv.getPost();
-	_delete = serv.getDelete();
-	_errorPages = serv.getErrorPages();
+	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
+	std::cout << ANSI_BLUE << "host: " << ANSI_RESET << _host << std::endl;
+	std::cout << ANSI_BLUE << "server names: " << ANSI_RESET << std::endl;
+	for(std::vector<std::string>::iterator it = this->_serverName.begin(); it != this->_serverName.end(); it++)
+	{	
+		std::cout << (*it) << ANSI_RESET << std::endl;
+	}
+	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
+	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
+	std::cout << ANSI_BLUE << "domain ip: " << ANSI_RESET << _domain << std::endl;
+	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
+	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
+	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
+	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
+	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
+	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
+	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
+	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
+	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
+		std::cout << "[" << it->first << "] " << it->second << std::endl;
+	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
+	{	
+		std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
+		(*it)->print_location();
+		std::cout << std::endl;
+	}
 }
 
-TcpServer::TcpServer(Server serv)
+void TcpServer::init_var(Server *serv)
+{
+	_domain = serv->getDomain();
+	_service = serv->getService();
+	_protocol = serv->getProtocol();
+	_interface = serv->getInterface();
+	_backlog = serv->getBacklogs();
+	_locations = serv->getLocations();
+	_port = serv->getPort();
+	_host = serv->getHost();
+	_serverName = serv->getServerName();
+	_clientMaxBodySize = serv->getClientMaxBodySize();
+	_root = serv->getRoot();
+	_index = serv->getIndex();
+	_autoindex = serv->getAutoIndex();
+	_cgiFileExtension = serv->getCgiFileExtension();
+	_cgiPathToScript = serv->getCgiPathToScript();
+	_upload = serv->getUpload();
+	_get = serv->getGet();
+	_post = serv->getPost();
+	_delete = serv->getDelete();
+	_errorPages = serv->getErrorPages();
+	m_ip_address = _host;
+	m_port = _port;
+	m_socketAddress_len = sizeof(m_socketAddress);
+	m_serverMessage = buildResponse();
+	print_server();
+}
+
+TcpServer::TcpServer(Server *serv)
 {
 	init_var(serv);
 	cout << "Initalizing the server." << endl;
 	m_socketAddress.sin_family = _domain;
 	m_socketAddress.sin_port = htons(_port);
 	m_socketAddress.sin_addr.s_addr = inet_addr(_host.c_str());
-
 	if (startServer() != 0)
 	{
 		ostringstream ss;
