@@ -1,4 +1,4 @@
-# include "Server.hpp"
+# include "webserv.hpp"
 
 /******************************************************************************
 *                              CONSTRUCTORS                                   *
@@ -45,6 +45,15 @@ Server::~Server(void)
 *                                  GETTERS                                    *
 ******************************************************************************/
 
+int				Server::getPort()
+{
+	return(_port);
+}
+
+std::string		Server::getHost()
+{
+	return(_host);
+}
 
 
 /******************************************************************************
@@ -204,7 +213,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("error_page") == 0)
 		{
 			std::string	num_str;
-			int			num;
+			//int			num;
 			std::string	path;
 			parameter = check_semicolon(parameter);
 			find = parameter.find_first_of(whitespace);

@@ -17,20 +17,21 @@ class Socket
 	public:
 		Socket(string ip_address, int port);
 		~Socket();
-		void startListen();
+		void	startListen();
+		int		getSocketFd(void);
 
 	private:
 		string				m_ip_address;
 		int					m_port;
 		int					m_socket;
-		int					m_new_socket;
-		long				m_incomingMessage;
+		//int				m_new_socket;
+		//long				m_incomingMessage;
 		struct sockaddr_in	m_socketAddress;
 		unsigned int		m_socketAddress_len;
-		string				m_serverMessage;
+		//string			m_serverMessage;
 
         int		startServer();
-        void	closeServer();
+        //void	closeServer();
 };
 
 #endif

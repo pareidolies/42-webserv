@@ -1,6 +1,4 @@
 # include "webserv.hpp"
-# include "Configuration.hpp"
-# include "cgi.hpp"
 
 # include <string>
 # include <iostream>

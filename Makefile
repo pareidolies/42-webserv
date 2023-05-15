@@ -37,8 +37,9 @@ PARSING_DIR =	incs/parsing
 
 OBJS_DIR	=	objs
 
-SRCS_SOCKET	=	TcpServer.cpp
-SRCS_CGI	=	cgi.cpp
+SRCS_SOCKET	=	TcpServer.cpp \
+				Socket.cpp
+SRCS_CGI	=	
 
 SRCS_PARSER	=	parsing/Configuration.cpp \
 				parsing/Server.cpp \

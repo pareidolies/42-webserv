@@ -1,4 +1,3 @@
-# include "Socket.hpp"
 # include "webserv.hpp"
 
 /*
@@ -14,11 +13,13 @@
 		define 20 as the maximum length to which the queue of pending connections for sockfd may grow. 
 */
 
+//ADD Socket by default
+
 Socket::Socket(string ip_address, int port) : 
 	m_ip_address(ip_address), \
 	m_port(port), \
 	m_socketAddress(),\
-	m_socketAddress_len(sizeof(m_socketAddress)),\
+	m_socketAddress_len(sizeof(m_socketAddress))
 {
 	cout << "Initalizing the server." << endl;
 	m_socketAddress.sin_family = AF_INET;
@@ -37,7 +38,7 @@ Socket::Socket(string ip_address, int port) :
 Socket::~Socket()
 {
 	cout << "Terminating the server." << endl;
-	closeServer();
+	//closeServer();
 }
 
 int Socket::startServer()
@@ -46,11 +47,17 @@ int Socket::startServer()
 
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_socket < 0)
+	{
 		General::exitWithError("Cannot create socket");
+	}
     if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
+	{
         General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
+	}
 	if (bind(m_socket, (sockaddr *)&m_socketAddress, m_socketAddress_len) < 0)
+	{
 		General::exitWithError("Cannot connect socket to address");
+	}
 	return (0);
 }
 
@@ -61,7 +68,7 @@ int Socket::startServer()
 // 	exit(0);
 // }
 
-void TcpServer::startListen()
+void Socket::startListen()
 {
 	if (listen(m_socket, 20) < 0)
 		General::exitWithError("Socket listen failed");
@@ -69,4 +76,8 @@ void TcpServer::startListen()
 	ss << "\n*** Listening on ADDRESS: "  << inet_ntoa(m_socketAddress.sin_addr) 
 		<< " PORT: "  << ntohs(m_socketAddress.sin_port) << " ***";
 	General::log(ss.str());
+}
+
+int	Socket::getSocketFd(void) {
+	return (this->m_socket);
 }

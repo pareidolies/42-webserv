@@ -1,24 +1,30 @@
 # include "webserv.hpp"
 
-void TcpServer::TcpServer(std::vector<Server*> _servers) :
-	_servers(conf._servers)
+TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
 {
-	// create sockets
+	// create all sockets
 	std::vector<Server*>::iterator it = _servers.begin();
 
-	std::cout << ANSI_GREEN << "Virtual servers set:" << ANSI_RESET << std::endl;
+	std::cout << ANSI_GREEN << "Setting virtual servers:" << ANSI_RESET << std::endl;
 
 	int i = 1;
 	for (; it != _servers.end(); it++)
 	{
-		std::cout << ANSI_GREEN << i << ". "<< it.getHost() << ":"
-				<< it.getPort() << std::endl << ANSI_RESET;
-		socketList.push_back(Socket(it.getHost(), it.getPort()));
+		std::cout << ANSI_GREEN << i << ". "<< (*it)->getHost() << ":"
+				<< (*it)->getPort() << std::endl << ANSI_RESET;
+		_socketList.push_back(Socket((*it)->getHost(), (*it)->getPort()));
 		++i;
 	}
 }
 
-static void add_event(int epollfd,int fd,int state)
+TcpServer::~TcpServer()
+{
+	cout << "Terminating the server." << endl;
+	//closeServer();
+}
+
+
+void TcpServer::add_event(int epollfd, int fd, int state)
 {
 	struct epoll_event ev;
 
@@ -29,24 +35,24 @@ static void add_event(int epollfd,int fd,int state)
 		General::exitWithError("epoll_ctl");
 }
 
-static std::vector<Socket>::iterator check_event_fd(int event_fd, std::vector<Socket> &socket_list) 
+std::vector<Socket>::iterator TcpServer::check_event_fd(int event_fd) 
 {
-	std::vector<Socket>::iterator it = socket_list.begin();
-	for (; it != socket_list.end(); it++)
-		if (event_fd == (*it).getSockFd())
+	std::vector<Socket>::iterator it = _socketList.begin();
+	for (; it != _socketList.end(); it++)
+		if (event_fd == (*it).getSocketFd())
 			break;
 	return it;
 }
 
 void	TcpServer::run(void)
 {
-	std::map<std::string, std::map<std::string, std::string> > sessions; // Holding sessions cookies
+	//session cookies ?
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
-	std::map<int, Client> clients;
-	bool done;
+	//std::map<int, Client> clients; //managing clients
+	//bool done; check end of response & request
 
-	// create the epoll instance
+	//create the epoll instance
 	epollfd = epoll_create(1);
 	if (epollfd == -1)
 		General::exitWithError("epoll_create");
@@ -71,28 +77,30 @@ void	TcpServer::run(void)
 			}
 
 			// Accepting a new connection
-			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd, _socketList);
+			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd);
 			if (it != _socketList.end()) 
 			{
-				acceptConnection(m_new_socket, events[n], epollfd);
-				
+				acceptConnection(events[n], epollfd);
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
-				getPayload(m_new_socket);
+				getPayload(events[n].data.fd);
 				parse_request(m_request, m_buffer);
-				
+				ev.events = EPOLLOUT;
+				ev.data.fd = events[n].data.fd;
+				if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
+					General::exitWithError("epoll_create");
 			}
-
 			// Sending response
 			else if (events[n].events & EPOLLOUT) 
 			{
 				std::string response_str = process_request(m_request);
-				sendResponse(response_str);
+				sendResponse(response_str, events[n].data.fd);
 				memset(m_buffer, 0, sizeof(m_buffer));
-				close(m_new_socket);
+				epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev);
+				close(events[n].data.fd);
 			}
 			else 
 				continue ;
@@ -100,12 +108,36 @@ void	TcpServer::run(void)
 	}
 	if (close(epollfd) == -1)
 		General::exitWithError("close");
-	return (0);
 }
 
-void TcpServer::getPayload(int &new_socket)
+int	TcpServer::acceptConnection(struct epoll_event ev, int epollfd)
 {
-    int content_length = 0;
+	struct sockaddr_storage addr;
+	socklen_t socklen = sizeof(addr);
+
+	int new_socket = accept(ev.data.fd, (sockaddr *)&addr, &socklen);
+	if (new_socket < 0)
+	{
+		ostringstream ss;
+		ss << "Server failed to accept incoming connection from ADDRESS: "
+			<< "; PORT: " ;
+		General::exitWithError(ss.str());
+	}
+	int flag = fcntl(new_socket, F_GETFL, 0);
+	if (fcntl(new_socket, F_SETFL, flag | O_NONBLOCK) < 0)
+	{
+		stringstream ss;
+		ss << "Fnctl error : server failed to accept incoming connection from ADDRESS: "
+			<< "; PORT: ";
+		General::exitWithError(ss.str());
+	}
+	add_event(epollfd, new_socket, EPOLLIN);
+	return (new_socket);
+}
+
+void TcpServer::getPayload(int m_new_socket)
+{
+    long unsigned int content_length = 0;
     char *body_start = NULL;
     char *content_length_str = NULL;
     int bytesReceived = 0;
@@ -138,23 +170,6 @@ void TcpServer::getPayload(int &new_socket)
     General::log("\nReceived message: \n" + string(m_buffer));
 }
 
-void TcpServer::acceptConnection(int &new_socket, struct epoll_event ev, int epollfd)
-{
-	struct sockaddr_storage addr;
-	socklen_t socklen = sizeof(addr);
-
-	new_socket = accept(m_socket, (sockaddr *)&addr, &socklen);
-	if (new_socket < 0)
-	{
-		ostringstream ss;
-		ss << "Server failed to accept incoming connection from ADDRESS: "
-			<< inet_ntoa(m_socketAddress.sin_addr) 
-			<< "; PORT: " << ntohs(m_socketAddress.sin_port);
-		General::exitWithError(ss.str());
-	}
-	//fcntl
-	add_event(epollfd, new_socket, EPOLLIN);
-}
 
 string TcpServer::buildResponse()
 {
@@ -165,7 +180,7 @@ string TcpServer::buildResponse()
 	return ss.str();
 }
 
-void TcpServer::sendResponse(std::string response_str)
+void TcpServer::sendResponse(std::string response_str, int m_new_socket)
 {
     if (send(m_new_socket, response_str.c_str(), response_str.size(), 0) < 0)
 	    General::log("Error sending response to client");

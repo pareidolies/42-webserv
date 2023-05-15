@@ -10,14 +10,23 @@
 #include <string>
 #include "General.hpp"
 #include "TcpServer.hpp"
-#include "utils.hpp"
 #include "Response.hpp"
 #include "Request.hpp"
+#include "Socket.hpp"
+
+#include "Configuration.hpp"
+#include "Location.hpp"
+#include "Server.hpp"
+#include "utils.hpp"
+
+
+
 
 using namespace std;
 
 #define FILEENAME_MAX 4096
 
+#define MAX_EVENTS	128
 
 /******************************************************************************
 *                                 COLORS                                      *

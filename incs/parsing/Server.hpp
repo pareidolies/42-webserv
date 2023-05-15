@@ -41,6 +41,8 @@ class Server
 		void			init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
 		bool			check_client_max_body_size(std::string parameter);
 		void			print_server(void);
+		int				getPort();
+		std::string		getHost();
 
 	private:
 
