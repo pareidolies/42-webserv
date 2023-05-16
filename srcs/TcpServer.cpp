@@ -19,7 +19,7 @@ TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
 
 TcpServer::~TcpServer()
 {
-	cout << "Terminating the server." << endl;
+	//cout << "Terminating the server." << endl;
 	//closeServer();
 }
 
@@ -50,7 +50,7 @@ void	TcpServer::run(void)
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	//std::map<int, Client> clients; //managing clients
-	//bool done; check end of response & request
+	bool done = false; //check end of response & request
 
 	//create the epoll instance
 	epollfd = epoll_create(1);
@@ -59,15 +59,19 @@ void	TcpServer::run(void)
 	for(int i = 0;i < (int)_socketList.size();i++)
 		add_event(epollfd, _socketList[i].getSocketFd(), EPOLLIN);
 
+	General::log("\n====== Waiting for a new connection ======");
+
 	while (42) 
 	{
+
+
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
 		if (event_fds == -1 && errno != EINTR)
 			General::exitWithError("epoll_wait");
 
 		// Loop that handle events happening on server fd and connections fds
-		General::log("\n====== Waiting for a new connection ======");
+		
 		for (int n = 0; n < event_fds; ++n) {
 
 			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP)
@@ -87,20 +91,27 @@ void	TcpServer::run(void)
 			else if (events[n].events & EPOLLIN) 
 			{
 				getPayload(events[n].data.fd);
-				parse_request(m_request, m_buffer);
-				ev.events = EPOLLOUT;
-				ev.data.fd = events[n].data.fd;
-				if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
-					General::exitWithError("epoll_create");
+				done = parse_request(m_request, m_buffer);
+				if (done)
+				{
+					ev.events = EPOLLOUT;
+					ev.data.fd = events[n].data.fd;
+					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
+						General::exitWithError("epoll_create");
+				}
 			}
 			// Sending response
 			else if (events[n].events & EPOLLOUT) 
 			{
 				std::string response_str = process_request(m_request);
-				sendResponse(response_str, events[n].data.fd);
-				memset(m_buffer, 0, sizeof(m_buffer));
-				epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev);
-				close(events[n].data.fd);
+				done = sendResponse(response_str, events[n].data.fd);
+				if (done)
+				{
+					memset(m_buffer, 0, sizeof(m_buffer));
+					epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev);
+					close(events[n].data.fd);
+					General::log("\n====== Waiting for a new connection ======");
+				}
 			}
 			else 
 				continue ;
@@ -180,13 +191,17 @@ string TcpServer::buildResponse()
 	return ss.str();
 }
 
-void TcpServer::sendResponse(std::string response_str, int m_new_socket)
+bool TcpServer::sendResponse(std::string response_str, int m_new_socket)
 {
     if (send(m_new_socket, response_str.c_str(), response_str.size(), 0) < 0)
+	{
 	    General::log("Error sending response to client");
+		return (false);
+	}
     else
     {
 	    General::log("------ Server Response sent to client ------\n");
 	    // General::log("Responsed message: \n" + response_str);
+		return (true);
     }
 }

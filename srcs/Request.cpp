@@ -31,7 +31,7 @@ void print_headers(const std::map<std::string, std::string>& headers)
     std::cout << "Content-Type: " << it->second << std::endl;
 }
 
-Request& parse_request(Request &m_request, char *buffer) {
+bool parse_request(Request &m_request, char *buffer) {
     std::stringstream request_stream;                                                                                   
     request_stream << buffer;                                                                      
     std::string line;                                                                               
@@ -53,5 +53,5 @@ Request& parse_request(Request &m_request, char *buffer) {
     }
     // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
     print_headers(m_request.headers);
-    return (m_request);                                                                                  
+    return (true);                                                                                  
 }

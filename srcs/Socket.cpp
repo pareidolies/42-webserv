@@ -37,7 +37,7 @@ Socket::Socket(string ip_address, int port) :
 
 Socket::~Socket()
 {
-	cout << "Terminating the server." << endl;
+	//cout << "Terminating the server." << endl;
 	//closeServer();
 }
 

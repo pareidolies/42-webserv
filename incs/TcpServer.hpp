@@ -49,7 +49,7 @@ class TcpServer
         void	getHeader(int new_socket);
         void	getPayload(int new_socket);
         string	buildResponse();
-        void	sendResponse(std::string response_str, int m_new_socket);
+        bool	sendResponse(std::string response_str, int m_new_socket);
 
 		std::vector<Server*>		_servers;
 		std::vector<Socket>			_socketList;
@@ -68,7 +68,7 @@ class TcpServer
 		
 };
 
-Request& parse_request(Request &m_request, char *m_buffer);
+bool parse_request(Request &m_request, char *m_buffer);
 std::string process_request(const Request& request);
 
 #endif
