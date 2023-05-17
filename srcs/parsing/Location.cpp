@@ -42,11 +42,6 @@ Location::~Location(void)
 }
 
 /******************************************************************************
-*                                  GETTERS                                    *
-******************************************************************************/
-
-
-/******************************************************************************
 *                             MEMBER FUNCTIONS                                *
 ******************************************************************************/
 
@@ -185,4 +180,73 @@ const char *	Location::WrongConfLine::what(void) const throw()
 const char *	Location::DirOrFileError::what(void) const throw()
 {
 	return (" directory or file or extension does not exist");
+}
+
+/******************************************************************************
+*                                  GETTERS                                    *
+******************************************************************************/
+
+std::string					Location::getLocate()
+{
+	return(_locate);
+}
+
+std::vector<std::string>	Location::getServerName()
+{
+	return(_serverName);
+}
+
+int							Location::getClientMaxBodySize()
+{
+	return(_clientMaxBodySize);
+}
+
+bool						Location::getGet()
+{
+	return(_get);
+}
+
+bool						Location::getPost()
+{
+	return(_post);
+}
+
+bool						Location::getDelete()
+{
+	return(_delete);
+}
+
+std::string					Location::getRoot()
+{
+	return(_root);
+}
+
+std::string					Location::getIndex()
+{
+	return (_index);
+}
+
+bool						Location::getAutoindex()
+{
+	return(_autoindex);
+}
+
+std::string					Location::getCgiFileExtension()
+{
+	return(_cgiFileExtension);
+}
+
+std::string					Location::getCgiPathToScript()
+{
+	return(_cgiPathToScript);
+}
+
+std::string					Location::getUpload()
+{
+	return(_upload);
+}
+
+std::map<int, std::string>	Location::getErrorPages()
+{
+	return(_errorPages);
 }

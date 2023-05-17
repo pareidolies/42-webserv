@@ -42,21 +42,6 @@ Server::~Server(void)
 }
 
 /******************************************************************************
-*                                  GETTERS                                    *
-******************************************************************************/
-
-int				Server::getPort()
-{
-	return(_port);
-}
-
-std::string		Server::getHost()
-{
-	return(_host);
-}
-
-
-/******************************************************************************
 *                                  SETTERS                                    *
 ******************************************************************************/
 
@@ -319,4 +304,107 @@ const char *	Server::NotListening::what(void) const throw()
 const char *	Server::DirOrFileError::what(void) const throw()
 {
 	return (" directory or file or extension does not exist");
+}
+
+/******************************************************************************
+*                                  GETTERS                                    *
+******************************************************************************/
+
+int				Server::getPort()
+{
+	return(_port);
+}
+
+std::string		Server::getHost()
+{
+	return(_host);
+}
+
+int			Server::getDomain()
+{
+	return(_domain);
+}
+
+int			Server::getService()
+{
+	return(_service);
+}
+
+int			Server::getProtocol()
+{
+	return(_protocol);
+}
+u_long		Server::getInterface()
+{
+	return(_interface);
+}
+
+int			Server::getBacklog()
+{
+	return(_backlog);
+}
+
+std::vector<Location*>				Server::getLocations()
+{
+	return(_locations);
+}
+
+std::vector<std::string>			Server::getServerName()
+{
+	return(_serverName);
+}
+
+int									Server::getClientMaxBodySize()
+{
+	return(_clientMaxBodySize);
+}
+
+std::string							Server::getRoot()
+{
+	return(_root);
+}
+
+std::string							Server::getIndex()
+{
+	return(_index);
+}
+
+bool								Server::getAutoindex()
+{
+	return(_autoindex);
+}
+
+std::string							Server::getCgiFileExtension()
+{
+	return(_cgiFileExtension);
+}
+
+std::string							Server::getCgiPathToScript()
+{
+	return(_cgiPathToScript);
+}
+
+std::string							Server::getUpload()
+{
+	return(_upload);
+}
+
+bool								Server::getGet()
+{
+	return(_get);
+}
+
+bool								Server::getPost()
+{
+	return(_post);
+}
+
+bool								Server::getDelete()
+{
+	return(_delete);
+}
+
+std::map<int, std::string>			Server::getErrorPages()
+{
+	return(_errorPages);
 }

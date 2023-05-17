@@ -41,8 +41,28 @@ class Server
 		void			init_server_config(std::vector<std::string>::iterator it, std::vector<std::string> vector);
 		bool			check_client_max_body_size(std::string parameter);
 		void			print_server(void);
-		int				getPort();
-		std::string		getHost();
+
+		//getters
+		int									getPort();
+		std::string							getHost();
+		int									getDomain();
+		int									getService();
+		int									getProtocol();
+		u_long								getInterface();
+		int									getBacklog();
+		std::vector<Location*>				getLocations();
+		std::vector<std::string>			getServerName();
+		int									getClientMaxBodySize();
+		std::string							getRoot();
+		std::string							getIndex();
+		bool								getAutoindex();
+		std::string							getCgiFileExtension();
+		std::string							getCgiPathToScript();
+		std::string							getUpload();
+		bool								getGet();
+		bool								getPost();
+		bool								getDelete();
+		std::map<int, std::string>			getErrorPages();
 
 	private:
 
