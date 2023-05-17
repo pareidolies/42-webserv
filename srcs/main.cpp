@@ -45,17 +45,14 @@ int main(const int argc, const char** argv, char **env)
         // conf.print_all(); CGI cgi(conf);
         // cgi.execute();
 
-        // TcpServer server = TcpServer(conf);
-        // server.run();
+        TcpServer server = TcpServer(conf);
+        server.run();
     }
     catch(std::exception & e)
 	{
 		std::cout << ANSI_RED << e.what() << ANSI_RESET << std::endl;;
 	}
    
-
-   
-    
     // if (isCGI(file_.getMimeExtension()))
     {
         // CGI cgi(file_, config_, config_.getHeaders(), config_.getBody());
@@ -69,6 +66,5 @@ int main(const int argc, const char** argv, char **env)
         // return status_code_;
     }
 
-    
     return EXIT_SUCCESS;
 }

@@ -42,9 +42,9 @@ class Location
 		std::string					getRoot();
 		std::string					getIndex();
 		bool						getAutoindex();
-		std::string					getCgiFileExtension();
-		std::string					getCgiPathToScript();
 		std::map<std::string, std::string>					getCgiFile();
+		std::string					getCgiPathToScript();
+		std::string					getCgiFileExtension();
 		std::string					getUpload();
 		std::map<int, std::string>	getErrorPages();
 
