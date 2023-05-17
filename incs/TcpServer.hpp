@@ -38,6 +38,32 @@ class Server;
         std::map<std::string, std::string> headers;  // en-têtes de la requête
         std::string body;                            // corps de la requête
 		std::string raw_request;
+
+
+		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
+		int									_service; //SOCK_STREAM, SOCK_DGRAM
+		int									_protocol; //use 0 for "any"
+		u_long								_interface; //needs to be set to INADDR_ANY
+		int									_backlog; //maximum number of queued clients
+		//** parsing **
+		//-> only in server
+		std::vector<Location*>				_locations;
+		int									_port;
+		std::string							_host;
+		//-> both in server and location
+		std::vector<std::string>			_serverName;
+		int									_clientMaxBodySize;
+		std::string							_root;
+		std::string							_index;
+		bool								_autoindex;
+		std::string							_cgiFileExtension;
+		std::map<std::string, std::string>		_cgiFile;
+		std::string							_cgiPathToScript;
+		std::string							_upload;
+		bool								_get;
+		bool								_post;
+		bool								_delete;
+		std::map<int, std::string>			_errorPages;
     };
 
 class TcpServer
@@ -65,29 +91,6 @@ class TcpServer
 		long				m_incomingMessage;
 		string				m_serverMessage;
 
-		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
-		int									_service; //SOCK_STREAM, SOCK_DGRAM
-		int									_protocol; //use 0 for "any"
-		u_long								_interface; //needs to be set to INADDR_ANY
-		int									_backlog; //maximum number of queued clients
-		//** parsing **
-		//-> only in server
-		std::vector<Location*>				_locations;
-		int									_port;
-		std::string							_host;
-		//-> both in server and location
-		std::vector<std::string>			_serverName;
-		int									_clientMaxBodySize;
-		std::string							_root;
-		std::string							_index;
-		bool								_autoindex;
-		std::string							_cgiFileExtension;
-		std::string							_cgiPathToScript;
-		std::string							_upload;
-		bool								_get;
-		bool								_post;
-		bool								_delete;
-		std::map<int, std::string>			_errorPages;
 
 		char m_buffer[4096];
 		Request m_request;
