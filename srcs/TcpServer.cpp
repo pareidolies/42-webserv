@@ -192,11 +192,13 @@ void	TcpServer::run(void)
 				Client new_client(connection, (*it).getServer());
 				clients[connection] = new_client;
 				//std::cout << "coucou" << std::endl;
+				cout << "connection accepted: " << connection << endl;
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
+				cout << "receiving request: " << events[n].data.fd << endl;
 				//std::cout << "coucou1" << std::endl;
 				clients[events[n].data.fd].getPayload();
 				done = clients[events[n].data.fd].parse_request();

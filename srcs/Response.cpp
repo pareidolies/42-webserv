@@ -160,6 +160,7 @@ std::string process_request(const Request& request)
     {
         // Traitement de la requête GET
         // Vérifiez si l'URI correspond à un script CGI
+        
         if (is_cgi_script(request.uri))
         {
             // Exécutez le script CGI

@@ -12,6 +12,7 @@ Client::Client()
 
 Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server)
 {
+    //initialize values
 	int									_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
 	int									_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
 	int									_protocol = _server->getProtocol(); //use 0 for "any"
@@ -35,6 +36,9 @@ Client::Client(int connection, Server *server) : m_new_socket(connection), _serv
 	bool								_post = _server->getPost();
 	bool								_delete = _server->getDelete();
 	std::map<int, std::string>			_errorPages = _server->getErrorPages();
+
+    // initialize the server
+    cout << "Server started: " << this->_server->getHost() << ":" << this->_server->getPort() << endl;
 }
 
 /******************************************************************************
@@ -54,6 +58,11 @@ Client	&Client::operator=(Client const & rhs)
 		//to complete
 	}
 	return (*this);
+}
+
+Server *Client::getServer()
+{
+    return (this->_server);
 }
 
 /******************************************************************************
@@ -154,6 +163,8 @@ void Client::print_headers(const std::map<std::string, std::string>& headers)
 
 std::string Client::process_request() 
 {
+    cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
+
     std::cout << "Method: " << m_request.method << std::endl;
     std::string response;
     if (m_request.method == "GET")

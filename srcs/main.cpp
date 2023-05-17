@@ -34,12 +34,12 @@ int main(const int argc, const char** argv, char **env)
         conf.open_and_read_file();
         conf.init_config();
         // conf.print_all(); 
-        cout << "----------------------------------" << endl;
-        CGI cgi(conf);
-        cout << "Cgi result: " << cgi.execute() << endl;
-    	cout << ANSI_BLUE << "BODY: " << ANSI_RESET << endl << cgi.getBody() << endl;
+        // cout << "----------------------------------" << endl;
+        // CGI cgi(conf);
+        // cout << "Cgi result: " << cgi.execute() << endl;
+    	// cout << ANSI_BLUE << "BODY: " << ANSI_RESET << endl << cgi.getBody() << endl;
 
-        cout << "----------------------------------" << endl;
+        // cout << "----------------------------------" << endl;
         // TcpServer server = TcpServer("127.0.0.1", 8000);
         // server.startListen();
         // conf.print_all(); CGI cgi(conf);
