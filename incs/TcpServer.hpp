@@ -66,6 +66,15 @@ class Server;
 		std::map<int, std::string>			_errorPages;
     };
 
+	struct Response {
+		int status;
+		map<int, std::string> status_list;
+		std::string body;
+		std::string body_size;
+		std::string content_type;
+		std::string filename;
+	};
+
 class TcpServer
 {
 	public:
@@ -92,8 +101,9 @@ class TcpServer
 		string				m_serverMessage;
 
 
-		char m_buffer[4096];
+		char m_buffer[200000];
 		Request m_request;
+		Response m_response;
 
         int		startServer();
         void	closeServer();
@@ -102,6 +112,8 @@ class TcpServer
 		void    init_var(Server *serv);
 
 		void	print_server(void);
+
+void init_code_msg();
 };
 
 bool parse_request(Request &m_request, char *m_buffer);

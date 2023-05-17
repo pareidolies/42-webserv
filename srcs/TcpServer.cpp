@@ -202,6 +202,7 @@ void	TcpServer::run(void)
 			// Sending response
 			else if (events[n].events & EPOLLOUT) 
 			{
+				init_code_msg();
 				std::string response_str = process_request(m_request);
 				done = sendResponse(response_str, events[n].data.fd);
 				if (done)
@@ -245,39 +246,116 @@ int	TcpServer::acceptConnection(struct epoll_event ev, int epollfd)
 	return (new_socket);
 }
 
+
+void TcpServer::init_code_msg()
+{
+	m_response.status_list[200] = "OK";
+	m_response.status_list[201] = "Created";
+	m_response.status_list[202] = "Accepted";
+	m_response.status_list[203] = "Non-Authoritative Information";
+	m_response.status_list[204] = "No Content";
+	m_response.status_list[205] = "Reset Content";
+	m_response.status_list[206] = "Partial Content";
+	m_response.status_list[207] = "Multi-Status";
+	m_response.status_list[208] = "Already Reported";
+	m_response.status_list[226] = "IM Used";
+	m_response.status_list[300] = "Multiple Choices";
+	m_response.status_list[301] = "Moved Permanently";
+	m_response.status_list[302] = "Found";
+	m_response.status_list[303] = "See Other";
+	m_response.status_list[304] = "Not Modified";
+	m_response.status_list[305] = "Use Proxy";
+	m_response.status_list[306] = "Switch Proxy";
+	m_response.status_list[307] = "Temporary Redirect";
+	m_response.status_list[308] = "Permanent Redirect";
+	m_response.status_list[400] = "Bad Request";
+	m_response.status_list[401] = "Unauthorized";
+	m_response.status_list[402] = "Payment Required";
+	m_response.status_list[403] = "Forbidden";
+	m_response.status_list[404] = "Not Found";
+	m_response.status_list[405] = "Method Not Allowed";
+	m_response.status_list[406] = "Not Acceptable";
+	m_response.status_list[407] = "Proxy Authentication Required";
+	m_response.status_list[408] = "Request Timeout";
+	m_response.status_list[409] = "Conflict";
+	m_response.status_list[410] = "Gone";
+	m_response.status_list[411] = "Length Required";
+	m_response.status_list[412] = "Precondition Failed";
+	m_response.status_list[413] = "Payload Too Large";
+	m_response.status_list[414] = "URI Too Long";
+	m_response.status_list[415] = "Unsupported Media Type";
+	m_response.status_list[416] = "Range Not Satisfiable";
+	m_response.status_list[417] = "Expectation Failed";
+	m_response.status_list[418] = "I\'m a teapot";
+	m_response.status_list[421] = "Misdirected Request";
+	m_response.status_list[422] = "Unprocessable Entity";
+	m_response.status_list[423] = "Locked";
+	m_response.status_list[424] = "Failed Dependency";
+	m_response.status_list[425] = "Too Early";
+	m_response.status_list[426] = "Upgrade Required";
+	m_response.status_list[428] = "Precondition Required";
+	m_response.status_list[429] = "Too Many Requests";
+	m_response.status_list[431] = "Request Header Fields Too Large";
+	m_response.status_list[451] = "Unavailable For Legal Reasons";
+	m_response.status_list[500] = "Internal Server Error";
+	m_response.status_list[501] = "Not Implemented";
+	m_response.status_list[502] = "Bad Gateway";
+	m_response.status_list[503] = "Service Unavailable";
+	m_response.status_list[504] = "Gateway Timeout";
+	m_response.status_list[505] = "HTTP Version Not Supported";
+	m_response.status_list[506] = "Variant Also Negotiates";
+	m_response.status_list[507] = "Insufficient Storage";
+	m_response.status_list[508] = "Loop Detected";
+	m_response.status_list[510] = "Not Extended";
+	m_response.status_list[511] = "Network Authentication Required";
+}
+
+
 void TcpServer::getPayload(int m_new_socket)
 {
-    long unsigned int content_length = 0;
-    char *body_start = NULL;
-    char *content_length_str = NULL;
+    std::string request_headers;
+    std::string request_body;
+    int content_length = 0;
     int bytesReceived = 0;
 
-    // Read the request headers to find the Content-Length header
-    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-    if (valread == -1)
-        General::exitWithError("Error in recv()");
+    // Read the request headers
+    while (true) {
+        int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+        if (valread == -1)
+            General::exitWithError("Error in recv() 1");
 
-    // Find the start of the request body
-    body_start = strstr(m_buffer, "\r\n\r\n");
-    if (body_start != NULL) {
-        body_start += 4;
-        // Look for the Content-Length header
-        content_length_str = strstr(m_buffer, "Content-Length: ");
-        if (content_length_str != NULL) {
-            content_length_str += strlen("Content-Length: ");
-            content_length = atoi(content_length_str);
-            // Make sure we have enough space in the buffer
-            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
-                General::exitWithError("Payload too large for buffer");
-            }
-            // Read the payload
-            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
-            if (bytesReceived == -1)
-                General::exitWithError("Error in recv()");
+        request_headers += std::string(m_buffer, valread);
+        if (request_headers.find("\r\n\r\n") != std::string::npos)
+            break; // Found the end of headers
+    }
+
+    // Find the Content-Length header
+    std::string content_length_str = "Content-Length: ";
+    std::string::size_type content_length_pos = request_headers.find(content_length_str);
+    if (content_length_pos != std::string::npos)
+	{
+        content_length_pos += content_length_str.length();
+        std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
+        if (end_of_line_pos != std::string::npos) {
+            std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
+            content_length = std::atoi(content_length_value.c_str());
         }
     }
-	m_request.raw_request = std::string(m_buffer);
-    General::log("\nReceived message: \n" + string(m_buffer));
+
+    // Read the request body if content length is specified
+    if (content_length > 0) {
+        request_body.resize(content_length);
+		while (bytesReceived < content_length) {
+            int bytesRead = recv(m_new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
+            if (bytesRead == -1)
+                General::exitWithError("Error in recv() 2");
+            bytesReceived += bytesRead;
+        }
+    }
+
+    // Process the received payload
+    m_request.raw_request = request_headers + request_body;
+    General::log("\nReceived message: \n" + m_request.raw_request);
 }
 
 

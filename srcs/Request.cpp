@@ -6,7 +6,7 @@
 /*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:41:57 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/17 16:49:40 by sdesseau         ###   ########.fr       */
+/*   Updated: 2023/05/17 18:04:04 by sdesseau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,6 @@ bool parse_request(Request &m_request, char *buffer) {
             }         
     }
     // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
-    print_headers(m_request.headers);
+    // print_headers(m_request.headers);
     return (true);                                                                                  
 }
