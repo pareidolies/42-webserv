@@ -199,6 +199,7 @@ void	TcpServer::run(void)
 			{
 				//std::cout << "coucou1" << std::endl;
 				clients[events[n].data.fd].getPayload();
+				clients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
 				//std::cout << "coucou2" << std::endl;
 				if (done)

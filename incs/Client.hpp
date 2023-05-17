@@ -23,6 +23,7 @@ class Client
         std::string get_filename(const std::string& content);
         void        save_file(const std::string& path, const std::string& content);
         std::string process_request(const Request& request);
+		Server * getServer();
 
 	private:
 

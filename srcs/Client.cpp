@@ -12,38 +12,56 @@ Client::Client()
 
 Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server)
 {
-	int									_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
-	int									_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
-	int									_protocol = _server->getProtocol(); //use 0 for "any"
-	u_long								_interface = _server->getInterface(); //needs to be set to INADDR_ANY
-	int									_backlog = _server->getBacklog(); //maximum number of queued clients
-	//** parsing **
-	//-> only in server
-	std::vector<Location*>				_locations = _server->getLocations();
-	int									_port = _server->getPort();
-	std::string							_host = _server->getHost();
-	//-> both in server and location
-	std::vector<std::string>			_serverName = _server->getServerName();
-	int									_clientMaxBodySize = _server->getClientMaxBodySize();
-	std::string							_root = _server->getRoot();
-	std::string							_index = _server->getIndex();
-	bool								_autoindex = _server->getAutoindex();
-	std::string							_cgiFileExtension = _server->getCgiFileExtension();
-	std::string							_cgiPathToScript = _server->getCgiPathToScript();
-	std::string							_upload = _server->getUpload();
-	bool								_get = _server->getGet();
-	bool								_post = _server->getPost();
-	bool								_delete = _server->getDelete();
-	std::map<int, std::string>			_errorPages = _server->getErrorPages();
+	_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
+	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
+	_protocol = _server->getProtocol(); //use 0 for "any"
+    _interface = _server->getInterface(); //needs to be set to INADDR_ANY
+	_backlog = _server->getBacklog(); //maximum number of queued clients
+	_locations = _server->getLocations();
+	_port = _server->getPort();
+	_host = _server->getHost();
+	_serverName = _server->getServerName();
+	_clientMaxBodySize = _server->getClientMaxBodySize();
+	_root = _server->getRoot();
+	_index = _server->getIndex();
+	_autoindex = _server->getAutoindex();
+	_cgiFileExtension = _server->getCgiFileExtension();
+	_cgiPathToScript = _server->getCgiPathToScript();
+	_upload = _server->getUpload();
+	_get = _server->getGet();
+	_post = _server->getPost();
+	_delete = _server->getDelete();
+	_errorPages = _server->getErrorPages();
+
 }
 
 /******************************************************************************
 *                                   COPY                                      *
 ******************************************************************************/
 
-Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket)
+Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(copy._server)
 {
-	//to complete
+	_domain = copy._domain; //AF_INET, AF_INET6, AF_UNSPEC
+	_service = copy._service; //SOCK_STREAM, SOCK_DGRAM
+	_protocol = copy._protocol; //use 0 for "any"
+    _interface = copy._interface; //needs to be set to INADDR_ANY
+	_backlog = copy._backlog; //maximum number of queued clients
+	_locations = copy._locations;
+	_port = copy._port;
+	_host = copy._host;
+	_serverName = copy._serverName;
+	_clientMaxBodySize = copy._clientMaxBodySize;
+	_root = copy._root;
+	_index = copy._index;
+	_autoindex = copy._autoindex;
+	_cgiFileExtension = copy._cgiFileExtension;
+	_cgiPathToScript = copy._cgiPathToScript;
+	_upload = copy._upload;
+	_get = copy._get;
+	_post = copy._post;
+	_delete = copy._delete;
+	_errorPages = copy._errorPages;
+
 }
 
 Client	&Client::operator=(Client const & rhs)
@@ -51,7 +69,27 @@ Client	&Client::operator=(Client const & rhs)
 	if (this != &rhs)
 	{
 		m_new_socket = rhs.m_new_socket;
-		//to complete
+		_server = rhs._server;
+        _domain = rhs._domain; //AF_INET, AF_INET6, AF_UNSPEC
+	    _service = rhs._service; //SOCK_STREAM, SOCK_DGRAM
+	    _protocol = rhs._protocol; //use 0 for "any"
+        _interface = rhs._interface; //needs to be set to INADDR_ANY
+	    _backlog = rhs._backlog; //maximum number of queued clients
+	    _locations = rhs._locations;
+	    _port = rhs._port;
+	    _host = rhs._host;
+	    _serverName = rhs._serverName;
+	    _clientMaxBodySize = rhs._clientMaxBodySize;
+	    _root = rhs._root;
+	    _index = rhs._index;
+	    _autoindex = rhs._autoindex;
+	    _cgiFileExtension = rhs._cgiFileExtension;
+	    _cgiPathToScript = rhs._cgiPathToScript;
+	    _upload = rhs._upload;
+	    _get = rhs._get;
+	    _post = rhs._post;
+	    _delete = rhs._delete;
+	    _errorPages = rhs._errorPages;
 	}
 	return (*this);
 }
@@ -570,4 +608,9 @@ std::string search_content_type(std::string filename)
             content_type = "application/vnd.oasis.opendocument.presentation";
     }
     return (content_type);
+}
+
+Server *Client::getServer()
+{
+    return (_server);
 }
