@@ -13,8 +13,9 @@ int	check_filename(const char *name, const char *ext)
 	return (1);
 }
 
-int main(const int argc, const char** argv)
+int main(const int argc, const char** argv, char **env)
 {
+    (void)env;
     std::string file;
 
     if (argc > 2 || (argc == 2 && !check_filename(argv[1], "conf")))
@@ -32,18 +33,18 @@ int main(const int argc, const char** argv)
         Configuration	conf(file);
         conf.open_and_read_file();
         conf.init_config();
-        // conf.print_all(); CGI cgi(conf);
-        // cgi.execute();
-
-        TcpServer server = TcpServer(conf);
-        server.run();
+        // conf.print_all(); 
+        cout << "----------------------------------" << endl;
+        CGI cgi(conf);
+        cgi.execute();
+        cout << "----------------------------------" << endl;
+        // TcpServer server = TcpServer("127.0.0.1", 8000);
+        // server.startListen();
     }
     catch(std::exception & e)
 	{
 		std::cout << ANSI_RED << e.what() << ANSI_RESET << std::endl;;
 	}
-   
-
    
     
     // if (isCGI(file_.getMimeExtension()))

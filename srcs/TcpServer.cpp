@@ -1,6 +1,104 @@
 # include "webserv.hpp"
+#include "parsing/Server.hpp"
 
-TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
+/*
+	TCP server setup flow:
+		socket: create socket
+		bind: bind socket address
+		listen: waiting for incoming request
+		accept: accept incoming request
+	
+	chosen option:
+		AF_INET		IPv4 Internet protocols
+		SOCK_STREAM	Provides sequenced, reliable, two-way, connection-based byte streams.
+		define 20 as the maximum length to which the queue of pending connections for sockfd may grow. 
+*/
+
+void			TcpServer::print_server(void)
+{
+	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
+	std::cout << ANSI_BLUE << "host: " << ANSI_RESET << _host << std::endl;
+	std::cout << ANSI_BLUE << "server names: " << ANSI_RESET << std::endl;
+	for(std::vector<std::string>::iterator it = this->_serverName.begin(); it != this->_serverName.end(); it++)
+	{	
+		std::cout << (*it) << ANSI_RESET << std::endl;
+	}
+	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
+	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
+	std::cout << ANSI_BLUE << "domain ip: " << ANSI_RESET << _domain << std::endl;
+	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
+	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
+	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
+	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
+	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
+	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
+	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
+	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
+	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
+		std::cout << "[" << it->first << "] " << it->second << std::endl;
+	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
+	{	
+		std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
+		(*it)->print_location();
+		std::cout << std::endl;
+	}
+}
+
+void TcpServer::init_var(Server *serv)
+{
+	_domain = serv->getDomain();
+	_service = serv->getService();
+	_protocol = serv->getProtocol();
+	_interface = serv->getInterface();
+	_backlog = serv->getBacklogs();
+	_locations = serv->getLocations();
+	_port = serv->getPort();
+	_host = serv->getHost();
+	_serverName = serv->getServerName();
+	_clientMaxBodySize = serv->getClientMaxBodySize();
+	_root = serv->getRoot();
+	_index = serv->getIndex();
+	_autoindex = serv->getAutoIndex();
+	_cgiFileExtension = serv->getCgiFileExtension();
+	_cgiPathToScript = serv->getCgiPathToScript();
+	_upload = serv->getUpload();
+	_get = serv->getGet();
+	_post = serv->getPost();
+	_delete = serv->getDelete();
+	_errorPages = serv->getErrorPages();
+	m_ip_address = _host;
+	m_port = _port;
+	m_socketAddress_len = sizeof(m_socketAddress);
+	m_serverMessage = buildResponse();
+	print_server();
+}
+
+TcpServer::TcpServer(Server *serv)
+{
+	init_var(serv);
+	cout << "Initalizing the server." << endl;
+	m_socketAddress.sin_family = _domain;
+	m_socketAddress.sin_port = htons(_port);
+	m_socketAddress.sin_addr.s_addr = inet_addr(_host.c_str());
+	if (startServer() != 0)
+	{
+		ostringstream ss;
+		ss << "Failed to start server with PORT: " << ntohs(m_socketAddress.sin_port);
+		General::log(ss.str());
+	}
+}
+
+TcpServer::TcpServer(string ip_address, int port) : 
+	m_ip_address(ip_address), \
+	m_port(port), m_new_socket(),\
+	m_incomingMessage(), \
+	m_socketAddress(),\
+	m_socketAddress_len(sizeof(m_socketAddress)),\
+	m_serverMessage(buildResponse())
 {
 	// create all sockets
 	std::vector<Server*>::iterator it = _servers.begin();
@@ -23,16 +121,18 @@ TcpServer::~TcpServer()
 	//closeServer();
 }
 
-
-void TcpServer::add_event(int epollfd, int fd, int state)
+int TcpServer::startServer()
 {
-	struct epoll_event ev;
+    int optval = 1;
 
-	ev.events = state;
-	ev.data.fd = fd;
-
-	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev) == -1)
-		General::exitWithError("epoll_ctl");
+	m_socket = socket(_domain, _service, _protocol);
+	if (m_socket < 0)
+		General::exitWithError("Cannot create socket");
+    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
+        General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
+	if (bind(m_socket, (sockaddr *)&m_socketAddress, m_socketAddress_len) < 0)
+		General::exitWithError("Cannot connect socket to address");
+	return (0);
 }
 
 std::vector<Socket>::iterator TcpServer::check_event_fd(int event_fd) 
@@ -63,70 +163,69 @@ void	TcpServer::run(void)
 
 	while (42) 
 	{
-
-
-		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-
-		if (event_fds == -1 && errno != EINTR)
-			General::exitWithError("epoll_wait");
-
-		// Loop that handle events happening on server fd and connections fds
-		
-		for (int n = 0; n < event_fds; ++n) {
-
-			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP)
-			{
-				General::exitWithError("event error");
-				continue;
-			}
-
-			// Accepting a new connection
-			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd);
-			if (it != _socketList.end()) 
-			{
-				acceptConnection(events[n], epollfd);
-			}
-
-			// Receiving request
-			else if (events[n].events & EPOLLIN) 
-			{
-				getPayload(events[n].data.fd);
-				done = parse_request(m_request, m_buffer);
-				if (done)
-				{
-					ev.events = EPOLLOUT;
-					ev.data.fd = events[n].data.fd;
-					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
-						General::exitWithError("epoll_create");
-				}
-			}
-			// Sending response
-			else if (events[n].events & EPOLLOUT) 
-			{
-				std::string response_str = process_request(m_request);
-				done = sendResponse(response_str, events[n].data.fd);
-				if (done)
-				{
-					memset(m_buffer, 0, sizeof(m_buffer));
-					epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev);
-					close(events[n].data.fd);
-					General::log("\n====== Waiting for a new connection ======");
-				}
-			}
-			else 
-				continue ;
-		}
+		General::log("\n====== Waiting for a new connection ======");
+		acceptConnection(m_new_socket);
+		getPayload(m_new_socket);
+        parse_request(m_request, m_buffer);
+        std::string response_str = process_request(m_request);
+		sendResponse(response_str);
+		memset(m_buffer, 0, sizeof(m_buffer));
+		close(m_new_socket);
 	}
 	if (close(epollfd) == -1)
 		General::exitWithError("close");
 }
 
-int	TcpServer::acceptConnection(struct epoll_event ev, int epollfd)
+void TcpServer::getPayload(int& new_socket)
 {
-	struct sockaddr_storage addr;
-	socklen_t socklen = sizeof(addr);
+    std::string request_headers;
+    std::string request_body;
+    int content_length = 0;
+    int bytesReceived = 0;
 
-	int new_socket = accept(ev.data.fd, (sockaddr *)&addr, &socklen);
+    // Read the request headers
+    while (true) {
+        int valread = recv(new_socket, m_buffer, sizeof(m_buffer), 0);
+        if (valread == -1)
+            General::exitWithError("Error in recv()");
+
+        request_headers += std::string(m_buffer, valread);
+        if (request_headers.find("\r\n\r\n") != std::string::npos)
+            break; // Found the end of headers
+    }
+
+    // Find the Content-Length header
+    std::string content_length_str = "Content-Length: ";
+    std::string::size_type content_length_pos = request_headers.find(content_length_str);
+    if (content_length_pos != std::string::npos) {
+        content_length_pos += content_length_str.length();
+        std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
+        if (end_of_line_pos != std::string::npos) {
+            std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
+            // content_length = std::stoi(content_length_value);
+        }
+    }
+
+    // Read the request body if content length is specified
+    if (content_length > 0) {
+        request_body.resize(content_length);
+
+        while (bytesReceived < content_length) {
+            int bytesRead = recv(new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
+            if (bytesRead == -1)
+                General::exitWithError("Error in recv()");
+            bytesReceived += bytesRead;
+        }
+    }
+
+    // Process the received payload
+    m_request.raw_request = request_headers + request_body;
+    General::log("\nReceived message: \n" + m_request.raw_request);
+}
+
+void TcpServer::acceptConnection(int &new_socket)
+{
+	new_socket = accept(m_socket, (sockaddr *)&m_socketAddress, &m_socketAddress_len);
 	if (new_socket < 0)
 	{
 		ostringstream ss;
@@ -191,7 +290,7 @@ string TcpServer::buildResponse()
 	return ss.str();
 }
 
-bool TcpServer::sendResponse(std::string response_str, int m_new_socket)
+void TcpServer::sendResponse(std::string response_str)
 {
     if (send(m_new_socket, response_str.c_str(), response_str.size(), 0) < 0)
 	{

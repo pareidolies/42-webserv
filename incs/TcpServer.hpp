@@ -9,12 +9,8 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-
-#include "Configuration.hpp"
 #include "parsing/Server.hpp"
-#include "Socket.hpp"
 
-#include <vector>
 #include <map> // for map
 #include <fstream> // for ifstream
 #include <sys/poll.h> // for poll
@@ -26,33 +22,26 @@
 
 using namespace std;
 
+class Server;
+
  // Structure pour stocker les informations de la requête
-struct Request {
-    std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
-    std::string uri;                             // URI de la ressource demandée
-    std::map<std::string, std::string> headers;  // en-têtes de la requête
-    std::string body;                            // corps de la requête
-	std::string raw_request;
-};
+    struct Request {
+        std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
+        std::string uri;                             // URI de la ressource demandée
+        std::map<std::string, std::string> headers;  // en-têtes de la requête
+        std::string body;                            // corps de la requête
+		std::string raw_request;
+    };
 
 class TcpServer
 {
 	public:
-		TcpServer(Configuration conf);
+		TcpServer(string ip_address, int port);
+		TcpServer(Server *serv);
 		~TcpServer();
-
-		void run();
-		void	add_event(int epollfd, int fd, int state);
-		std::vector<Socket>::iterator check_event_fd(int event_fd);
-		int		acceptConnection(struct epoll_event ev, int epollfd);
-
-        void	getHeader(int new_socket);
-        void	getPayload(int new_socket);
-        string	buildResponse();
-        bool	sendResponse(std::string response_str, int m_new_socket);
-
-		std::vector<Server*>		_servers;
-		std::vector<Socket>			_socketList;
+		void startListen();
+		void init_var(Server *serv);
+		void print_server();
 
 	private:
 		
@@ -62,13 +51,43 @@ class TcpServer
 		long				m_incomingMessage;
 		string				m_serverMessage;
 
-		char				m_buffer[4096];
-		Request				m_request;
+		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
+		int									_service; //SOCK_STREAM, SOCK_DGRAM
+		int									_protocol; //use 0 for "any"
+		u_long								_interface; //needs to be set to INADDR_ANY
+		int									_backlog; //maximum number of queued clients
+		//** parsing **
+		//-> only in server
+		std::vector<Location*>				_locations;
+		int									_port;
+		std::string							_host;
+		//-> both in server and location
+		std::vector<std::string>			_serverName;
+		int									_clientMaxBodySize;
+		std::string							_root;
+		std::string							_index;
+		bool								_autoindex;
+		std::string							_cgiFileExtension;
+		std::string							_cgiPathToScript;
+		std::string							_upload;
+		bool								_get;
+		bool								_post;
+		bool								_delete;
+		std::map<int, std::string>			_errorPages;
 
-		
+		char m_buffer[4096];
+		Request m_request;
+
+        int		startServer();
+        void	closeServer();
+        void	acceptConnection(int &new_socket);
+        void	getHeader(int &new_socket);
+        void	getPayload(int &new_socket);
+        string	buildResponse();
+        void	sendResponse(std::string response_str);
 };
 
-bool parse_request(Request &m_request, char *m_buffer);
+Request& parse_request(Request &m_request, char *m_buffer);
 std::string process_request(const Request& request);
 
 #endif

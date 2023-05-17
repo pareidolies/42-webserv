@@ -6,7 +6,7 @@
 /*   By: stan <stan@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/02 18:41:57 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/05 18:42:28 by stan             ###   ########.fr       */
+/*   Updated: 2023/05/05 22:35:34 by stan             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void print_headers(const std::map<std::string, std::string>& headers)
     std::cout << "Content-Type: " << it->second << std::endl;
 }
 
-bool parse_request(Request &m_request, char *buffer) {
+Request& parse_request(Request &m_request, char *buffer) {
     std::stringstream request_stream;                                                                                   
     request_stream << buffer;                                                                      
     std::string line;                                                                               
@@ -52,6 +52,6 @@ bool parse_request(Request &m_request, char *buffer) {
             }         
     }
     // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
-    print_headers(m_request.headers);
-    return (true);                                                                                  
+    // print_headers(m_request.headers);
+    return (m_request);                                                                                  
 }
