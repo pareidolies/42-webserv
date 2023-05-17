@@ -32,6 +32,21 @@ class Location
 		void	init_location_config(std::vector<std::string>::iterator it, std::vector<std::string> split);
 		void	print_location(void);
 
+		//getters
+		std::string					getLocate();
+		std::vector<std::string>	getServerName();
+		int							getClientMaxBodySize();
+		bool						getGet();
+		bool						getPost();
+		bool						getDelete();
+		std::string					getRoot();
+		std::string					getIndex();
+		bool						getAutoindex();
+		std::string					getCgiFileExtension();
+		std::string					getCgiPathToScript();
+		std::string					getUpload();
+		std::map<int, std::string>	getErrorPages();
+
 	private:
 
 		std::string					_locate;

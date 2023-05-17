@@ -1,6 +1,4 @@
-# include "Configuration.hpp"
 # include "webserv.hpp"
-# include "utils.hpp"
 
 # include <iostream>
 # include <fstream>
@@ -53,6 +51,10 @@ Configuration::~Configuration(void)
 *                                  GETTERS                                    *
 ******************************************************************************/
 
+std::vector<Server*>		Configuration::getServers(void)
+{
+	return (_servers);
+}
 
 /******************************************************************************
 *                             MEMBER FUNCTIONS                                *

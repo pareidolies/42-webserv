@@ -1,6 +1,4 @@
 # include "webserv.hpp"
-# include "Configuration.hpp"
-# include "cgi.hpp"
 
 # include <string>
 # include <iostream>
@@ -42,11 +40,18 @@ int main(const int argc, const char** argv, char **env)
         cout << "----------------------------------" << endl;
         // TcpServer server = TcpServer("127.0.0.1", 8000);
         // server.startListen();
+        // conf.print_all(); CGI cgi(conf);
+        // cgi.execute();
+
+        TcpServer server = TcpServer(conf);
+        server.run();
     }
     catch(std::exception & e)
 	{
 		std::cout << ANSI_RED << e.what() << ANSI_RESET << std::endl;;
 	}
+   
+
    
     
     // if (isCGI(file_.getMimeExtension()))

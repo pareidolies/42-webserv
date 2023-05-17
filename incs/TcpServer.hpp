@@ -1,5 +1,5 @@
-#ifndef TCPSERVER_HPP
-# define TCPSERVER_HPP
+#ifndef TCP_SERVER_HPP
+# define TCP_SERVER_HPP
 
 #include <iostream>
 #include <sstream>
@@ -11,14 +11,23 @@
 #include <arpa/inet.h>
 #include "parsing/Server.hpp"
 
+#include "parsing/Configuration.hpp"
+#include "parsing/Server.hpp"
+#include "Socket.hpp"
+
+#include <vector>
 #include <map> // for map
 #include <fstream> // for ifstream
 #include <sys/poll.h> // for poll
+#include <sys/epoll.h>
 #include <sys/ioctl.h> // for ioctl
+#include <fcntl.h>
 
 #define BUFFER_SIZE 100
 
 using namespace std;
+
+class Configuration;
 
 class Server;
 
@@ -34,21 +43,26 @@ class Server;
 class TcpServer
 {
 	public:
-		TcpServer(string ip_address, int port);
-		TcpServer(Server *serv);
+		TcpServer(Configuration conf);
 		~TcpServer();
-		void startListen();
-		void init_var(Server *serv);
-		void print_server();
+
+		void run();
+		void	add_event(int epollfd, int fd, int state);
+		std::vector<Socket>::iterator check_event_fd(int event_fd);
+		int		acceptConnection(struct epoll_event ev, int epollfd);
+
+        void	getHeader(int new_socket);
+        bool	sendResponse(std::string response_str, int m_new_socket);
+
+		std::vector<Server*>		_servers;
+		std::vector<Socket>			_socketList;
 
 	private:
-		string				m_ip_address;
-		int					m_port;
-		int					m_socket;
-		int					m_new_socket;
+		
+
+		//int					m_socket;
+		//int					m_new_socket;
 		long				m_incomingMessage;
-		struct sockaddr_in	m_socketAddress;
-		unsigned int		m_socketAddress_len;
 		string				m_serverMessage;
 
 		int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
@@ -80,14 +94,14 @@ class TcpServer
 
         int		startServer();
         void	closeServer();
-        void	acceptConnection(int &new_socket);
-        void	getHeader(int &new_socket);
-        void	getPayload(int &new_socket);
+        void	getPayload(int new_socket);
         string	buildResponse();
-        void	sendResponse(std::string response_str);
+		void    init_var(Server *serv);
+
+		void	print_server(void);
 };
 
-Request& parse_request(Request &m_request, char *m_buffer);
+bool parse_request(Request &m_request, char *m_buffer);
 std::string process_request(const Request& request);
 
 #endif
