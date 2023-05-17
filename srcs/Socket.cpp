@@ -15,12 +15,14 @@
 
 //ADD Socket by default
 
-Socket::Socket(string ip_address, int port) : 
+Socket::Socket(string ip_address, int port, Server	*server) : 
 	m_ip_address(ip_address), \
 	m_port(port), \
 	m_socketAddress(),\
 	m_socketAddress_len(sizeof(m_socketAddress))
 {
+	this->_server = server;
+
 	cout << "Initalizing the server." << endl;
 	m_socketAddress.sin_family = AF_INET;
 	m_socketAddress.sin_port = htons(m_port);
@@ -80,4 +82,8 @@ void Socket::startListen()
 
 int	Socket::getSocketFd(void) {
 	return (this->m_socket);
+}
+
+Server *Socket::getServer(void) {
+	return (this->_server);
 }

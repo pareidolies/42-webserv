@@ -35,8 +35,8 @@ int main(const int argc, const char** argv, char **env)
         conf.init_config();
         // conf.print_all(); 
         cout << "----------------------------------" << endl;
-        CGI cgi(conf);
-        cgi.execute();
+        //CGI cgi(conf);
+        //cgi.execute();
         cout << "----------------------------------" << endl;
         // TcpServer server = TcpServer("127.0.0.1", 8000);
         // server.startListen();
@@ -51,9 +51,6 @@ int main(const int argc, const char** argv, char **env)
 		std::cout << ANSI_RED << e.what() << ANSI_RESET << std::endl;;
 	}
    
-
-   
-    
     // if (isCGI(file_.getMimeExtension()))
     {
         // CGI cgi(file_, config_, config_.getHeaders(), config_.getBody());
@@ -67,6 +64,5 @@ int main(const int argc, const char** argv, char **env)
         // return status_code_;
     }
 
-    
     return EXIT_SUCCESS;
 }

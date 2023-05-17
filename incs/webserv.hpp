@@ -10,8 +10,6 @@
 #include <string>
 #include "General.hpp"
 #include "TcpServer.hpp"
-#include "Response.hpp"
-#include "Request.hpp"
 #include "Socket.hpp"
 
 #include "Configuration.hpp"
@@ -19,6 +17,7 @@
 #include "Server.hpp"
 #include "utils.hpp"
 #include "cgi.hpp"
+#include "Client.hpp"
 
 
 

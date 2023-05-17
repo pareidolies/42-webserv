@@ -1,5 +1,7 @@
 # include "webserv.hpp"
 #include "parsing/Server.hpp"
+#include <map>
+
 
 /*
 	TCP server setup flow:
@@ -86,10 +88,13 @@ TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
 	{
 		std::cout << ANSI_GREEN << i << ". "<< (*it)->getHost() << ":"
 				<< (*it)->getPort() << std::endl << ANSI_RESET;
-		_socketList.push_back(Socket((*it)->getHost(), (*it)->getPort()));
+		_socketList.push_back(Socket((*it)->getHost(), (*it)->getPort(), (*it)));
 		++i;
 	}
+
 }
+
+
 
 // TcpServer::TcpServer(string ip_address, int port) : 
 // 	m_ip_address(ip_address), \
@@ -146,8 +151,9 @@ void	TcpServer::run(void)
 	//session cookies ?
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
-	//std::map<int, Client> clients; //managing clients
+	std::map<int, Client> clients; //managing clients
 	bool done = false; //check end of response & request
+	int		server_id;
 
 	//create the epoll instance
 	epollfd = epoll_create(1);
@@ -160,8 +166,6 @@ void	TcpServer::run(void)
 
 	while (42) 
 	{
-
-
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
 		if (event_fds == -1 && errno != EINTR)
@@ -179,16 +183,24 @@ void	TcpServer::run(void)
 
 			// Accepting a new connection
 			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd);
-			if (it != _socketList.end()) 
+			int server_id = it - _socketList.begin() - 1;
+						
+			if (it != _socketList.end())
 			{
-				acceptConnection(events[n], epollfd);
+				int connection = acceptConnection(events[n], epollfd);
+				//std::cout << "coucou" << std::endl;
+				Client new_client(connection, (*it).getServer());
+				clients[connection] = new_client;
+				//std::cout << "coucou" << std::endl;
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
-				getPayload(events[n].data.fd);
-				done = parse_request(m_request, m_buffer);
+				//std::cout << "coucou1" << std::endl;
+				clients[events[n].data.fd].getPayload();
+				done = clients[events[n].data.fd].parse_request();
+				//std::cout << "coucou2" << std::endl;
 				if (done)
 				{
 					ev.events = EPOLLOUT;
@@ -200,7 +212,7 @@ void	TcpServer::run(void)
 			// Sending response
 			else if (events[n].events & EPOLLOUT) 
 			{
-				std::string response_str = process_request(m_request);
+				std::string response_str = clients[events[n].data.fd].process_request();
 				done = sendResponse(response_str, events[n].data.fd);
 				if (done)
 				{
@@ -241,41 +253,6 @@ int	TcpServer::acceptConnection(struct epoll_event ev, int epollfd)
 	}
 	add_event(epollfd, new_socket, EPOLLIN);
 	return (new_socket);
-}
-
-void TcpServer::getPayload(int m_new_socket)
-{
-    long unsigned int content_length = 0;
-    char *body_start = NULL;
-    char *content_length_str = NULL;
-    int bytesReceived = 0;
-
-    // Read the request headers to find the Content-Length header
-    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-    if (valread == -1)
-        General::exitWithError("Error in recv()");
-
-    // Find the start of the request body
-    body_start = strstr(m_buffer, "\r\n\r\n");
-    if (body_start != NULL) {
-        body_start += 4;
-        // Look for the Content-Length header
-        content_length_str = strstr(m_buffer, "Content-Length: ");
-        if (content_length_str != NULL) {
-            content_length_str += strlen("Content-Length: ");
-            content_length = atoi(content_length_str);
-            // Make sure we have enough space in the buffer
-            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
-                General::exitWithError("Payload too large for buffer");
-            }
-            // Read the payload
-            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
-            if (bytesReceived == -1)
-                General::exitWithError("Error in recv()");
-        }
-    }
-	m_request.raw_request = std::string(m_buffer);
-    General::log("\nReceived message: \n" + string(m_buffer));
 }
 
 

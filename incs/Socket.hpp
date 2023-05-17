@@ -12,13 +12,16 @@
 
 #include <fstream> // for ifstream
 
+class Server;
+
 class Socket
 {
 	public:
-		Socket(string ip_address, int port);
+		Socket(string ip_address, int port, Server	*server);
 		~Socket();
 		void	startListen();
 		int		getSocketFd(void);
+		Server *getServer();
 
 	private:
 		string				m_ip_address;
@@ -29,6 +32,7 @@ class Socket
 		struct sockaddr_in	m_socketAddress;
 		unsigned int		m_socketAddress_len;
 		//string			m_serverMessage;
+		Server				*_server;
 
         int		startServer();
         //void	closeServer();
