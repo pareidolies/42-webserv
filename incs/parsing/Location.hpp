@@ -42,8 +42,9 @@ class Location
 		std::string					getRoot();
 		std::string					getIndex();
 		bool						getAutoindex();
-		std::string					getCgiFileExtension();
+		std::map<std::string, std::string>					getCgiFile();
 		std::string					getCgiPathToScript();
+		std::string					getCgiFileExtension();
 		std::string					getUpload();
 		std::map<int, std::string>	getErrorPages();
 
@@ -61,6 +62,7 @@ class Location
 		bool						_autoindex;
 		std::string					_cgiFileExtension;
 		std::string					_cgiPathToScript;
+		std::map<std::string, std::string>		_cgiFile;
 		std::string					_upload;
 		std::map<int, std::string>	_errorPages;
 };

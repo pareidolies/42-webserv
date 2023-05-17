@@ -131,6 +131,7 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
 					throw Location::DirOrFileError();
 				}
+				_cgiFile[_cgiFileExtension] = _cgiPathToScript;
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -239,6 +240,11 @@ std::string					Location::getCgiFileExtension()
 std::string					Location::getCgiPathToScript()
 {
 	return(_cgiPathToScript);
+}
+
+std::map<std::string, std::string>				Location::getCgiFile()
+{
+	return(_cgiFile);
 }
 
 std::string					Location::getUpload()
