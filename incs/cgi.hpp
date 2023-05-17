@@ -10,12 +10,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 
 
 // # include "RequestConfig.hpp"
 // # include "File.hpp"
 // # include "StringUtils.hpp"
 #include "Configuration.hpp"
+
+// #define BUFFER_SIZE 4096
 
 using namespace std;
 
@@ -33,6 +36,7 @@ class CGI {
         int     execute();
         bool    setCGIEnv();
         void    parseHeaders(map<string, string> &headers);
+        void readFromPipe(int pipefd);
 
     private:
         Configuration      &_conf;

@@ -88,8 +88,7 @@ bool CGI::setCGIEnv()
 	// 	_cgi_env["CONTENT_TYPE"] = _req_headers["Content-Type"];
 	// 	_cgi_env["CONTENT_LENGTH"] = General::to_string(_req_body.length());
 	// }
-	_cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	_cgi_env["PATH_INFO"] = this->_file_path;
+	_cgi_env["PATH_INFO"] = this->_file_path;	
 	_cgi_env["PATH_TRANSLATED"] = this->_file_path;
 	_cgi_env["QUERY_STRING"] = "name=John+Doe&age=38";
 	_cgi_env["REQUEST_METHOD"] = "POST";
@@ -142,6 +141,17 @@ bool CGI::setCGIEnv()
 	_env[i] = NULL;
 	return (true);
 }
+
+void CGI::readFromPipe(int pipefd)
+{
+    std::vector<char>	buffer(4096);
+    ssize_t				bytesRead;
+	this->_body = "";
+
+    while ((bytesRead = read(pipefd, buffer.data(), 4096)) > 0)
+        this->_body.append(buffer.data(), bytesRead);
+}
+
 int CGI::execute()
 {
     _req_body = "name=John+Doe&age=3";
@@ -157,34 +167,48 @@ int CGI::execute()
 
     _argv[2] = NULL;
 
-    // print env
-    for (int i = 0; _env[i]; i++)
-        std::cout << _env[i] << std::endl;
-
     int pip[2];
-
-    if (pipe(pip) != 0)
-        return (500);
+	int output_pipe[2];
+	char buffer[4096];
+	if (pipe(pip) == -1)
+		return (500);
+	if (pipe(output_pipe) == -1)
+	{
+		close(pip[READEND]);
+		close(pip[WRITEEND]);
+		return (500);
+	}
 
     pid_t pid = fork();
-
-    if (pid == 0)
-    {
+    if (pid == -1)
+        return 1;
+    else if (pid == 0)
+	{
         // Child process: redirect STDIN to the read end of the pipe
         close(pip[WRITEEND]);
         if (dup2(pip[READEND], STDIN_FILENO) == -1)
-            return (500);
+            return 500;
+        close(pip[READEND]);
+
+        // Redirect STDOUT to a pipe
+        dup2(output_pipe[WRITEEND], STDOUT_FILENO);
+        close(output_pipe[WRITEEND]);
 
         execve(_argv[0], _argv, _env);
         exit(1);
     }
-    else if (pid > 0)
-    {
+	else
+	{
         // Parent process: write the request body to the write end of the pipe
         close(pip[READEND]);
         if (_req_body.length() && write(pip[WRITEEND], _req_body.c_str(), _req_body.length()) <= 0)
             return (500);
         close(pip[WRITEEND]);
+
+        // Read the output of the child process from the pipe
+        close(output_pipe[WRITEEND]);
+		readFromPipe(output_pipe[READEND]);
+        close(output_pipe[READEND]);
 
         int status;
         if (waitpid(pid, &status, 0) == -1)
@@ -192,10 +216,6 @@ int CGI::execute()
         if (WIFEXITED(status) && WEXITSTATUS(status))
             return (502);
     }
-    else
-        return (502);
-
-    // _body = _tmp_file.getContent();
     return (200);
 }
 
