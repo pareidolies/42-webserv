@@ -189,7 +189,7 @@ void TcpServer::getPayload(int& new_socket)
         std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
         if (end_of_line_pos != std::string::npos) {
             std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
-            content_length = std::stoi(content_length_value);
+            // content_length = std::stoi(content_length_value);
         }
     }
 
