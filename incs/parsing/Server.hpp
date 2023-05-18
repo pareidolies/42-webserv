@@ -42,26 +42,27 @@ class Server
 		bool			check_client_max_body_size(std::string parameter);
 		void			print_server(void);
 
-		int getDomain() const { return (_domain); }
-		int getService() const { return (_service); }
-		int getProtocol() const { return (_protocol); }
-		u_long getInterface() const { return (_interface); }
-		int getBacklogs() const { return (_backlog); }
-		std::vector<Location*> getLocations() const { return (_locations); }
-		int getPort() const { return (_port); }
-		std::string getHost() const { return (_host); }
-		std::vector<std::string> getServerName() const { return (_serverName); }
-		int getClientMaxBodySize() const { return (_clientMaxBodySize); }
-		std::string getRoot() const { return (_root); }
-		std::string getIndex() const { return (_index); }
-		bool getAutoIndex() const { return (_autoindex); }
-		std::string getCgiFileExtension() const { return (_cgiFileExtension); }
-		std::string getCgiPathToScript() const { return (_cgiPathToScript); }
-		std::string getUpload() const { return (_upload); }
-		bool getGet() const { return (_get); }
-		bool getPost() const { return (_post); }
-		bool getDelete() const { return (_delete); }
-		std::map<int, std::string> getErrorPages() const { return (_errorPages); }
+		//getters
+		int									getPort();
+		std::string							getHost();
+		int									getDomain();
+		int									getService();
+		int									getProtocol();
+		u_long								getInterface();
+		int									getBacklog();
+		std::vector<Location*>				getLocations();
+		std::vector<std::string>			getServerName();
+		int									getClientMaxBodySize();
+		std::string							getRoot();
+		std::string							getIndex();
+		bool								getAutoindex();
+		std::string							getCgiFileExtension();
+		std::string							getCgiPathToScript();
+		std::string							getUpload();
+		bool								getGet();
+		bool								getPost();
+		bool								getDelete();
+		std::map<int, std::string>			getErrorPages();
 
 	private:
 

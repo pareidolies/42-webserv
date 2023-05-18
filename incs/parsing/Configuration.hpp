@@ -7,6 +7,8 @@
 # include <vector>
 # include <string>
 
+class Server;
+
 class Configuration
 {
 	public:
@@ -29,9 +31,10 @@ class Configuration
 
 		Configuration	&operator=(Configuration const & rhs);
 
-		bool			open_and_read_file(void);
-		void			init_config(void);
-		void			print_all(void);
+		bool						open_and_read_file(void);
+		void						init_config(void);
+		void						print_all(void);
+		std::vector<Server*>		getServers(void);
 
 	private:
 
