@@ -50,8 +50,6 @@ SRCS		=	$(SRCS_PARSER)
 SRCS		+=	$(SRCS_SOCKET)
 SRCS		+=	$(SRCS_CGI)
 SRCS		+=	main.cpp
-SRCS		+=	Request.cpp \
-				Response.cpp
 				
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 

@@ -400,9 +400,6 @@ void removeFirstFourLines(std::string& data)
     }
 }
 
-<<<<<<<< HEAD:srcs/Client.cpp
-std::string Client::process_request(const Request& request) 
-========
 std::string get_file_extension(const std::string& filename)
 {
     size_t dotIndex = filename.find_last_of(".");
@@ -432,7 +429,6 @@ bool is_cgi_script(const std::string& uri)
 }
 
 std::string process_request(const Request& request) 
->>>>>>>> b509a3607b952402a4856695df77af1a4f7b7eb1:srcs/Response.cpp
 {
     std::cout << "Method: " << request.method << std::endl;
     std::string response;
