@@ -78,8 +78,13 @@ class General
     };
 
 	struct Response {
+		std::string full_response;
 		std::string body;
 		std::string cgi_path;
+		std::string body_size;
+		std::string content_type;
+        std::map<int, std::string> status_code_list;
+        int	status_code;
 	};
 
 #endif

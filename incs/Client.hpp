@@ -25,12 +25,15 @@ class Client
         // std::string process_request(const Request& request);
 		Server * getServer();
 
+		void init_code_msg();
+
 	private:
 
         int m_new_socket;
         Server*  _server;
 		char m_buffer[4096];
 		Request m_request;
+		Response m_response;
         int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
 		int									_service; //SOCK_STREAM, SOCK_DGRAM
 		int									_protocol; //use 0 for "any"
