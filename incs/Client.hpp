@@ -24,6 +24,7 @@ class Client
         void        save_file(const std::string& path, const std::string& content);
         std::string process_request(const Request& request);
 		Server * getServer();
+		void    buffer_memset();
 
 	private:
 
@@ -54,6 +55,7 @@ class Client
 		bool								_post;
 		bool								_delete;
 		std::map<int, std::string>			_errorPages;
+		bool								_done;
 };
 
 std::string read_file(const std::string& filename);

@@ -32,6 +32,7 @@ Client::Client(int connection, Server *server) : m_new_socket(connection), _serv
 	_post = _server->getPost();
 	_delete = _server->getDelete();
 	_errorPages = _server->getErrorPages();
+    _done = false;
 
 }
 
@@ -61,6 +62,7 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
 	_post = copy._post;
 	_delete = copy._delete;
 	_errorPages = copy._errorPages;
+    _done = copy._done;
 
 }
 
@@ -90,6 +92,7 @@ Client	&Client::operator=(Client const & rhs)
 	    _post = rhs._post;
 	    _delete = rhs._delete;
 	    _errorPages = rhs._errorPages;
+        _done = rhs._done;
 	}
 	return (*this);
 }
@@ -116,8 +119,9 @@ void Client::getPayload()
 
     // Read the request headers to find the Content-Length header
     int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+    std::cout << ANSI_RED << m_new_socket << ANSI_RESET << std::endl;
     if (valread == -1)
-        General::exitWithError("Error in recv()");
+        General::exitWithError("Error in recv() 1");
 
     // Find the start of the request body
     body_start = strstr(m_buffer, "\r\n\r\n");
@@ -134,8 +138,13 @@ void Client::getPayload()
             }
             // Read the payload
             bytesReceived = recv(m_new_socket, body_start, content_length, 0);
+            std::cout << ANSI_RED << m_new_socket << ANSI_RESET << std::endl;
+            std::cout << ANSI_RED << body_start << ANSI_RESET << std::endl;
+            std::cout << ANSI_RED << content_length << ANSI_RESET << std::endl;
+            std::cout << ANSI_RED << bytesReceived << ANSI_RESET << std::endl;
+
             if (bytesReceived == -1)
-                General::exitWithError("Error in recv()");
+                General::exitWithError("Error in recv() 2");
         }
     }
 	m_request.raw_request = std::string(m_buffer);
@@ -165,6 +174,11 @@ bool Client::parse_request() {
     // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
     print_headers(m_request.headers);
     return (true);                                                                                  
+}
+
+void    Client::buffer_memset()
+{
+    memset(m_buffer, 0, sizeof(m_buffer));
 }
 
 /******************************************************************************

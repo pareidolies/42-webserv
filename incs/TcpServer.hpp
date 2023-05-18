@@ -23,7 +23,7 @@
 #include <sys/ioctl.h> // for ioctl
 #include <fcntl.h>
 
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 2056
 
 using namespace std;
 

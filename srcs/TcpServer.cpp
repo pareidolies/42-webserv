@@ -183,7 +183,6 @@ void	TcpServer::run(void)
 
 			// Accepting a new connection
 			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd);
-			int server_id = it - _socketList.begin() - 1;
 						
 			if (it != _socketList.end())
 			{
@@ -191,17 +190,17 @@ void	TcpServer::run(void)
 				//std::cout << "coucou" << std::endl;
 				Client new_client(connection, (*it).getServer());
 				clients[connection] = new_client;
-				//std::cout << "coucou" << std::endl;
+				std::cout << "coucou1" << std::endl;
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
-				//std::cout << "coucou1" << std::endl;
+				std::cout << "COUCOU" << std::endl;
 				clients[events[n].data.fd].getPayload();
 				clients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
-				//std::cout << "coucou2" << std::endl;
+				std::cout << "coucou2" << std::endl;
 				if (done)
 				{
 					ev.events = EPOLLOUT;
@@ -215,11 +214,15 @@ void	TcpServer::run(void)
 			{
 				std::string response_str = clients[events[n].data.fd].process_request();
 				done = sendResponse(response_str, events[n].data.fd);
+				std::cout << "coucou3" << std::endl;
 				if (done)
 				{
-					memset(m_buffer, 0, sizeof(m_buffer));
-					epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev);
-					close(events[n].data.fd);
+					clients[events[n].data.fd].buffer_memset();
+					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
+						General::exitWithError("epoll del");
+					if (close(events[n].data.fd) < 0)
+						General::exitWithError("close");
+					clients.erase(events[n].data.fd);
 					General::log("\n====== Waiting for a new connection ======");
 				}
 			}
