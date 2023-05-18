@@ -16,64 +16,64 @@
 		define 20 as the maximum length to which the queue of pending connections for sockfd may grow. 
 */
 
-// void			TcpServer::print_server(void)
-// {
-// 	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
-// 	std::cout << ANSI_BLUE << "host: " << ANSI_RESET << _host << std::endl;
-// 	std::cout << ANSI_BLUE << "server names: " << ANSI_RESET << std::endl;
-// 	for(std::vector<std::string>::iterator it = this->_serverName.begin(); it != this->_serverName.end(); it++)
-// 	{	
-// 		std::cout << (*it) << ANSI_RESET << std::endl;
-// 	}
-// 	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
-// 	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
-// 	std::cout << ANSI_BLUE << "domain ip: " << ANSI_RESET << _domain << std::endl;
-// 	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
-// 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
-// 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
-// 	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
-// 	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
-// 	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
-// 	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
-// 	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
-// 	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
-// 	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
-// 	std::cout << ANSI_BLUE << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
-// 	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
-// 	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
-// 		std::cout << "[" << it->first << "] " << it->second << std::endl;
-// 	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
-// 	{	
-// 		std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
-// 		(*it)->print_location();
-// 		std::cout << std::endl;
-// 	}
-// }
+void			TcpServer::print_server(void)
+{
+	std::cout << ANSI_BLUE << "port: " << ANSI_RESET << _port << std::endl;
+	std::cout << ANSI_BLUE << "host: " << ANSI_RESET << _host << std::endl;
+	std::cout << ANSI_BLUE << "server names: " << ANSI_RESET << std::endl;
+	for(std::vector<std::string>::iterator it = this->_serverName.begin(); it != this->_serverName.end(); it++)
+	{	
+		std::cout << (*it) << ANSI_RESET << std::endl;
+	}
+	std::cout << ANSI_BLUE << "root: " << ANSI_RESET << _root << std::endl;
+	std::cout << ANSI_BLUE << "client max body size: " << ANSI_RESET << _clientMaxBodySize << std::endl;
+	std::cout << ANSI_BLUE << "domain ip: " << ANSI_RESET << _domain << std::endl;
+	std::cout << ANSI_BLUE << "service: " << ANSI_RESET << _service << std::endl;
+	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
+	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
+	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
+	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
+	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
+	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
+	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "autoindex: " << ANSI_RESET << (_autoindex ? "on" : "off" ) << std::endl;
+	std::cout << ANSI_BLUE << "error pages: " << ANSI_RESET << std::endl;
+	for(std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
+		std::cout << "[" << it->first << "] " << it->second << std::endl;
+	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
+	{	
+		std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
+		(*it)->print_location();
+		std::cout << std::endl;
+	}
+}
 
 void TcpServer::init_var(Server *serv)
 {
-	m_request._domain = serv->getDomain();
-	m_request._service = serv->getService();
-	m_request._protocol = serv->getProtocol();
-	m_requet._interface = serv->getInterface();
-	m_request._backlog = serv->getBacklog();
-	m_request._locations = serv->getLocations();
-	m_request._port = serv->getPort();
-	m_request._host = serv->getHost();
-	m_request._serverName = serv->getServerName();
-	m_request._clientMaxBodySize = serv->getClientMaxBodySize();
-	m_request._root = serv->getRoot();
-	m_request._index = serv->getIndex();
-	m_request._autoindex = serv->getAutoindex();
-	m_request._cgiFileExtension = serv->getCgiFileExtension();
-	m_request._cgiPathToScript = serv->getCgiPathToScript();
-	m_request._upload = serv->getUpload();
-	m_request._get = serv->getGet();
-	m_request._post = serv->getPost();
-	m_request._delete = serv->getDelete();
-	m_request._errorPages = serv->getErrorPages();
+	_domain = serv->getDomain();
+	_service = serv->getService();
+	_protocol = serv->getProtocol();
+	_interface = serv->getInterface();
+	_backlog = serv->getBacklog();
+	_locations = serv->getLocations();
+	_port = serv->getPort();
+	_host = serv->getHost();
+	_serverName = serv->getServerName();
+	_clientMaxBodySize = serv->getClientMaxBodySize();
+	_root = serv->getRoot();
+	_index = serv->getIndex();
+	_autoindex = serv->getAutoindex();
+	_cgiFileExtension = serv->getCgiFileExtension();
+	_cgiPathToScript = serv->getCgiPathToScript();
+	_upload = serv->getUpload();
+	_get = serv->getGet();
+	_post = serv->getPost();
+	_delete = serv->getDelete();
+	_errorPages = serv->getErrorPages();
 	m_serverMessage = buildResponse();
-	// print_server();
+	print_server();
 }
 
 TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
@@ -93,6 +93,8 @@ TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
 	}
 
 }
+
+
 
 // TcpServer::TcpServer(string ip_address, int port) : 
 // 	m_ip_address(ip_address), \
@@ -164,8 +166,6 @@ void	TcpServer::run(void)
 
 	while (42) 
 	{
-
-
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
 		if (event_fds == -1 && errno != EINTR)
@@ -183,7 +183,6 @@ void	TcpServer::run(void)
 
 			// Accepting a new connection
 			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd);
-			int server_id = it - _socketList.begin() - 1;
 						
 			if (it != _socketList.end())
 			{
@@ -191,17 +190,17 @@ void	TcpServer::run(void)
 				//std::cout << "coucou" << std::endl;
 				Client new_client(connection, (*it).getServer());
 				clients[connection] = new_client;
-				//std::cout << "coucou" << std::endl;
+				// std::cout << "coucou1" << std::endl;
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
-				//std::cout << "coucou1" << std::endl;
+				// std::cout << "COUCOU" << std::endl;
 				clients[events[n].data.fd].getPayload();
-				clients[events[n].data.fd].getServer()->print_server();
+				// clients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
-				//std::cout << "coucou2" << std::endl;
+				// std::cout << "coucou2" << std::endl;
 				if (done)
 				{
 					ev.events = EPOLLOUT;
@@ -215,11 +214,15 @@ void	TcpServer::run(void)
 			{
 				std::string response_str = clients[events[n].data.fd].process_request();
 				done = sendResponse(response_str, events[n].data.fd);
+				// std::cout << "coucou3" << std::endl;
 				if (done)
 				{
-					memset(m_buffer, 0, sizeof(m_buffer));
-					epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev);
-					close(events[n].data.fd);
+					// clients[events[n].data.fd].buffer_memset();
+					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
+						General::exitWithError("epoll del");
+					if (close(events[n].data.fd) < 0)
+						General::exitWithError("close");
+					clients.erase(events[n].data.fd);
 					General::log("\n====== Waiting for a new connection ======");
 				}
 			}

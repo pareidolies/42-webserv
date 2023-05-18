@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
 
 
 using namespace std;
@@ -66,5 +67,19 @@ class General
 	private:
 		
 };
+
+ // Structure pour stocker les informations de la requête
+    struct Request {
+        std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
+        std::string uri;                             // URI de la ressource demandée
+        map<std::string, std::string> headers;  // en-têtes de la requête
+        std::string body;                            // corps de la requête
+		std::string raw_request;
+    };
+
+	struct Response {
+		std::string body;
+		std::string cgi_path;
+	};
 
 #endif

@@ -1,7 +1,5 @@
-<<<<<<<< HEAD:srcs/Client.cpp
 # include "webserv.hpp"
 # include <sstream> // pour std::ostringstream
-========
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -13,7 +11,6 @@
 /*   Updated: 2023/05/17 19:12:49 by sdesseau         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
->>>>>>>> b509a3607b952402a4856695df77af1a4f7b7eb1:srcs/Response.cpp
 
 /******************************************************************************
 *                              CONSTRUCTORS                                   *
@@ -123,37 +120,62 @@ Client::~Client(void)
 
 void Client::getPayload()
 {
-    long unsigned int content_length = 0;
-    char *body_start = NULL;
-    char *content_length_str = NULL;
+    std::string request_headers;
+    std::string request_body;
+    int content_length = 0;
     int bytesReceived = 0;
 
-    // Read the request headers to find the Content-Length header
-    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-    if (valread == -1)
-        General::exitWithError("Error in recv()");
+    // Read the request headers
+    while (true)
+    {
+        int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+        if (valread == -1)
+            General::exitWithError("Error in recv()");
 
-    // Find the start of the request body
-    body_start = strstr(m_buffer, "\r\n\r\n");
-    if (body_start != NULL) {
-        body_start += 4;
-        // Look for the Content-Length header
-        content_length_str = strstr(m_buffer, "Content-Length: ");
-        if (content_length_str != NULL) {
-            content_length_str += strlen("Content-Length: ");
-            content_length = atoi(content_length_str);
-            // Make sure we have enough space in the buffer
-            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
-                General::exitWithError("Payload too large for buffer");
-            }
-            // Read the payload
-            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
-            if (bytesReceived == -1)
-                General::exitWithError("Error in recv()");
+        request_headers += std::string(m_buffer, valread);
+        if (request_headers.find("\r\n\r\n") != std::string::npos)
+            break; // Found the end of headers
+    }
+
+    // Find the Content-Length header
+    std::string content_length_str = "Content-Length: ";
+    std::string::size_type content_length_pos = request_headers.find(content_length_str);
+    if (content_length_pos != std::string::npos)
+    {
+        content_length_pos += content_length_str.length();
+        std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
+        if (end_of_line_pos != std::string::npos)
+        {
+            std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
+            content_length = std::atoi(content_length_value.c_str());
         }
     }
-	m_request.raw_request = std::string(m_buffer);
-    General::log("\nReceived message: \n" + string(m_buffer));
+
+    // Read the request body if content length is specified
+    if (content_length > 0)
+    {
+        request_body.resize(content_length);
+        int flags = fcntl(m_new_socket, F_GETFL, 0);
+        if (fcntl(m_new_socket, F_SETFL, flags | O_NONBLOCK) < 0)
+            General::exitWithError("Fnctl error: failed to set socket to non-blocking mode");
+        while (bytesReceived < content_length)
+        {
+            int bytesRead = recv(m_new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
+            if (bytesRead == -1)
+            {
+                if (errno == EWOULDBLOCK || errno == EAGAIN)
+                    continue;    // No data available yet, continue the loop or handle other tasks
+                else
+                    General::exitWithError("Error in recv() 2");
+            }
+            else if (bytesRead == 0)
+                break; // Connection closed, handle appropriately
+            bytesReceived += bytesRead;
+        }
+    }
+    // Process the received payload
+    m_request.raw_request = request_headers + request_body;
+    General::log("\nReceived message: \n" + m_request.raw_request);
 }
 
 bool Client::parse_request() {
@@ -177,7 +199,7 @@ bool Client::parse_request() {
             }         
     }
     // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
-    print_headers(m_request.headers);
+    // print_headers(m_request.headers);
     return (true);                                                                                  
 }
 
@@ -428,116 +450,116 @@ bool is_cgi_script(const std::string& uri)
     return false;
 }
 
-std::string process_request(const Request& request) 
-{
-    std::cout << "Method: " << request.method << std::endl;
-    std::string response;
-    if (request.method == "GET")
-    {
-        // Traitement de la requête GET
-        // Vérifiez si l'URI correspond à un script CGI
-        if (is_cgi_script(request.uri))
-        {
-            // Exécutez le script CGI
-            Configuration	conf("./conf_files/default.conf");
-            conf.open_and_read_file();
-            conf.init_config();
-            CGI cgi(conf);
-            int cgi_output = cgi.execute();
+// std::string process_request(const Request& request) 
+// {
+//     std::cout << "Method: " << request.method << std::endl;
+//     std::string response;
+//     if (request.method == "GET")
+//     {
+//         // Traitement de la requête GET
+//         // Vérifiez si l'URI correspond à un script CGI
+//         if (is_cgi_script(request.uri))
+//         {
+//             // Exécutez le script CGI
+//             Configuration	conf("./conf_files/default.conf");
+//             conf.open_and_read_file();
+//             conf.init_config();
+//             CGI cgi(conf);
+//             int cgi_output = cgi.execute();
 
-            // Construisez la réponse en utilisant la sortie du script CGI
-            std::string body_size = to_string_custom(cgi.getBody().size());
-            response = "HTTP/1.1 " + to_string_custom(cgi_output) + " OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + cgi.getBody();
-        }
-        else if (request.uri == "/")
-        {
-            std::string body = read_file("www/site/pages/index.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-        }
-        else
-        {
-            std::cout << "URI: " << request.uri << std::endl;
-            // Si l'URI est différent de "/", renvoyer le fichier correspondant
-            std::string filename = request.uri.substr(1); // Supprimer le premier caractère "/"
-            std::string body = read_file(filename);
-            if (body == "") {
-                // Si le fichier n'existe pas, renvoyer une réponse 404
-                std::string content_type = "text/html";
-				body = read_file("www/site/errorPages/404.html");
-                std::string body_size = to_string_custom(body.size());
-                response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                response += content_type;
-                response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-            }
-            else
-            {
-                std::string content_type = search_content_type(filename);
-                std::string body_size = to_string_custom(body.size());
-                response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                response += content_type;
-                response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-            }
-        }
-    }
-    else if (request.method == "DELETE")
-    {
-        // Traitement de la requête DELETE
-        // check authorisations
-        response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
-    }
-    else if (request.method == "POST")
-    {
-        // Traitement de la requête POST
-        // Vérifiez si l'URI correspond à un script CGI
-        if (is_cgi_script(request.uri))
-        {
-            // Exécutez le script CGI
-            Configuration	conf("./conf_files/default.conf");
-            conf.open_and_read_file();
-            conf.init_config();
-            CGI cgi(conf);
-            int cgi_output = cgi.execute();
+//             // Construisez la réponse en utilisant la sortie du script CGI
+//             std::string body_size = to_string_custom(cgi.getBody().size());
+//             response = "HTTP/1.1 " + to_string_custom(cgi_output) + " OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + cgi.getBody();
+//         }
+//         else if (request.uri == "/")
+//         {
+//             std::string body = read_file("www/site/pages/index.html");
+//             std::string body_size = to_string_custom(body.size());
+//             response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+//         }
+//         else
+//         {
+//             std::cout << "URI: " << request.uri << std::endl;
+//             // Si l'URI est différent de "/", renvoyer le fichier correspondant
+//             std::string filename = request.uri.substr(1); // Supprimer le premier caractère "/"
+//             std::string body = read_file(filename);
+//             if (body == "") {
+//                 // Si le fichier n'existe pas, renvoyer une réponse 404
+//                 std::string content_type = "text/html";
+// 				body = read_file("www/site/errorPages/404.html");
+//                 std::string body_size = to_string_custom(body.size());
+//                 response = "HTTP/1.1 200 OK\r\nContent-Type:";
+//                 response += content_type;
+//                 response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+//             }
+//             else
+//             {
+//                 std::string content_type = search_content_type(filename);
+//                 std::string body_size = to_string_custom(body.size());
+//                 response = "HTTP/1.1 200 OK\r\nContent-Type:";
+//                 response += content_type;
+//                 response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+//             }
+//         }
+//     }
+//     else if (request.method == "DELETE")
+//     {
+//         // Traitement de la requête DELETE
+//         // check authorisations
+//         response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+//     }
+//     else if (request.method == "POST")
+//     {
+//         // Traitement de la requête POST
+//         // Vérifiez si l'URI correspond à un script CGI
+//         if (is_cgi_script(request.uri))
+//         {
+//             // Exécutez le script CGI
+//             Configuration	conf("./conf_files/default.conf");
+//             conf.open_and_read_file();
+//             conf.init_config();
+//             CGI cgi(conf);
+//             int cgi_output = cgi.execute();
 
-            // Construisez la réponse en utilisant la sortie du script CGI
-            std::string body_size = to_string_custom(cgi.getBody().size());
-            response = "HTTP/1.1 " + to_string_custom(cgi_output) + " OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + cgi.getBody();
-        }
-        else if (request.uri == "/upload")
-        {
-            // Extraire les données du corps de la requête
-            std::string boundary = get_boundary(request.raw_request);
-            std::string content = find_body(request.raw_request, boundary);
-            std::string filename = get_filename(content);
-            removeFirstFourLines(content);
+//             // Construisez la réponse en utilisant la sortie du script CGI
+//             std::string body_size = to_string_custom(cgi.getBody().size());
+//             response = "HTTP/1.1 " + to_string_custom(cgi_output) + " OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + cgi.getBody();
+//         }
+//         else if (request.uri == "/upload")
+//         {
+//             // Extraire les données du corps de la requête
+//             std::string boundary = get_boundary(request.raw_request);
+//             std::string content = find_body(request.raw_request, boundary);
+//             std::string filename = get_filename(content);
+//             removeFirstFourLines(content);
 
-            // Stocker le fichier dans un dossier spécifique
-            save_file("www/site/files/downloads/" + filename, content);
+//             // Stocker le fichier dans un dossier spécifique
+//             save_file("www/site/files/downloads/" + filename, content);
 
-            // Envoyer une réponse au client
-            std::string body = read_file("www/site/pages/upload_complete.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-        }
-        else if (request.uri == "/form" || request.uri == "/comment")
-        {
-            std::string body = read_file("www/site/pages/upload_complete.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-        }
-        else
-        {
-            // Si l'URI n'est pas "/upload", renvoyer une réponse 404
-            response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-        }
-    }
-    else
-    {
-        // Requête non prise en charge
-        response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
-    }
-    return (response);
-}
+//             // Envoyer une réponse au client
+//             std::string body = read_file("www/site/pages/upload_complete.html");
+//             std::string body_size = to_string_custom(body.size());
+//             response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+//         }
+//         else if (request.uri == "/form" || request.uri == "/comment")
+//         {
+//             std::string body = read_file("www/site/pages/upload_complete.html");
+//             std::string body_size = to_string_custom(body.size());
+//             response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+//         }
+//         else
+//         {
+//             // Si l'URI n'est pas "/upload", renvoyer une réponse 404
+//             response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+//         }
+//     }
+//     else
+//     {
+//         // Requête non prise en charge
+//         response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
+//     }
+//     return (response);
+// }
 
 std::string search_content_type(std::string filename)
 {
