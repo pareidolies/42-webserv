@@ -26,6 +26,7 @@ class Client
 		Server * getServer();
 
 		void init_code_msg();
+		void is_cgi();
 
 	private:
 
