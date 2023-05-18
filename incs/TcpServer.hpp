@@ -38,7 +38,6 @@ class Server;
         std::map<std::string, std::string> headers;  // en-têtes de la requête
         std::string body;                            // corps de la requête
 		std::string raw_request;
-    };
 
 class TcpServer
 {
@@ -82,15 +81,53 @@ class TcpServer
 		std::string							_index;
 		bool								_autoindex;
 		std::string							_cgiFileExtension;
+		std::map<std::string, std::string>		_cgiFile;
 		std::string							_cgiPathToScript;
 		std::string							_upload;
 		bool								_get;
 		bool								_post;
 		bool								_delete;
 		std::map<int, std::string>			_errorPages;
+    };
 
-		char m_buffer[4096];
+	struct Response {
+		int status;
+		map<int, std::string> status_list;
+		std::string body;
+		std::string body_size;
+		std::string content_type;
+		std::string filename;
+	};
+
+class TcpServer
+{
+	public:
+		TcpServer(Configuration conf);
+		~TcpServer();
+
+		void run();
+		void	add_event(int epollfd, int fd, int state);
+		std::vector<Socket>::iterator check_event_fd(int event_fd);
+		int		acceptConnection(struct epoll_event ev, int epollfd);
+
+        void	getHeader(int new_socket);
+        bool	sendResponse(std::string response_str, int m_new_socket);
+
+		std::vector<Server*>		_servers;
+		std::vector<Socket>			_socketList;
+
+	private:
+		
+
+		//int					m_socket;
+		//int					m_new_socket;
+		long				m_incomingMessage;
+		string				m_serverMessage;
+
+
+		char m_buffer[200000];
 		Request m_request;
+		Response m_response;
 
         int		startServer();
         void	closeServer();
@@ -99,6 +136,8 @@ class TcpServer
 		void    init_var(Server *serv);
 
 		void	print_server(void);
+
+void init_code_msg();
 };
 
 bool parse_request(Request &m_request, char *m_buffer);

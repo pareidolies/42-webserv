@@ -1,5 +1,19 @@
+<<<<<<<< HEAD:srcs/Client.cpp
 # include "webserv.hpp"
 # include <sstream> // pour std::ostringstream
+========
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
+/*   Updated: 2023/05/17 19:12:49 by sdesseau         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+>>>>>>>> b509a3607b952402a4856695df77af1a4f7b7eb1:srcs/Response.cpp
 
 /******************************************************************************
 *                              CONSTRUCTORS                                   *
@@ -386,14 +400,60 @@ void removeFirstFourLines(std::string& data)
     }
 }
 
+<<<<<<<< HEAD:srcs/Client.cpp
 std::string Client::process_request(const Request& request) 
+========
+std::string get_file_extension(const std::string& filename)
+{
+    size_t dotIndex = filename.find_last_of(".");
+    if (dotIndex != std::string::npos && dotIndex < filename.length() - 1)
+    {
+        return filename.substr(dotIndex);
+    }
+    return "";
+}
+
+bool is_cgi_script(const std::string& uri)
+{
+    // Ajoutez ici la logique spécifique pour déterminer si l'URI correspond à un script CGI.
+    // Par exemple, vous pouvez vérifier si l'extension du fichier est associée à des scripts CGI, tels que .cgi ou .pl.
+    size_t queryIndex = uri.find("?");
+    if (queryIndex != std::string::npos)
+    {
+    std::string extension = get_file_extension(uri);
+
+    // Vérifie si l'extension du fichier est dans la liste des extensions CGI
+        if (extension == ".cgi" || extension == ".pl")
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string process_request(const Request& request) 
+>>>>>>>> b509a3607b952402a4856695df77af1a4f7b7eb1:srcs/Response.cpp
 {
     std::cout << "Method: " << request.method << std::endl;
     std::string response;
     if (request.method == "GET")
     {
         // Traitement de la requête GET
-        if (request.uri == "/")
+        // Vérifiez si l'URI correspond à un script CGI
+        if (is_cgi_script(request.uri))
+        {
+            // Exécutez le script CGI
+            Configuration	conf("./conf_files/default.conf");
+            conf.open_and_read_file();
+            conf.init_config();
+            CGI cgi(conf);
+            int cgi_output = cgi.execute();
+
+            // Construisez la réponse en utilisant la sortie du script CGI
+            std::string body_size = to_string_custom(cgi.getBody().size());
+            response = "HTTP/1.1 " + to_string_custom(cgi_output) + " OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + cgi.getBody();
+        }
+        else if (request.uri == "/")
         {
             std::string body = read_file("www/site/pages/index.html");
             std::string body_size = to_string_custom(body.size());
@@ -433,7 +493,21 @@ std::string Client::process_request(const Request& request)
     else if (request.method == "POST")
     {
         // Traitement de la requête POST
-        if (request.uri == "/upload")
+        // Vérifiez si l'URI correspond à un script CGI
+        if (is_cgi_script(request.uri))
+        {
+            // Exécutez le script CGI
+            Configuration	conf("./conf_files/default.conf");
+            conf.open_and_read_file();
+            conf.init_config();
+            CGI cgi(conf);
+            int cgi_output = cgi.execute();
+
+            // Construisez la réponse en utilisant la sortie du script CGI
+            std::string body_size = to_string_custom(cgi.getBody().size());
+            response = "HTTP/1.1 " + to_string_custom(cgi_output) + " OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + cgi.getBody();
+        }
+        else if (request.uri == "/upload")
         {
             // Extraire les données du corps de la requête
             std::string boundary = get_boundary(request.raw_request);

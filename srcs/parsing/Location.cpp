@@ -1,4 +1,3 @@
-# include "Location.hpp"
 # include "webserv.hpp"
 
 /******************************************************************************
@@ -41,11 +40,6 @@ Location::~Location(void)
 {
 
 }
-
-/******************************************************************************
-*                                  GETTERS                                    *
-******************************************************************************/
-
 
 /******************************************************************************
 *                             MEMBER FUNCTIONS                                *
@@ -137,6 +131,7 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
 					throw Location::DirOrFileError();
 				}
+				_cgiFile[_cgiFileExtension] = _cgiPathToScript;
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -186,4 +181,78 @@ const char *	Location::WrongConfLine::what(void) const throw()
 const char *	Location::DirOrFileError::what(void) const throw()
 {
 	return (" directory or file or extension does not exist");
+}
+
+/******************************************************************************
+*                                  GETTERS                                    *
+******************************************************************************/
+
+std::string					Location::getLocate()
+{
+	return(_locate);
+}
+
+std::vector<std::string>	Location::getServerName()
+{
+	return(_serverName);
+}
+
+int							Location::getClientMaxBodySize()
+{
+	return(_clientMaxBodySize);
+}
+
+bool						Location::getGet()
+{
+	return(_get);
+}
+
+bool						Location::getPost()
+{
+	return(_post);
+}
+
+bool						Location::getDelete()
+{
+	return(_delete);
+}
+
+std::string					Location::getRoot()
+{
+	return(_root);
+}
+
+std::string					Location::getIndex()
+{
+	return (_index);
+}
+
+bool						Location::getAutoindex()
+{
+	return(_autoindex);
+}
+
+std::string					Location::getCgiFileExtension()
+{
+	return(_cgiFileExtension);
+}
+
+std::string					Location::getCgiPathToScript()
+{
+	return(_cgiPathToScript);
+}
+
+std::map<std::string, std::string>				Location::getCgiFile()
+{
+	return(_cgiFile);
+}
+
+std::string					Location::getUpload()
+{
+	return(_upload);
+}
+
+std::map<int, std::string>	Location::getErrorPages()
+{
+	return(_errorPages);
 }
