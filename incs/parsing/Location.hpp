@@ -59,10 +59,12 @@ class Location
 		bool						_post;
 		bool						_delete;
 		std::string					_root;
-		std::string					_index;int		server_id;
+		std::string					_index;
+		int		server_id;
 		bool						_autoindex;
 		std::string					_cgiFileExtension;
 		std::string					_cgiPathToScript;
+		std::map<std::string, std::string>		_cgiFile;
 		std::string					_upload;
 		std::map<int, std::string>	_errorPages;
 		//std::map<std::string, std::string>		_cgiFile;

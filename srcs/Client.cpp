@@ -699,8 +699,3 @@ std::string search_content_type(std::string filename)
     }
     return (content_type);
 }
-
-Server *Client::getServer()
-{
-    return (_server);
-}
