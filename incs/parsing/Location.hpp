@@ -45,6 +45,7 @@ class Location
 		std::map<std::string, std::string>					getCgiFile();
 		std::string					getCgiPathToScript();
 		std::string					getCgiFileExtension();
+		//std::map<std::string, std::string>					getCgiFile();
 		std::string					getUpload();
 		std::map<int, std::string>	getErrorPages();
 
@@ -58,13 +59,13 @@ class Location
 		bool						_post;
 		bool						_delete;
 		std::string					_root;
-		std::string					_index;
+		std::string					_index;int		server_id;
 		bool						_autoindex;
 		std::string					_cgiFileExtension;
 		std::string					_cgiPathToScript;
 		std::string					_upload;
 		std::map<int, std::string>	_errorPages;
-		std::map<std::string, std::string>		_cgiFile;
+		//std::map<std::string, std::string>		_cgiFile;
 };
 
 #endif

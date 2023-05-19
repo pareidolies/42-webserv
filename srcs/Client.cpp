@@ -1,5 +1,16 @@
 # include "webserv.hpp"
 # include <sstream> // pour std::ostringstream
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
+/*   Updated: 2023/05/17 19:12:49 by sdesseau         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 /******************************************************************************
 *                              CONSTRUCTORS                                   *
@@ -12,42 +23,56 @@ Client::Client()
 
 Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server)
 {
-    //initialize values
-	int									_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
-	int									_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
-	int									_protocol = _server->getProtocol(); //use 0 for "any"
-	u_long								_interface = _server->getInterface(); //needs to be set to INADDR_ANY
-	int									_backlog = _server->getBacklog(); //maximum number of queued clients
-	//** parsing **
-	//-> only in server
-	std::vector<Location*>				_locations = _server->getLocations();
-	int									_port = _server->getPort();
-	std::string							_host = _server->getHost();
-	//-> both in server and location
-	std::vector<std::string>			_serverName = _server->getServerName();
-	int									_clientMaxBodySize = _server->getClientMaxBodySize();
-	std::string							_root = _server->getRoot();
-	std::string							_index = _server->getIndex();
-	bool								_autoindex = _server->getAutoindex();
-	std::string							_cgiFileExtension = _server->getCgiFileExtension();
-	std::string							_cgiPathToScript = _server->getCgiPathToScript();
-	std::string							_upload = _server->getUpload();
-	bool								_get = _server->getGet();
-	bool								_post = _server->getPost();
-	bool								_delete = _server->getDelete();
-	std::map<int, std::string>			_errorPages = _server->getErrorPages();
+	_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
+	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
+	_protocol = _server->getProtocol(); //use 0 for "any"
+    _interface = _server->getInterface(); //needs to be set to INADDR_ANY
+	_backlog = _server->getBacklog(); //maximum number of queued clients
+	_locations = _server->getLocations();
+	_port = _server->getPort();
+	_host = _server->getHost();
+	_serverName = _server->getServerName();
+	_clientMaxBodySize = _server->getClientMaxBodySize();
+	_root = _server->getRoot();
+	_index = _server->getIndex();
+	_autoindex = _server->getAutoindex();
+	_cgiFileExtension = _server->getCgiFileExtension();
+	_cgiPathToScript = _server->getCgiPathToScript();
+	_upload = _server->getUpload();
+	_get = _server->getGet();
+	_post = _server->getPost();
+	_delete = _server->getDelete();
+	_errorPages = _server->getErrorPages();
 
-    // initialize the server
-    cout << "Server started: " << this->_server->getHost() << ":" << this->_server->getPort() << endl;
 }
 
 /******************************************************************************
 *                                   COPY                                      *
 ******************************************************************************/
 
-Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket)
+Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(copy._server)
 {
-	//to complete
+	_domain = copy._domain; //AF_INET, AF_INET6, AF_UNSPEC
+	_service = copy._service; //SOCK_STREAM, SOCK_DGRAM
+	_protocol = copy._protocol; //use 0 for "any"
+    _interface = copy._interface; //needs to be set to INADDR_ANY
+	_backlog = copy._backlog; //maximum number of queued clients
+	_locations = copy._locations;
+	_port = copy._port;
+	_host = copy._host;
+	_serverName = copy._serverName;
+	_clientMaxBodySize = copy._clientMaxBodySize;
+	_root = copy._root;
+	_index = copy._index;
+	_autoindex = copy._autoindex;
+	_cgiFileExtension = copy._cgiFileExtension;
+	_cgiPathToScript = copy._cgiPathToScript;
+	_upload = copy._upload;
+	_get = copy._get;
+	_post = copy._post;
+	_delete = copy._delete;
+	_errorPages = copy._errorPages;
+
 }
 
 Client	&Client::operator=(Client const & rhs)
@@ -55,7 +80,27 @@ Client	&Client::operator=(Client const & rhs)
 	if (this != &rhs)
 	{
 		m_new_socket = rhs.m_new_socket;
-		//to complete
+		_server = rhs._server;
+        _domain = rhs._domain; //AF_INET, AF_INET6, AF_UNSPEC
+	    _service = rhs._service; //SOCK_STREAM, SOCK_DGRAM
+	    _protocol = rhs._protocol; //use 0 for "any"
+        _interface = rhs._interface; //needs to be set to INADDR_ANY
+	    _backlog = rhs._backlog; //maximum number of queued clients
+	    _locations = rhs._locations;
+	    _port = rhs._port;
+	    _host = rhs._host;
+	    _serverName = rhs._serverName;
+	    _clientMaxBodySize = rhs._clientMaxBodySize;
+	    _root = rhs._root;
+	    _index = rhs._index;
+	    _autoindex = rhs._autoindex;
+	    _cgiFileExtension = rhs._cgiFileExtension;
+	    _cgiPathToScript = rhs._cgiPathToScript;
+	    _upload = rhs._upload;
+	    _get = rhs._get;
+	    _post = rhs._post;
+	    _delete = rhs._delete;
+	    _errorPages = rhs._errorPages;
 	}
 	return (*this);
 }
@@ -69,10 +114,7 @@ Server *Client::getServer()
 *                                DESTRUCTOR                                   *
 ******************************************************************************/
 
-Client::~Client(void)
-{
-
-}
+Client::~Client(void) {}
 
 /******************************************************************************
 *                             MEMBER FUNCTIONS                                *
@@ -80,37 +122,62 @@ Client::~Client(void)
 
 void Client::getPayload()
 {
-    long unsigned int content_length = 0;
-    char *body_start = NULL;
-    char *content_length_str = NULL;
+    std::string request_headers;
+    std::string request_body;
+    int content_length = 0;
     int bytesReceived = 0;
 
-    // Read the request headers to find the Content-Length header
-    int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-    if (valread == -1)
-        General::exitWithError("Error in recv()");
+    // Read the request headers
+    while (true)
+    {
+        int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+        if (valread == -1)
+            General::exitWithError("Error in recv()");
 
-    // Find the start of the request body
-    body_start = strstr(m_buffer, "\r\n\r\n");
-    if (body_start != NULL) {
-        body_start += 4;
-        // Look for the Content-Length header
-        content_length_str = strstr(m_buffer, "Content-Length: ");
-        if (content_length_str != NULL) {
-            content_length_str += strlen("Content-Length: ");
-            content_length = atoi(content_length_str);
-            // Make sure we have enough space in the buffer
-            if (content_length > sizeof(m_buffer) - (body_start - m_buffer)) {
-                General::exitWithError("Payload too large for buffer");
-            }
-            // Read the payload
-            bytesReceived = recv(m_new_socket, body_start, content_length, 0);
-            if (bytesReceived == -1)
-                General::exitWithError("Error in recv()");
+        request_headers += std::string(m_buffer, valread);
+        if (request_headers.find("\r\n\r\n") != std::string::npos)
+            break; // Found the end of headers
+    }
+
+    // Find the Content-Length header
+    std::string content_length_str = "Content-Length: ";
+    std::string::size_type content_length_pos = request_headers.find(content_length_str);
+    if (content_length_pos != std::string::npos)
+    {
+        content_length_pos += content_length_str.length();
+        std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
+        if (end_of_line_pos != std::string::npos)
+        {
+            std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
+            content_length = std::atoi(content_length_value.c_str());
         }
     }
-	m_request.raw_request = std::string(m_buffer);
-    General::log("\nReceived message: \n" + string(m_buffer));
+
+    // Read the request body if content length is specified
+    if (content_length > 0)
+    {
+        request_body.resize(content_length);
+        int flags = fcntl(m_new_socket, F_GETFL, 0);
+        if (fcntl(m_new_socket, F_SETFL, flags | O_NONBLOCK) < 0)
+            General::exitWithError("Fnctl error: failed to set socket to non-blocking mode");
+        while (bytesReceived < content_length)
+        {
+            int bytesRead = recv(m_new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
+            if (bytesRead == -1)
+            {
+                if (errno == EWOULDBLOCK || errno == EAGAIN)
+                    continue;    // No data available yet, continue the loop or handle other tasks
+                else
+                    General::exitWithError("Error in recv() 2");
+            }
+            else if (bytesRead == 0)
+                break; // Connection closed, handle appropriately
+            bytesReceived += bytesRead;
+        }
+    }
+    // Process the received payload
+    m_request.raw_request = request_headers + request_body;
+    General::log("\nReceived message: \n" + m_request.raw_request);
 }
 
 bool Client::parse_request() {
@@ -134,7 +201,7 @@ bool Client::parse_request() {
             }         
     }
     // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
-    print_headers(m_request.headers);
+    // print_headers(m_request.headers);
     return (true);                                                                                  
 }
 
@@ -161,51 +228,92 @@ void Client::print_headers(const std::map<std::string, std::string>& headers)
     std::cout << "Content-Type: " << it->second << std::endl;
 }
 
+bool delete_file(const std::string& filename)
+{
+    // Votre code pour supprimer le fichier ici
+    // Assurez-vous d'adapter cette fonction en fonction de votre système d'exploitation et de votre structure de fichiers
+
+    int result = std::remove(filename.c_str());
+
+    if (result == 0)
+    {
+        std::cout << "File deleted: " << filename << std::endl;
+        return true; // Suppression réussie
+    }
+    else
+    {
+        std::perror("Error deleting file");
+        return false; // Erreur lors de la suppression du fichier
+    }
+}
+
 std::string Client::process_request() 
 {
     cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
 
     std::cout << "Method: " << m_request.method << std::endl;
-    std::string response;
+    init_code_msg();
     if (m_request.method == "GET")
     {
         // Traitement de la requête GET
         if (m_request.uri == "/")
         {
-            std::string body = read_file("www/site/pages/index.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+            m_response.body = read_file("www/site/pages/index.html");
+            m_response.body_size = to_string_custom(m_response.body.size());
+            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
         }
         else
         {
             std::cout << "URI: " << m_request.uri << std::endl;
             // Si l'URI est différent de "/", renvoyer le fichier correspondant
             std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
-            std::string body = read_file(filename);
-            if (body == "") {
+            m_response.body = read_file(filename);
+            if (m_response.body == "") {
                 // Si le fichier n'existe pas, renvoyer une réponse 404
-                std::string content_type = "text/html";
-				body = read_file("www/site/errorPages/404.html");
-                std::string body_size = to_string_custom(body.size());
-                response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                response += content_type;
-                response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+                m_response.content_type = "text/html";
+				m_response.body = read_file("www/site/errorPages/404.html");
+                m_response.body_size = to_string_custom(m_response.body.size());
+                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
+                m_response.full_response += m_response.content_type;
+                m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
             }
             else
             {
-                std::string content_type = search_content_type(filename);
-                std::string body_size = to_string_custom(body.size());
-                response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                response += content_type;
-                response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+                m_response.content_type = search_content_type(filename);
+                m_response.body_size = to_string_custom(m_response.body.size());
+                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
+                m_response.full_response += m_response.content_type;
+                m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
             }
         }
     }
     else if (m_request.method == "DELETE")
     {
         // Traitement de la requête DELETE
-        // check authorisations
-        response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+        // Vérifier les autorisations
+        bool authorized = _delete;
+        std::cout << "authorized :: " << _delete << std::endl;
+        if (authorized)
+        {
+            // Supprimer le fichier ou la ressource spécifiée dans l'URI
+            std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
+            bool deleted = delete_file(filename);
+            if (deleted)
+            {
+                // Le fichier a été supprimé avec succès
+                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+            }
+            else
+            {
+                // Erreur lors de la suppression du fichier
+                m_response.full_response = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
+            }
+        }
+        else
+        {
+            // Autorisation refusée
+            m_response.full_response = "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n";
+        }
     }
     else if (m_request.method == "POST")
     {
@@ -214,36 +322,36 @@ std::string Client::process_request()
         {
             // Extraire les données du corps de la requête
             std::string boundary = get_boundary(m_request.raw_request);
-            std::string content = find_body(m_request.raw_request, boundary);
-            std::string filename = get_filename(content);
-            removeFirstFourLines(content);
+            m_request.body = find_body(m_request.raw_request, boundary);
+            std::string filename = get_filename(m_request.body);
+            removeFirstFourLines(m_request.body);
 
             // Stocker le fichier dans un dossier spécifique
-            save_file("www/site/files/downloads/" + filename, content);
+            save_file("www/site/files/downloads/" + filename, m_request.body);
 
             // Envoyer une réponse au client
-            std::string body = read_file("www/site/pages/upload_complete.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+            m_response.body = read_file("www/site/pages/upload_complete.html");
+            m_response.body_size = to_string_custom(m_response.body.size());
+            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
         }
         else if (m_request.uri == "/form" || m_request.uri == "/comment")
         {
-            std::string body = read_file("www/site/pages/upload_complete.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
+            m_response.body = read_file("www/site/pages/upload_complete.html");
+            m_response.body_size = to_string_custom(m_response.body.size());
+            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
         }
         else
         {
             // Si l'URI n'est pas "/upload", renvoyer une réponse 404
-            response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+            m_response.full_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
         }
     }
     else
     {
         // Requête non prise en charge
-        response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
+        m_response.full_response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
     }
-    return (response);
+    return (m_response.full_response);
 }
 
 /******************************************************************************
@@ -258,7 +366,8 @@ std::string Client::get_boundary(const std::string& request)
     {
         // Extraire la valeur du paramètre "boundary"
         pos = request.find("boundary=", pos);
-        if (pos != std::string::npos) {
+        if (pos != std::string::npos)
+        {
             pos += 9;
             size_t end_pos = request.find("\r\n", pos);
             std::string boundary = request.substr(pos, end_pos - pos);
@@ -352,95 +461,103 @@ void removeFirstFourLines(std::string& data)
         }
         lineStart += 2; // Move past the current "\r\n"
     }
-
     // Erase the first 4 lines
     if (lineStart != std::string::npos) {
         data.erase(0, lineStart);
     }
 }
 
-std::string Client::process_request(const Request& request) 
+std::string get_file_extension(const std::string& filename)
 {
-    std::cout << "Method: " << request.method << std::endl;
-    std::string response;
-    if (request.method == "GET")
+    size_t dotIndex = filename.find_last_of(".");
+    if (dotIndex != std::string::npos && dotIndex < filename.length() - 1)
     {
-        // Traitement de la requête GET
-        if (request.uri == "/")
-        {
-            std::string body = read_file("www/site/pages/index.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-        }
-        else
-        {
-            std::cout << "URI: " << request.uri << std::endl;
-            // Si l'URI est différent de "/", renvoyer le fichier correspondant
-            std::string filename = request.uri.substr(1); // Supprimer le premier caractère "/"
-            std::string body = read_file(filename);
-            if (body == "") {
-                // Si le fichier n'existe pas, renvoyer une réponse 404
-                std::string content_type = "text/html";
-				body = read_file("www/site/errorPages/404.html");
-                std::string body_size = to_string_custom(body.size());
-                response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                response += content_type;
-                response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-            }
-            else
-            {
-                std::string content_type = search_content_type(filename);
-                std::string body_size = to_string_custom(body.size());
-                response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                response += content_type;
-                response += "\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-            }
-        }
+        return filename.substr(dotIndex);
     }
-    else if (request.method == "DELETE")
-    {
-        // Traitement de la requête DELETE
-        // check authorisations
-        response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
-    }
-    else if (request.method == "POST")
-    {
-        // Traitement de la requête POST
-        if (request.uri == "/upload")
-        {
-            // Extraire les données du corps de la requête
-            std::string boundary = get_boundary(request.raw_request);
-            std::string content = find_body(request.raw_request, boundary);
-            std::string filename = get_filename(content);
-            removeFirstFourLines(content);
-
-            // Stocker le fichier dans un dossier spécifique
-            save_file("www/site/files/downloads/" + filename, content);
-
-            // Envoyer une réponse au client
-            std::string body = read_file("www/site/pages/upload_complete.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-        }
-        else if (request.uri == "/form" || request.uri == "/comment")
-        {
-            std::string body = read_file("www/site/pages/upload_complete.html");
-            std::string body_size = to_string_custom(body.size());
-            response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + body_size + "\r\n\r\n" + body;
-        }
-        else
-        {
-            // Si l'URI n'est pas "/upload", renvoyer une réponse 404
-            response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-        }
-    }
-    else
-    {
-        // Requête non prise en charge
-        response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
-    }
-    return (response);
+    return "";
 }
+
+bool is_cgi_script(const std::string& uri)
+{
+    // Ajoutez ici la logique spécifique pour déterminer si l'URI correspond à un script CGI.
+    // Par exemple, vous pouvez vérifier si l'extension du fichier est associée à des scripts CGI, tels que .cgi ou .pl.
+    size_t queryIndex = uri.find("?");
+    if (queryIndex != std::string::npos)
+    {
+    std::string extension = get_file_extension(uri);
+
+    // Vérifie si l'extension du fichier est dans la liste des extensions CGI
+        if (extension == ".cgi" || extension == ".pl")
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Client::init_code_msg()
+{
+	m_response.status_code_list[200] = "OK";
+	m_response.status_code_list[201] = "Created";
+	m_response.status_code_list[202] = "Accepted";
+	m_response.status_code_list[203] = "Non-Authoritative Information";
+	m_response.status_code_list[204] = "No Content";
+	m_response.status_code_list[205] = "Reset Content";
+	m_response.status_code_list[206] = "Partial Content";
+	m_response.status_code_list[207] = "Multi-Status";
+	m_response.status_code_list[208] = "Already Reported";
+	m_response.status_code_list[226] = "IM Used";
+	m_response.status_code_list[300] = "Multiple Choices";
+	m_response.status_code_list[301] = "Moved Permanently";
+	m_response.status_code_list[302] = "Found";
+	m_response.status_code_list[303] = "See Other";
+	m_response.status_code_list[304] = "Not Modified";
+	m_response.status_code_list[305] = "Use Proxy";
+	m_response.status_code_list[306] = "Switch Proxy";
+	m_response.status_code_list[307] = "Temporary Redirect";
+	m_response.status_code_list[308] = "Permanent Redirect";
+	m_response.status_code_list[400] = "Bad Request";
+	m_response.status_code_list[401] = "Unauthorized";
+	m_response.status_code_list[402] = "Payment Required";
+	m_response.status_code_list[403] = "Forbidden";
+	m_response.status_code_list[404] = "Not Found";
+	m_response.status_code_list[405] = "Method Not Allowed";
+	m_response.status_code_list[406] = "Not Acceptable";
+	m_response.status_code_list[407] = "Proxy Authentication Required";
+	m_response.status_code_list[408] = "Request Timeout";
+	m_response.status_code_list[409] = "Conflict";
+	m_response.status_code_list[410] = "Gone";
+	m_response.status_code_list[411] = "Length Required";
+	m_response.status_code_list[412] = "Precondition Failed";
+	m_response.status_code_list[413] = "Payload Too Large";
+	m_response.status_code_list[414] = "URI Too Long";
+	m_response.status_code_list[415] = "Unsupported Media Type";
+	m_response.status_code_list[416] = "Range Not Satisfiable";
+	m_response.status_code_list[417] = "Expectation Failed";
+	m_response.status_code_list[418] = "I\'m a teapot";
+	m_response.status_code_list[421] = "Misdirected Request";
+	m_response.status_code_list[422] = "Unprocessable Entity";
+	m_response.status_code_list[423] = "Locked";
+	m_response.status_code_list[424] = "Failed Dependency";
+	m_response.status_code_list[425] = "Too Early";
+	m_response.status_code_list[426] = "Upgrade Required";
+	m_response.status_code_list[428] = "Precondition Required";
+	m_response.status_code_list[429] = "Too Many Requests";
+	m_response.status_code_list[431] = "Request Header Fields Too Large";
+	m_response.status_code_list[451] = "Unavailable For Legal Reasons";
+	m_response.status_code_list[500] = "Internal Server Error";
+	m_response.status_code_list[501] = "Not Implemented";
+	m_response.status_code_list[502] = "Bad Gateway";
+	m_response.status_code_list[503] = "Service Unavailable";
+	m_response.status_code_list[504] = "Gateway Timeout";
+	m_response.status_code_list[505] = "HTTP Version Not Supported";
+	m_response.status_code_list[506] = "Variant Also Negotiates";
+	m_response.status_code_list[507] = "Insufficient Storage";
+	m_response.status_code_list[508] = "Loop Detected";
+	m_response.status_code_list[510] = "Not Extended";
+	m_response.status_code_list[511] = "Network Authentication Required";
+}
+
 
 std::string search_content_type(std::string filename)
 {
@@ -581,4 +698,9 @@ std::string search_content_type(std::string filename)
             content_type = "application/vnd.oasis.opendocument.presentation";
     }
     return (content_type);
+}
+
+Server *Client::getServer()
+{
+    return (_server);
 }

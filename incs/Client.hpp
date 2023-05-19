@@ -22,8 +22,11 @@ class Client
         std::string get_boundary(const std::string& request);
         std::string get_filename(const std::string& content);
         void        save_file(const std::string& path, const std::string& content);
-        std::string process_request(const Request& request);
-		Server *getServer();
+        // std::string process_request(const Request& request);
+		Server * getServer();
+
+		void init_code_msg();
+		void is_cgi();
 
 	private:
 
@@ -31,6 +34,7 @@ class Client
         Server*  _server;
 		char m_buffer[4096];
 		Request m_request;
+		Response m_response;
         int									_domain; //AF_INET, AF_INET6, AF_UNSPEC
 		int									_service; //SOCK_STREAM, SOCK_DGRAM
 		int									_protocol; //use 0 for "any"

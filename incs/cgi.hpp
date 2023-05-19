@@ -45,6 +45,7 @@ class CGI {
         // map<string, string, ft::comp> &_req_headers;
         // map<string, string> &_req_headers;
         // string          _cgi_path;
+        Response            _response;
         string              _cgi_exe;
         string              _extension;
         string              _cwd;
