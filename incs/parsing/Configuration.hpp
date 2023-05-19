@@ -7,6 +7,8 @@
 # include <vector>
 # include <string>
 
+class Server;
+
 class Configuration
 {
 	public:

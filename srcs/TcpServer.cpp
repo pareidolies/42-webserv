@@ -190,17 +190,17 @@ void	TcpServer::run(void)
 				//std::cout << "coucou" << std::endl;
 				Client new_client(connection, (*it).getServer());
 				clients[connection] = new_client;
-				std::cout << "coucou1" << std::endl;
+				// std::cout << "coucou1" << std::endl;
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
-				std::cout << "COUCOU" << std::endl;
+				// std::cout << "COUCOU" << std::endl;
 				clients[events[n].data.fd].getPayload();
-				clients[events[n].data.fd].getServer()->print_server();
+				// clients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
-				std::cout << "coucou2" << std::endl;
+				// std::cout << "coucou2" << std::endl;
 				if (done)
 				{
 					ev.events = EPOLLOUT;
@@ -214,10 +214,10 @@ void	TcpServer::run(void)
 			{
 				std::string response_str = clients[events[n].data.fd].process_request();
 				done = sendResponse(response_str, events[n].data.fd);
-				std::cout << "coucou3" << std::endl;
+				// std::cout << "coucou3" << std::endl;
 				if (done)
 				{
-					clients[events[n].data.fd].buffer_memset();
+					// clients[events[n].data.fd].buffer_memset();
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						General::exitWithError("epoll del");
 					if (close(events[n].data.fd) < 0)

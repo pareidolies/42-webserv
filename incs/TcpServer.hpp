@@ -14,6 +14,7 @@
 #include "parsing/Configuration.hpp"
 #include "parsing/Server.hpp"
 #include "Socket.hpp"
+#include "Client.hpp"
 
 #include <vector>
 #include <map> // for map
@@ -30,15 +31,6 @@ using namespace std;
 class Configuration;
 
 class Server;
-
- // Structure pour stocker les informations de la requête
-    struct Request {
-        std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
-        std::string uri;                             // URI de la ressource demandée
-        std::map<std::string, std::string> headers;  // en-têtes de la requête
-        std::string body;                            // corps de la requête
-		std::string raw_request;
-    };
 
 class TcpServer
 {

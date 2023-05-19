@@ -35,8 +35,8 @@ int main(const int argc, const char** argv, char **env)
         conf.init_config();
         // conf.print_all(); 
         cout << "----------------------------------" << endl;
-        //CGI cgi(conf);
-        //cgi.execute();
+        // CGI cgi(conf);
+        // cgi.execute();
         cout << "----------------------------------" << endl;
         // TcpServer server = TcpServer("127.0.0.1", 8000);
         // server.startListen();
