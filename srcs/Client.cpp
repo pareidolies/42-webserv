@@ -247,6 +247,35 @@ bool delete_file(const std::string& filename)
     }
 }
 
+std::string read_directory(const std::string& directory)
+{
+    std::string body = "<h1>Index of " + directory + "</h1>\r\n";
+    body += "<ul>\r\n";
+
+    DIR* dir = opendir(directory.c_str());
+    if (dir == NULL)
+    {
+        std::cerr << "Erreur : impossible d'ouvrir le dossier " << directory << std::endl;
+        return read_file("www/site/errorPages/404.html");
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        std::string filename = entry->d_name;
+        if (filename != "." && filename != "..")
+        {
+            body += "<li><a href=\"" + filename + "\">" + filename + "</a></li>\r\n";
+        }
+    }
+
+    body += "</ul>\r\n";
+
+    closedir(dir);
+
+    return body;
+}
+
 std::string Client::process_request() 
 {
     cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
@@ -265,17 +294,24 @@ std::string Client::process_request()
         else
         {
             std::cout << "URI: " << m_request.uri << std::endl;
+            cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
             // Si l'URI est différent de "/", renvoyer le fichier correspondant
             std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
             m_response.body = read_file(filename);
             if (m_response.body == "") {
-                // Si le fichier n'existe pas, renvoyer une réponse 404
-                m_response.content_type = "text/html";
-				m_response.body = read_file("www/site/errorPages/404.html");
-                m_response.body_size = to_string_custom(m_response.body.size());
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                m_response.full_response += m_response.content_type;
-                m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+                if (this->getServer()->getAutoindex() == true)
+                {
+                    m_response.body = read_directory(filename);
+                    m_response.body_size = to_string_custom(m_response.body.size());
+                    m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+                }
+                else
+                {
+                    // Si le fichier n'existe pas, renvoyer une réponse 404
+                    m_response.body = read_file("www/site/errorPages/404.html");
+                    m_response.body_size = to_string_custom(m_response.body.size());
+                    m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+                }
             }
             else
             {

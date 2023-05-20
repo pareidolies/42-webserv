@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
+#include <dirent.h>
 # include "webserv.hpp"
 
 class Client
@@ -60,6 +61,7 @@ class Client
 		std::map<int, std::string>			_errorPages;
 };
 
+std::string read_directory(const std::string& directory);
 std::string read_file(const std::string& filename);
 template <typename T> std::string to_string_custom(const T& value);
 std::string find_body(const std::string& request, const std::string& boundary);
