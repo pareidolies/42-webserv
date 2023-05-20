@@ -122,6 +122,7 @@ Client::~Client(void) {}
 
 void Client::getPayload()
 {
+    std::string request_raw;
     std::string request_headers;
     std::string request_body;
     int content_length = 0;
@@ -134,10 +135,22 @@ void Client::getPayload()
         if (valread == -1)
             General::exitWithError("Error in recv()");
 
-        request_headers += std::string(m_buffer, valread);
-        if (request_headers.find("\r\n\r\n") != std::string::npos)
+        request_raw += std::string(m_buffer, valread);
+        if (request_raw.find("\r\n\r\n") != std::string::npos)
             break; // Found the end of headers
     }
+
+    std::string receivedData(m_buffer);
+    size_t headerEndPos = receivedData.find("\r\n\r\n");
+    if (headerEndPos != std::string::npos)
+    {
+        request_headers = receivedData.substr(0, headerEndPos);
+        request_body = receivedData.substr(headerEndPos + 4);
+    } else
+        std::cerr << "Invalid HTTP request: Header and body separation not found." << std::endl;
+
+    std::cout << "Body: " << "request_body" << std::endl;
+
 
     // Find the Content-Length header
     std::string content_length_str = "Content-Length: ";
@@ -153,8 +166,11 @@ void Client::getPayload()
         }
     }
 
+    cout << "Content length: " << content_length << endl;
+    cout << "Body length: " << request_body.length() << endl;
+
     // Read the request body if content length is specified
-    if (content_length > 0)
+    if (content_length > 0 && request_body.length() != content_length)
     {
         request_body.resize(content_length);
         int flags = fcntl(m_new_socket, F_GETFL, 0);
