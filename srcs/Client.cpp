@@ -247,14 +247,14 @@ bool delete_file(const std::string& filename)
     }
 }
 
-std::string read_directory(const std::string& directory)
+std::string Client::read_directory(const std::string& directory)
 {
     std::string body = "<h1>Index of " + directory + "</h1>\r\n";
     body += "<ul>\r\n";
 
     DIR* dir = opendir(directory.c_str());
     if (dir == NULL)
-        return read_file("www/site/errorPages/404.html");
+        return read_file(this->getServer()->getErrorPages()[404]);
 
     struct dirent* entry;
     while ((entry = readdir(dir)) != NULL)
@@ -271,105 +271,131 @@ std::string read_directory(const std::string& directory)
     return body;
 }
 
+std::string Client::format_body(std::string body)
+{
+    m_response.body = (body);
+    m_response.body_size = to_string_custom(m_response.body.size());
+    m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+    return (m_response.full_response);
+}
+
+std::string Client::process_get()
+{
+    // Traitement de la requête GET
+    if (m_request.uri == "/")
+    {
+        m_response.body = read_file("www/site/pages/index.html");
+        m_response.body_size = to_string_custom(m_response.body.size());
+        m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+    }
+    else
+    {
+        std::cout << "URI: " << m_request.uri << std::endl;
+        cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
+        // Si l'URI est différent de "/", renvoyer le fichier correspondant
+        std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
+        m_response.body = read_file(filename);
+        if (m_response.body == "") {
+            if (this->getServer()->getAutoindex() == true)
+                return (format_body(read_directory(filename)));
+            else
+                return (format_body(read_file(this->getServer()->getErrorPages()[404])));
+        }
+        else
+        {
+            m_response.content_type = search_content_type(filename);
+            m_response.body_size = to_string_custom(m_response.body.size());
+            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
+            m_response.full_response += m_response.content_type;
+            m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+        }
+    }
+    return (m_response.full_response);
+}
+
+std::string Client::process_delete()
+{
+    // Traitement de la requête DELETE
+    // Vérifier les autorisations
+    bool authorized = _delete;
+    std::cout << "authorized :: " << _delete << std::endl;
+    if (authorized)
+    {
+        // Supprimer le fichier ou la ressource spécifiée dans l'URI
+        std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
+        bool deleted = delete_file(filename);
+        if (deleted)
+        {
+            // Le fichier a été supprimé avec succès
+            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+        }
+        else
+        {
+            // Erreur lors de la suppression du fichier
+            m_response.full_response = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
+        }
+    }
+    else
+    {
+        // Autorisation refusée
+        m_response.full_response = "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n";
+    }
+    return (m_response.full_response);
+}
+
+std::string Client::process_post()
+{
+    // Traitement de la requête POST
+    if (m_request.uri == "/upload")
+    {
+        // Extraire les données du corps de la requête
+        std::string boundary = get_boundary(m_request.raw_request);
+        m_request.body = find_body(m_request.raw_request, boundary);
+        std::string filename = get_filename(m_request.body);
+        removeFirstFourLines(m_request.body);
+
+        // Stocker le fichier dans un dossier spécifique
+        save_file("www/site/files/downloads/" + filename, m_request.body);
+
+        // Envoyer une réponse au client
+        m_response.body = read_file("www/site/pages/upload_complete.html");
+        m_response.body_size = to_string_custom(m_response.body.size());
+        m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+    }
+    else if (m_request.uri == "/form" || m_request.uri == "/comment")
+    {
+        m_response.body = read_file("www/site/pages/upload_complete.html");
+        m_response.body_size = to_string_custom(m_response.body.size());
+        m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+    }
+    else
+    {
+        // Si l'URI n'est pas "/upload", renvoyer une réponse 404
+        m_response.full_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+    }
+    return (m_response.full_response);
+}
+
 std::string Client::process_request() 
 {
-    cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
-
-    std::cout << "Method: " << m_request.method << std::endl;
     init_code_msg();
     if (m_request.method == "GET")
     {
-        // Traitement de la requête GET
-        if (m_request.uri == "/")
-        {
-            m_response.body = read_file("www/site/pages/index.html");
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-        }
-        else
-        {
-            std::cout << "URI: " << m_request.uri << std::endl;
-            cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
-            // Si l'URI est différent de "/", renvoyer le fichier correspondant
-            std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
-            m_response.body = read_file(filename);
-            if (m_response.body == "") {
-                if (this->getServer()->getAutoindex() == true)
-                    m_response.body = read_directory(filename);
-                else
-                    // Si le fichier n'existe pas, renvoyer une réponse 404
-                    m_response.body = read_file("www/site/errorPages/404.html");
-                m_response.body_size = to_string_custom(m_response.body.size());
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-            }
-            else
-            {
-                m_response.content_type = search_content_type(filename);
-                m_response.body_size = to_string_custom(m_response.body.size());
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                m_response.full_response += m_response.content_type;
-                m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-            }
-        }
+        if (this->getServer()->getGet() == false)
+            return (format_body(read_file(this->getServer()->getErrorPages()[405])));
+       return process_get();
     }
     else if (m_request.method == "DELETE")
     {
-        // Traitement de la requête DELETE
-        // Vérifier les autorisations
-        bool authorized = _delete;
-        std::cout << "authorized :: " << _delete << std::endl;
-        if (authorized)
-        {
-            // Supprimer le fichier ou la ressource spécifiée dans l'URI
-            std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
-            bool deleted = delete_file(filename);
-            if (deleted)
-            {
-                // Le fichier a été supprimé avec succès
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
-            }
-            else
-            {
-                // Erreur lors de la suppression du fichier
-                m_response.full_response = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
-            }
-        }
-        else
-        {
-            // Autorisation refusée
-            m_response.full_response = "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n";
-        }
+        if (this->getServer()->getDelete() == false)
+            return (format_body(read_file(this->getServer()->getErrorPages()[405])));
+        return process_delete();
     }
     else if (m_request.method == "POST")
     {
-        // Traitement de la requête POST
-        if (m_request.uri == "/upload")
-        {
-            // Extraire les données du corps de la requête
-            std::string boundary = get_boundary(m_request.raw_request);
-            m_request.body = find_body(m_request.raw_request, boundary);
-            std::string filename = get_filename(m_request.body);
-            removeFirstFourLines(m_request.body);
-
-            // Stocker le fichier dans un dossier spécifique
-            save_file("www/site/files/downloads/" + filename, m_request.body);
-
-            // Envoyer une réponse au client
-            m_response.body = read_file("www/site/pages/upload_complete.html");
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-        }
-        else if (m_request.uri == "/form" || m_request.uri == "/comment")
-        {
-            m_response.body = read_file("www/site/pages/upload_complete.html");
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-        }
-        else
-        {
-            // Si l'URI n'est pas "/upload", renvoyer une réponse 404
-            m_response.full_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-        }
+        if (this->getServer()->getPost() == false)
+            return (format_body(read_file(this->getServer()->getErrorPages()[405])));
+        return process_post();
     }
     else
     {

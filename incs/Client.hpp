@@ -27,6 +27,11 @@ class Client
 		Server * getServer();
 
 		void init_code_msg();
+		std::string process_get();
+		std::string process_delete();
+		std::string process_post();
+		std::string read_directory(const std::string& directory);
+		std::string format_body(std::string body);
 		void is_cgi();
 
 	private:
@@ -61,7 +66,6 @@ class Client
 		std::map<int, std::string>			_errorPages;
 };
 
-std::string read_directory(const std::string& directory);
 std::string read_file(const std::string& filename);
 template <typename T> std::string to_string_custom(const T& value);
 std::string find_body(const std::string& request, const std::string& boundary);
