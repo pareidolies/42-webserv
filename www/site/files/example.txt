@@ -1,11 +1,32 @@
-Ceci est une page qui sert
-a
-se 
-faire 
-supprimer 
+getCgiPathToScriptt
+get_boundaryt
+get_boundaryg
+eraseg
+erasege
+get_boundaryer
+getRootg
+eraseger
+g
+elseg
+eraseger
+get_boundaryg
+
+get_boundarygr
+g
+
+radiusg
+erasegeg
 
 
 
-
-
-;D
+e
+f
+webpw
+queuedqwx
+qs
+scriptsd
+valeursd
+valeursv
+s_addrv
+s_addrv
+save_file

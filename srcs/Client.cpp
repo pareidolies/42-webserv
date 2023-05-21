@@ -144,7 +144,7 @@ void Client::getPayload()
     } else
         std::cerr << "Invalid HTTP request: Header and body separation not found." << std::endl;
 
-    std::cout << "Body: " << "request_body" << std::endl;
+    // std::cout << "Body: " << "request_body" << std::endl;
 
 
     // Find the Content-Length header
@@ -161,8 +161,8 @@ void Client::getPayload()
         }
     }
 
-    cout << "Content length: " << content_length << endl;
-    cout << "Body length: " << request_body.length() << endl;
+    // cout << "Content length: " << content_length << endl;
+    // cout << "Body length: " << request_body.length() << endl;
 
     // Read the request body if content length is specified
    if (content_length > 0)
@@ -269,42 +269,60 @@ bool delete_file(const std::string& filename)
     }
 }
 
+void Client::create_full_response(int status, std::string filename)
+{
+    m_response.body = read_file(filename);
+    m_response.status_code = status;
+    m_response.body_size = to_string_custom(m_response.body.size());
+    m_response.full_response += "HTTP/1.1 ";
+    m_response.full_response += to_string_custom(status);
+    m_response.full_response += "\r\nContent-Type:";
+    m_response.content_type = search_content_type(filename);
+    m_response.full_response += m_response.content_type;
+    m_response.full_response += "\r\nContent-Length: ";
+    m_response.full_response += m_response.body_size + "\r\n\r\n" + m_response.body;
+    // std::cout << "RESPONSE : " << m_response.full_response << std::endl;
+}
+
+// bool is_cgi()
+// {
+//     std::string str;
+//     if (conf == NULL)
+//         return(false);
+//     if (m_request.uri.find("/") == std::string::npos)
+//         return false;
+//     for (size_t i = 0; i < conf->cgi.size(); i++)
+//     {
+//         if (request->get_method() == "GET" && request->get_path().find("." + conf->cgi[i].first) != std::string::npos)
+//             return true;
+//         if (request->get_method() == "POST" && request->get_path().find("." + conf->cgi[i].first) != std::string::npos)
+//             return true;
+//     }
+//     return false;
+// }
+
 std::string Client::process_request() 
 {
-    std::cout << "Method: " << m_request.method << std::endl;
+    // std::cout << "Method: " << m_request.method << std::endl;
     init_code_msg();
+    // if (is_cgi())
+    //     return (cgi_launch());
     if (m_request.method == "GET")
     {
         // Traitement de la requête GET
         if (m_request.uri == "/")
-        {
-            m_response.body = read_file("www/site/pages/index.html");
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-        }
+            create_full_response(200, "www/site/pages/index.html");
         else
         {
             std::cout << "URI: " << m_request.uri << std::endl;
             // Si l'URI est différent de "/", renvoyer le fichier correspondant
             std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
             m_response.body = read_file(filename);
-            if (m_response.body == "") {
+            if (m_response.body == "") 
                 // Si le fichier n'existe pas, renvoyer une réponse 404
-                m_response.content_type = "text/html";
-				m_response.body = read_file("www/site/errorPages/404.html");
-                m_response.body_size = to_string_custom(m_response.body.size());
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                m_response.full_response += m_response.content_type;
-                m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-            }
+                create_full_response(404, _errorPages[404]);
             else
-            {
-                m_response.content_type = search_content_type(filename);
-                m_response.body_size = to_string_custom(m_response.body.size());
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
-                m_response.full_response += m_response.content_type;
-                m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-            }
+                create_full_response(200, filename);
         }
     }
     else if (m_request.method == "DELETE")
@@ -312,28 +330,22 @@ std::string Client::process_request()
         // Traitement de la requête DELETE
         // Vérifier les autorisations
         bool authorized = _delete;
-        std::cout << "authorized :: " << _delete << std::endl;
+        // std::cout << "authorized :: " << _delete << std::endl;
         if (authorized)
         {
             // Supprimer le fichier ou la ressource spécifiée dans l'URI
             std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
             bool deleted = delete_file(filename);
             if (deleted)
-            {
                 // Le fichier a été supprimé avec succès
-                m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
-            }
+                create_full_response(200, "");
             else
-            {
                 // Erreur lors de la suppression du fichier
-                m_response.full_response = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
-            }
+                create_full_response(500, "");
         }
         else
-        {
             // Autorisation refusée
-            m_response.full_response = "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n";
-        }
+            create_full_response(403, "");
     }
     else if (m_request.method == "POST")
     {
@@ -350,27 +362,17 @@ std::string Client::process_request()
             save_file("www/site/files/downloads/" + filename, m_request.body);
 
             // Envoyer une réponse au client
-            m_response.body = read_file("www/site/pages/upload_complete.html");
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-        }
+            create_full_response(200, "www/site/pages/upload_complete.html");
+            }
         else if (m_request.uri == "/form" || m_request.uri == "/comment")
-        {
-            m_response.body = read_file("www/site/pages/upload_complete.html");
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-        }
+            create_full_response(200, "www/site/pages/upload_complete.html");
         else
-        {
             // Si l'URI n'est pas "/upload", renvoyer une réponse 404
-            m_response.full_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-        }
+                create_full_response(404, _errorPages[404]);
     }
     else
-    {
         // Requête non prise en charge
-        m_response.full_response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
-    }
+        create_full_response(501, "");
     return (m_response.full_response);
 }
 

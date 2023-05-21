@@ -27,6 +27,8 @@ class Client
 
 		void init_code_msg();
 		void is_cgi();
+		void create_full_response(int status, std::string filename);
+
 
 	private:
 

@@ -153,7 +153,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			}
 			this->_upload = parameter;
 		}
-		else if (directive.compare("http_methods") == 0)
+		else if (directive.compare("http_methods") == 0 || directive.compare("allow_methods") == 0)
 		{
 			parameter = check_semicolon(parameter);
 			while (!parameter.empty())
@@ -242,6 +242,8 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 	{
 		std::string path = "www/site/errorPages/404.html";
 		this->_errorPages.insert(std::make_pair(404, path));
+		path = "www/site/errorPages/403.html";
+		this->_errorPages.insert(std::make_pair(403, path));
 	}
 	if (_upload.empty()) //setting default upload
 		this->_upload = "www/site";
