@@ -52,7 +52,7 @@ int Socket::startServer()
 	{
 		General::exitWithError("Cannot create socket");
 	}
-    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
+    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR,  (char *)&optval, sizeof(optval)) < 0)
 	{
         General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
 	}
