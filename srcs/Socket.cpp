@@ -23,7 +23,6 @@ Socket::Socket(string ip_address, int port, Server	*server) :
 {
 	this->_server = server;
 
-	cout << "Initalizing the server." << endl;
 	m_socketAddress.sin_family = AF_INET;
 	m_socketAddress.sin_port = htons(m_port);
 	m_socketAddress.sin_addr.s_addr = inet_addr(m_ip_address.c_str());
@@ -72,11 +71,11 @@ int Socket::startServer()
 
 void Socket::startListen()
 {
-	if (listen(m_socket, 20) < 0)
+	if (listen(m_socket, 1024) < 0)
 		General::exitWithError("Socket listen failed");
 	ostringstream ss;
-	ss << "\n*** Listening on ADDRESS: "  << inet_ntoa(m_socketAddress.sin_addr) 
-		<< " PORT: "  << ntohs(m_socketAddress.sin_port) << " ***";
+	ss <<  ANSI_PURPLE << "\n*** Listening on ADDRESS: "  << inet_ntoa(m_socketAddress.sin_addr) 
+		<< " PORT: "  << ntohs(m_socketAddress.sin_port) << " ***" << ANSI_RESET;
 	General::log(ss.str());
 }
 

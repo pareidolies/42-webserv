@@ -2,24 +2,77 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Upload de fichiers</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
+	<title>Upload files</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #05022e;
+		}
+		h1 {
+			text-align: center;
+			margin-top: 50px;
+			color: #ffffff;
+		}
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 50px;
+			background-color: white;
+			padding: 20px;
+			border-radius: 5px;
+			box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+			max-width: 500px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		label {
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+		input[type="text"], textarea {
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			width: 100%;
+			margin-bottom: 20px;
+		}
+		.button {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			background-color: #008CBA;
+			color: white;
+			font-weight: bold;
+			text-decoration: none;
+			text-align: center;
+		}
+		.button:hover {
+			background-color: #004555;
+		}
+		nav ul li {
+			color: #591283; /* Remplacez cette valeur par la couleur souhaitée */
+		}
+		h2 {
+		color: #FFFFFF; /* Remplacez cette valeur par la couleur souhaitée */
+		}
+
+	</style>
 </head>
 <body>
 	<header>
-		<h1>Upload de fichiers</h1>
 		<nav>
 			<ul>
 				<li><a href="/">Accueil</a></li>
-				<li><a href="/www/site/pages/form.html">Formulaire de contact</a></li>
-				<li><a href="/www/site/pages/comments.html">Commentaires</a></li>
+				<li><a href="/pages/form.html">Formulaire de contact</a></li>
+				<li><a href="/pages/comments.html">Commentaires</a></li>
 			</ul>
 		</nav>
 	</header>
 
 	<main>
 		<section>
-			<h2>Uploader un fichier</h2>
+			<h2> <center>Upload a file</center></h2>
 			<form action="/upload" method="post" enctype="multipart/form-data">
 				<label for="file">Fichier :</label>
 				<input type="file" id="file" name="file" required>

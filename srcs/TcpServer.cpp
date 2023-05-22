@@ -32,8 +32,6 @@ void			TcpServer::print_server(void)
 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
 	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
-	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
-	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
 	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
 	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
@@ -65,8 +63,7 @@ void TcpServer::init_var(Server *serv)
 	_root = serv->getRoot();
 	_index = serv->getIndex();
 	_autoindex = serv->getAutoindex();
-	_cgiFileExtension = serv->getCgiFileExtension();
-	_cgiPathToScript = serv->getCgiPathToScript();
+	_cgi = serv->getCgi();
 	_upload = serv->getUpload();
 	_get = serv->getGet();
 	_post = serv->getPost();
@@ -93,8 +90,6 @@ TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
 	}
 
 }
-
-
 
 // TcpServer::TcpServer(string ip_address, int port) : 
 // 	m_ip_address(ip_address), \
@@ -124,7 +119,6 @@ TcpServer::~TcpServer()
 	//cout << "Terminating the server." << endl;
 	//closeServer();
 }
-
 
 void TcpServer::add_event(int epollfd, int fd, int state)
 {
@@ -198,8 +192,11 @@ void	TcpServer::run(void)
 			{
 				// std::cout << "COUCOU" << std::endl;
 				clients[events[n].data.fd].getPayload();
-				// clients[events[n].data.fd].getServer()->print_server();
+				//std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
+				// cl:ients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
+				//std::cout << ANSI_RED << "hello1" << ANSI_RESET << std::endl;
+				//std::cout << done << std::endl;
 				// std::cout << "coucou2" << std::endl;
 				if (done)
 				{
@@ -212,9 +209,12 @@ void	TcpServer::run(void)
 			// Sending response
 			else if (events[n].events & EPOLLOUT) 
 			{
-				std::string response_str = clients[events[n].data.fd].process_request();
-				done = sendResponse(response_str, events[n].data.fd);
-				// std::cout << "coucou3" << std::endl;
+				//std::string response_str = clients[events[n].data.fd].process_request();
+				//done = sendResponse(response_str, events[n].data.fd);
+				Response response(clients[events[n].data.fd]);
+				//std::cout << "coucou2" << std::endl;
+				done = response.send_response();
+				//std::cout << "coucou3" << std::endl;
 				if (done)
 				{
 					// clients[events[n].data.fd].buffer_memset();

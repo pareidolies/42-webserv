@@ -39,7 +39,7 @@ OBJS_DIR	=	objs
 
 SRCS_SOCKET	=	TcpServer.cpp \
 				Socket.cpp
-SRCS_CGI	=	cgi.cpp
+SRCS_CGI	=	
 
 SRCS_PARSER	=	parsing/Configuration.cpp \
 				parsing/Server.cpp \
@@ -50,7 +50,8 @@ SRCS		=	$(SRCS_PARSER)
 SRCS		+=	$(SRCS_SOCKET)
 SRCS		+=	$(SRCS_CGI)
 SRCS		+=	main.cpp
-SRCS		+=	Client.cpp
+SRCS		+=	Client.cpp \
+				Response.cpp
 				
 OBJS		=	$(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 

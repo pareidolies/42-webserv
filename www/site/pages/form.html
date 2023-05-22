@@ -2,16 +2,16 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Formulaire</title>
+	<title>Form 📝</title>
 	<style>
 		body {
 			font-family: Arial, sans-serif;
-			background-color: #f0f0f0;
+			background-color: #05022e;
 		}
 		h1 {
 			text-align: center;
 			margin-top: 50px;
-			color: #444;
+			color: #ffffff;
 		}
 		form {
 			display: flex;
@@ -50,21 +50,23 @@
 		.button:hover {
 			background-color: #004555;
 		}
+		nav ul li {
+			color: #591283; /* Remplacez cette valeur par la couleur souhaitée */
+		}
 	</style>
 </head>
 <body>
 	<header>
-		<h1>Formulaire</h1>
 		<nav>
 			<ul>
-				<li><a href="/">Accueil</a></li>
-				<li><a href="/www/site/pages/comments.html">Commentaires</a></li>
-				<li><a href="/www/site/pages/upload.html">Upload de fichiers</a></li>
+				<li><a href="/">Welcome page</a></li>
+				<li><a href="/pages/upload.html">Upload</a></li>
 			</ul>
 		</nav>
+		<h1>Form</h1>
 	</header>
 	<form action="form.php" method="post">
-		<label for="name">Nom :</label>
+		<label for="name">Name :</label>
 		<input type="text" id="name" name="name" required>
 		<label for="email">Email :</label>
 		<input type="text" id="email" name="email" required>

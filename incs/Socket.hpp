@@ -22,6 +22,7 @@ class Socket
 		void	startListen();
 		int		getSocketFd(void);
 		Server *getServer();
+		void	*ft_memset(void *s, int c, size_t n);
 
 	private:
 		string				m_ip_address;
