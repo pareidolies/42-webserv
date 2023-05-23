@@ -58,6 +58,9 @@ class Client
 		void    error_log(int status);
 		void print_headers(const std::map<std::string, std::string>& headers);
 		std::string		getContentType();
+		void		select_server_block();
+		void		set_server_data();
+
 
 //    struct Request {
 //         std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
@@ -81,7 +84,7 @@ class Client
 	private:
 
         int m_new_socket;
-        Server*  _serversList;
+        std::vector<Server*>		_serversList;
 		Server*   _server;
 		char m_buffer[4096];
 		Request m_request;
