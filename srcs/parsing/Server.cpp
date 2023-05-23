@@ -497,3 +497,5 @@ std::string			Server::getErrorPage(int code)
 {
 	return (_errorPages[code]);
 }
+
+void	Server::setAddress(std::string a) { this->_host = a; }

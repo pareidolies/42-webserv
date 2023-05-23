@@ -66,6 +66,7 @@ class Server
 		Location*				getLocation(std::string str);
 		std::string							getErrorPage(int code);
 		std::string							getReturn();
+		void								setAddress(std::string a);
 
 
 	private:
