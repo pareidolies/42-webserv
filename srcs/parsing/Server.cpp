@@ -6,9 +6,20 @@
 
 Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 					   _protocol(0), _interface(INADDR_ANY), \
-					   _backlog(200), _clientMaxBodySize(0), \
+					   _backlog(1024), _clientMaxBodySize(0), \
 					   _autoindex(false)
 {
+	_port = 80;
+	_host = "0.0.0.0";
+	_root = "";
+	_index = "";
+	_autoindex = false;
+	_upload = "";
+	_get = false;
+	_post = false;
+	_delete = false;
+	_return = "";
+
 	//initialize values
 }
 

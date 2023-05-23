@@ -13,7 +13,15 @@ Location::Location(void)
 
 Location::Location(std::string locate) : _locate(locate)
 {
-	//initialize values
+	_get = false;
+	_post = false;
+	_delete = false;
+	_clientMaxBodySize = 0;
+	_root = "";
+	_index = "";
+	_autoindex = false;
+	_upload = "";
+	_return = "";
 }
 
 /******************************************************************************
@@ -22,7 +30,21 @@ Location::Location(std::string locate) : _locate(locate)
 
 Location::Location(Location const & copy) : _root(copy._root)
 {
-
+	_locate = copy._locate;
+	_serverName = copy._serverName;
+	_clientMaxBodySize = copy._clientMaxBodySize;
+	_get= copy._get;
+	_post = copy._post;
+	_delete = copy._delete;
+	_root = copy._root;
+	_index = copy._index;
+	_autoindex = copy._autoindex;
+	_cgiFileExtension = copy._cgiFileExtension;
+	_cgiPathToScript = copy._cgiPathToScript;
+	_upload = copy._upload;
+	_errorPages = copy._errorPages;
+	_cgi = copy._cgi;
+	_return = copy._return;
 }
 
 Location	&Location::operator=(Location const & rhs)
@@ -30,6 +52,21 @@ Location	&Location::operator=(Location const & rhs)
 	if (this != &rhs)
 	{
 		_root = rhs._root;
+		_locate = rhs._locate;
+		_serverName = rhs._serverName;
+		_clientMaxBodySize = rhs._clientMaxBodySize;
+		_get= rhs._get;
+		_post = rhs._post;
+		_delete = rhs._delete;
+		_root = rhs._root;
+		_index = rhs._index;
+		_autoindex = rhs._autoindex;
+		_cgiFileExtension = rhs._cgiFileExtension;
+		_cgiPathToScript = rhs._cgiPathToScript;
+		_upload = rhs._upload;
+		_errorPages = rhs._errorPages;
+		_cgi = rhs._cgi;
+		_return = rhs._return;
 	}
 	return (*this);
 }
