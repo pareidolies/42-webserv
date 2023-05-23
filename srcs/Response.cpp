@@ -99,6 +99,37 @@ std::string getFileType(const std::string& filePath) {
 
 //add cgi management here //yangchi
 
+bool Response::cgi_execution()
+{
+	cout << "request body: " << _request_body << endl;
+	std::string response_header;
+	std::string response;
+
+	CGI cgi(this);
+	cgi.execute();
+	_status_code = cgi.getStatusCode();
+
+	size_t breaker = cgi.getBody().find("\r\n\r\n");
+	if (breaker != std::string::npos) {
+		response_header = cgi.getBody().substr(0, breaker);
+		this->_body = cgi.getBody().substr(breaker + 4);
+	}
+	response = "HTTP/1.1 ";
+	response += General::to_string(_status_code);
+	response += " ";
+	response += get_code_msg();
+	response += "\r\n";
+	response += "Content-Length:" + General::to_string(_body.size()) + "\n";
+	response += response_header;
+	response += "\r\n\r\n";
+	response += _body;
+	cout << "response: " << response << endl;
+	if (send(_client.getFd(), response.c_str(), response.size(), 0) < 0)
+		_client.error_log(500);
+	_client.general_log(_status_code);
+	return true;
+}
+
 bool Response::send_response()
 {
 	if (_status_code) //error found in client
@@ -109,12 +140,7 @@ bool Response::send_response()
 	this->_extension = getFileType(_path);
 	std::map<std::string, std::string>::iterator iterator = _cgi_map.find(this->_extension);
 	if (iterator != _cgi_map.end())
-	{
-		CGI cgi(this);
-		cgi.execute();
-		_body = cgi.getBody();
-		cout << "CGI executed: " << endl << cgi.getBody() << endl;
-	}
+		return cgi_execution();
 	else
 	{
 		if (_method == "GET")

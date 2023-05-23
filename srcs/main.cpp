@@ -62,7 +62,7 @@ int main(const int argc, const char** argv, char **env)
 	}
    
     // if (isCGI(file_.getMimeExtension()))
-    {
+    // {
         // CGI cgi(file_, config_, config_.getHeaders(), config_.getBody());
         // cgi.init();
         // cgi.init(worker_id_);
@@ -72,7 +72,7 @@ int main(const int argc, const char** argv, char **env)
         // body_ = cgi.getBody();
         // headers_["Content-Length"] = ft::to_string(body_.length());
         // return status_code_;
-    }
+    // }
 
     return EXIT_SUCCESS;
 }

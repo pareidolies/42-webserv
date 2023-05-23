@@ -26,6 +26,7 @@ class CGI {
         bool    setCGIEnv();
         void    parseHeaders(map<string, string> &headers);
         void    readFromPipe(int pipefd);
+        int     getStatusCode();
 
     private:
         Response           _response;

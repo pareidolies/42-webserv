@@ -6,7 +6,6 @@
 
 CGI::CGI(Response *response) : _response(*response)
 {
-	cout << "setting CGI. response" << endl;
 	this->_env = NULL;
 	this->_extension = this->_response.get_extension();
 	this->_cgi_exe = this->_response.get_cgi_map()[this->_extension];
@@ -31,6 +30,11 @@ CGI::~CGI()
 		General::free_tab(_env);	
 }
 
+int CGI::getStatusCode()
+{
+	return (this->_status_code);
+}
+
 int	CGI::init_arg()
 {
 	char *cwd = getcwd(NULL, 0);
@@ -50,7 +54,6 @@ int	CGI::init_arg()
 
 int CGI::init_env()
 {
-	cout << "init CGI." << endl;
 	this->_cgi_env["REQUEST_METHOD"] = this->_response.get_method();
 	this->_cgi_env["CONTENT_TYPE"] = this->_response.get_content_type();
 	this->_cgi_env["CONTENT_LENGTH"] = "0";
@@ -63,7 +66,6 @@ int CGI::init_env()
 	this->_cgi_env[ "SERVER_PORT"] = General::to_string(this->_response.get_server()->getPort());
 	if (this->_extension == ".php")
 		this->_cgi_env["REDIRECT_STATUS"] = "200";
-
 	if (this->_response.get_method() == "GET")
 		this->_cgi_env["QUERY_STRING"] = this->_req_body;
 	else if (this->_response.get_method() == "POST")
@@ -79,29 +81,6 @@ int CGI::init_env()
 
 bool CGI::setCGIEnv()
 {
-	// _cgi_env["REMOTE_ADDR"] = _config.getClient().getAddr();
-
-	// if (_config.getAuth() != "off")
-	// {
-	// 	_cgi_env["AUTH_TYPE"] = "Basic";
-	// 	_cgi_env["REMOTE_IDENT"] = _config.getAuth().substr(0, _config.getAuth().find(':'));
-	// 	_cgi_env["REMOTE_USER"] = _config.getAuth().substr(0, _config.getAuth().find(':'));
-	// }
-
-	// _cgi_env["REQUEST_URI"] = _file_path;
-
-	// _cgi_env["SCRIPT_NAME"] = _cgi_path;
-
-	// for (std::map<std::string, std::string>::iterator it = _req_headers.begin(); it != _req_headers.end(); it++)
-	// {
-	// 	if (!it->second.empty())
-	// 	{
-	// 		string header = "HTTP_" + General::to_upper(it->first);
-	// 		std::replace(header.begin(), header.end(), '-', '_');
-	// 		_cgi_env[header] = it->second;
-	// 	}
-	// }
-
 	if (!(_env = (char **)malloc(sizeof(char *) * (_cgi_env.size() + 1))))
 		return (false);
 
@@ -114,6 +93,8 @@ bool CGI::setCGIEnv()
 		i++;
 	}
 	_env[i] = NULL;
+	for (int j = 0; _env[j]; j++)
+		cout << _env[j] << endl;
 	return (true);
 }
 
@@ -129,9 +110,6 @@ void CGI::readFromPipe(int pipefd)
 
 int CGI::execute()
 {
-    // _req_body = "name=John+Doe&age=3";
-	cout << "req body: " << this->_req_body << endl;
-
     if (!this->setCGIEnv())
         return (500);
 

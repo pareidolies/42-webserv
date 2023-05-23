@@ -47,6 +47,7 @@ class Response {
         void								set_autoindex_body();
         void								delete_file();
         bool								post_body();
+		bool								cgi_execution();
         std::string							get_code_msg();
 		std::string							get_file_content(std::string content);
         void								get_header_fields(int cont_Leng) ;
