@@ -38,6 +38,7 @@ Socket::~Socket()
 {
 	//cout << "Terminating the server." << endl;
 	//closeServer();
+	//close(m_socket);
 }
 
 int Socket::startServer()
@@ -66,15 +67,17 @@ int Socket::startServer()
 	{
 		General::exitWithError("Cannot connect socket to address");
 	}
+	freeaddrinfo((struct addrinfo *)res);
+	res = NULL;
 	return (0);
 }
 
-// void Socket::closeServer()
-// {
-// 	close(m_socket);
-// 	close(m_new_socket);
-// 	exit(0);
-// }
+//void Socket::closeServer()
+//{
+//	close(m_socket);
+//	close(m_new_socket);
+//	exit(0);
+//}
 
 void Socket::startListen()
 {

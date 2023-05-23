@@ -223,7 +223,9 @@ std::string Response::get_file_content(std::string content)
 		return std::string();
 	}
 	_status_code = 200; //"OK"
-	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+	std::string res = std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+	input_file.close();
+	return res;
 }
 
 // https://www.keycdn.com/support/nginx-directory-index

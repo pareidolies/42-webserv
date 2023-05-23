@@ -11,7 +11,7 @@ Client::Client()
 	//initialize values
 }
 
-Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server) //needs to find right server with server_name
+Client::Client(int connection, Server *server, std::vector<Server*>	serversList) : m_new_socket(connection), _server(server), _serversList(serversList) //needs to find right server with server_name
 {
     _domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
 	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
@@ -37,6 +37,8 @@ Client::Client(int connection, Server *server) : m_new_socket(connection), _serv
     _request_is_complete = false;
     _status_code = 0;
 	_handle_headers = true;
+
+	_close_connection = false;
 }
 
 /******************************************************************************
@@ -77,6 +79,7 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
 
     _corresponding_location = copy._corresponding_location;
     m_request = copy.m_request;
+	_close_connection = copy._close_connection;
 
 }
 
@@ -118,6 +121,7 @@ Client	&Client::operator=(Client const & rhs)
 
     	_corresponding_location = rhs._corresponding_location;
     	m_request = rhs.m_request;
+		_close_connection = rhs._close_connection;
 
 	}
 	return (*this);
@@ -166,7 +170,47 @@ void Client::print_headers(const std::map<std::string, std::string>& headers)
 *                                 SERVER NAME                                 *
 ******************************************************************************/
 
-//to do
+void		Client::select_server_block()
+{
+	for (std::vector<Server*>::iterator it = _serversList.begin(); it != _serversList.end(); it++)
+	{
+		std::vector<std::string> vec = (*it)->getServerName();
+		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
+		{
+			if (m_request.headers["host"].compare((*jt)) == 0 && _port == (*it)->getPort())
+			{
+				_server = (*it);
+				set_server_data();
+				return;
+			}
+		}
+	}
+	return;
+}
+
+void		Client::set_server_data()
+{
+	_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
+	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
+	_protocol = _server->getProtocol(); //use 0 for "any"
+    _interface = _server->getInterface(); //needs to be set to INADDR_ANY
+	_backlog = _server->getBacklog(); //maximum number of queued clients
+	_locations = _server->getLocations();
+	_port = _server->getPort();
+	_host = _server->getHost();
+	_serverName = _server->getServerName();
+	_clientMaxBodySize = _server->getClientMaxBodySize();
+	_root = _server->getRoot();
+	_index = _server->getIndex();
+	_autoindex = _server->getAutoindex();
+	_cgi = _server->getCgi();
+	_upload = _server->getUpload();
+	_get = _server->getGet();
+	_post = _server->getPost();
+	_delete = _server->getDelete();
+	_errorPages = _server->getErrorPages();
+    _return = _server->getReturn();
+}
 
 /******************************************************************************
 *                                 LOCATIONS                                   *
@@ -333,7 +377,7 @@ void Client::set_location_data()//this function sets data from corresponding loc
 //     General::log("\nReceived message: \n" + m_request.raw_request);
 // }
 
-void Client::getPayload() //receives all request and puts it in a buffer
+bool Client::getPayload() //receives all request and puts it in a buffer
 {
 	int valread = 0;
 
@@ -342,14 +386,15 @@ void Client::getPayload() //receives all request and puts it in a buffer
 	if (valread == 0) 
     {
 		_request_is_complete = true;
-		return ;
+		return true ;
 	}
 	if (valread < 0)
     {
-		General::exitWithError("Error in recv()");
+		return false;
 	}
 	m_buffer[valread] = '\0';
 	m_request.raw_request.append(m_buffer, valread);
+	return true;
 }
 
 bool Client::parse_request() 
@@ -520,6 +565,7 @@ void Client::handle_field_line(std::string &line)
 		if (_method != "POST") //no need for body
 			_request_is_complete = true;
 
+		select_server_block();
 		check_if_corresponding_location(_request_target); //changes the data for the one in location
 		check_method(_method); //checks if method allowed
 		check_access(_request_target); //is resource requested in target accessible?
