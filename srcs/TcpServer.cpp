@@ -3,6 +3,7 @@
 #include <map>
 
 
+
 /*
 	TCP server setup flow:
 		socket: create socket
@@ -158,7 +159,7 @@ void	TcpServer::run(void)
 
 	General::log("\n====== Waiting for a new connection ======");
 
-	while (42) 
+	while (g_shutdown) 
 	{
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
@@ -182,7 +183,7 @@ void	TcpServer::run(void)
 			{
 				int connection = acceptConnection(events[n], epollfd);
 				//std::cout << "coucou" << std::endl;
-				Client new_client(connection, (*it).getServer());
+				Client new_client(connection, (*it).getServer(), _servers);
 				clients[connection] = new_client;
 				// std::cout << "coucou1" << std::endl;
 			}
@@ -191,7 +192,14 @@ void	TcpServer::run(void)
 			else if (events[n].events & EPOLLIN) 
 			{
 				// std::cout << "COUCOU" << std::endl;
-				clients[events[n].data.fd].getPayload();
+				if (clients[events[n].data.fd].getPayload() == false)
+				{
+					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
+						General::exitWithError("epoll del");
+					if (close(events[n].data.fd) < 0) // ne pas close sauf au bout 3 minutes ou quand on quitte le serveur
+						General::exitWithError("close");
+					clients.erase(events[n].data.fd);
+				}
 				//std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
 				// cl:ients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
@@ -230,8 +238,28 @@ void	TcpServer::run(void)
 				continue ;
 		}
 	}
+	for (std::vector<Socket>::iterator it = _socketList.begin(); it != _socketList.end(); it++)
+	{
+		if (close((*it).getSocketFd()) == -1)
+			General::exitWithError("close");
+	}
+	for (std::map<int, Client>::iterator jt = clients.begin(); jt != clients.end(); jt++)
+	{
+		if (close((*jt).first) == -1)
+			General::exitWithError("close");
+	}	
 	if (close(epollfd) == -1)
 		General::exitWithError("close");
+	//for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
+    //{
+    //    for(std::vector<Location*>::iterator jt = (*it)->getLocations().begin(); jt != (*it)->getLocations().end(); jt++)
+	//    {
+	//    // (*it)->print_location();
+	//        if (*jt)
+	//        	delete	*jt;
+	//    }
+    //}
+
 }
 
 int	TcpServer::acceptConnection(struct epoll_event ev, int epollfd)

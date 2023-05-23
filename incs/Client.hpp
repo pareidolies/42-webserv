@@ -9,14 +9,14 @@ class Client
 	public:
 
         Client();
-		Client(int connection, Server *server);
+		Client(int connection, Server *server, std::vector<Server*>	serversList);
 		Client(Client const & copy);
 		~Client(void);
 
 		Client	&operator=(Client const & rhs);
 
         //methods
-        void getPayload();
+        bool getPayload();
 		bool parse_request();
 		std::deque<std::string> getlines(std::string buf);
 		void parse_line(std::deque<std::string> &lines, std::string &raw_request);
@@ -60,6 +60,7 @@ class Client
 		std::string		getContentType();
 		void		select_server_block();
 		void		set_server_data();
+		bool 		getCloseConnection();
 
 
 //    struct Request {
@@ -127,6 +128,8 @@ class Client
 		std::string							_path;
 
 		std::string							_return;
+
+		bool 								_close_connection;
 };
 
 int		ft_check_charset(char c, const char *charset);

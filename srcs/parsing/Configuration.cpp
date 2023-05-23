@@ -15,8 +15,7 @@ Configuration::Configuration(void)
 
 Configuration::Configuration(std::string file) : _file(file)
 {
-	for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
-		delete	*it;
+		std::cout << "BUILD" << std::endl;
 }
 
 /******************************************************************************
@@ -43,8 +42,17 @@ Configuration	&Configuration::operator=(Configuration const & rhs)
 ******************************************************************************/
 
 Configuration::~Configuration(void)
-{
-
+{	
+	std::cout << "DESTROY" << std::endl;
+	if (g_shutdown == 1)
+	{
+		for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
+		{
+			// (*it)->print_server();
+			if (*it)
+				delete	*it;
+		}
+	}
 }
 
 /******************************************************************************
@@ -126,6 +134,7 @@ void	Configuration::init_config(void)
 	}
 	if (this->_servers.empty())
 		throw Configuration::NoServer();
+	//print_all();
 	//print_vector(_split);
 }
 

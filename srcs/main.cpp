@@ -2,6 +2,14 @@
 
 # include <string>
 # include <iostream>
+# include <signal.h>
+
+std::sig_atomic_t g_shutdown = 1;
+
+void	signal_handler(int signal) {
+	if (signal == SIGINT)
+		g_shutdown = 0;
+}
 
 int	check_filename(const char *name, const char *ext)
 {
@@ -17,6 +25,8 @@ int main(const int argc, const char** argv, char **env)
 {
     (void)env;
     std::string file;
+
+    std::signal(SIGINT, signal_handler);
 
     if (argc > 2 || (argc == 2 && !check_filename(argv[1], "conf")))
 	{

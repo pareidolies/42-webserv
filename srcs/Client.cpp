@@ -11,7 +11,7 @@ Client::Client()
 	//initialize values
 }
 
-Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server) //needs to find right server with server_name
+Client::Client(int connection, Server *server, std::vector<Server*>	serversList) : m_new_socket(connection), _server(server), _serversList(serversList) //needs to find right server with server_name
 {
     _domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
 	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
@@ -37,6 +37,8 @@ Client::Client(int connection, Server *server) : m_new_socket(connection), _serv
     _request_is_complete = false;
     _status_code = 0;
 	_handle_headers = true;
+
+	_close_connection = false;
 }
 
 /******************************************************************************
@@ -77,6 +79,7 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
 
     _corresponding_location = copy._corresponding_location;
     m_request = copy.m_request;
+	_close_connection = copy._close_connection;
 
 }
 
@@ -118,6 +121,7 @@ Client	&Client::operator=(Client const & rhs)
 
     	_corresponding_location = rhs._corresponding_location;
     	m_request = rhs.m_request;
+		_close_connection = rhs._close_connection;
 
 	}
 	return (*this);
@@ -373,7 +377,7 @@ void Client::set_location_data()//this function sets data from corresponding loc
 //     General::log("\nReceived message: \n" + m_request.raw_request);
 // }
 
-void Client::getPayload() //receives all request and puts it in a buffer
+bool Client::getPayload() //receives all request and puts it in a buffer
 {
 	int valread = 0;
 
@@ -382,14 +386,15 @@ void Client::getPayload() //receives all request and puts it in a buffer
 	if (valread == 0) 
     {
 		_request_is_complete = true;
-		return ;
+		return true ;
 	}
 	if (valread < 0)
     {
-		General::exitWithError("Error in recv()");
+		return false;
 	}
 	m_buffer[valread] = '\0';
 	m_request.raw_request.append(m_buffer, valread);
+	return true;
 }
 
 bool Client::parse_request() 
