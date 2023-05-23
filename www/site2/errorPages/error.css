@@ -1,0 +1,39 @@
+html, body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	color: #080441;
+	display: table;
+	font-weight: 100;
+	font-family: 'Arial', sans-serif;
+}
+
+hr {
+	background-color: #080441;
+	margin: 40px 0;
+}
+
+.container {
+	text-align: center;
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.content {
+	text-align: center;
+	display: inline-block;
+}
+
+.code {
+	font-size: 60px;
+	margin-bottom: 20px;
+}
+
+.title {
+	font-size: 72px;
+	margin-bottom: 40px;
+}

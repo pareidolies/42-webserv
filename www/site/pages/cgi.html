@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Exemple de requête CGI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 50px;
+            color: #444;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+        .form {
+            width: 400px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
+        }
+        .form label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .form input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        .form input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #008CBA;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+        }
+        .form input[type="submit"]:hover {
+            background-color: #004555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Formulaire de requête CGI</h1>
+
+    <div class="container">
+        <form class="form" action="/cgi/php-cgi" method="get">
+            <h2>Requête GET</h2>
+            <label for="param1">Paramètre 1:</label>
+            <input type="text" id="param1" name="param1" value="valeur1">
+
+            <label for="param2">Paramètre 2:</label>
+            <input type="text" id="param2" name="param2" value="valeur2">
+
+            <input type="submit" value="Envoyer">
+        </form>
+
+        <form class="form" action="/cgi/php-cgi" method="post">
+            <h2>Requête POST</h2>
+            <label for="param3">Paramètre 3:</label>
+            <input type="text" id="param3" name="param3" value="valeur3">
+
+            <label for="param4">Paramètre 4:</label>
+            <input type="text" id="param4" name="param4" value="valeur4">
+
+            <input type="submit" value="Envoyer">
+        </form>
+    </div>
+</body>
+</html>
