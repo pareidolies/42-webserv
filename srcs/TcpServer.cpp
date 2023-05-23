@@ -162,7 +162,7 @@ void	TcpServer::run(void)
 	{
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
-		if (event_fds == -1 && errno != EINTR)
+		if (event_fds == -1 && errno != EINTR) // attention pas de errno
 			General::exitWithError("epoll_wait");
 
 		// Loop that handle events happening on server fd and connections fds
@@ -220,7 +220,7 @@ void	TcpServer::run(void)
 					// clients[events[n].data.fd].buffer_memset();
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						General::exitWithError("epoll del");
-					if (close(events[n].data.fd) < 0)
+					if (close(events[n].data.fd) < 0) // ne pas close sauf au bout 3 minutes ou quand on quitte le serveur
 						General::exitWithError("close");
 					clients.erase(events[n].data.fd);
 					General::log("\n====== Waiting for a new connection ======");

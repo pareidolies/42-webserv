@@ -51,7 +51,7 @@ int Socket::startServer()
 	{
 		General::exitWithError("Cannot create socket");
 	}
-    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR , (char *)&optval, sizeof(optval)) < 0)
+    if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, (char *)&optval, sizeof(optval)) < 0) //"SO_REUSEPORT" very important to avoid error if same port
 	{
         General::exitWithError("Failed to set SO_REUSEADDR. errno: ");
 	}

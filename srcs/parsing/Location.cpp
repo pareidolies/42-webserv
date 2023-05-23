@@ -6,7 +6,9 @@
 
 Location::Location(void)
 {
-	//initialize values
+	_get = false;
+	_post = false;
+	_delete = false;
 }
 
 Location::Location(std::string locate) : _locate(locate)

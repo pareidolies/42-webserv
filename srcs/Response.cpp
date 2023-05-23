@@ -388,7 +388,7 @@ void Response::init_code_msg()
 {
 	_status_code_list[200] = "OK"; //used
 	_status_code_list[201] = "Created"; //used
-	_status_code_list[202] = "Accepted";
+	_status_code_list[202] = "Accepted";//?
 	_status_code_list[203] = "Non-Authoritative Information";
 	_status_code_list[204] = "No Content";
 	_status_code_list[205] = "Reset Content";
@@ -409,9 +409,9 @@ void Response::init_code_msg()
 	_status_code_list[401] = "Unauthorized";
 	_status_code_list[402] = "Payment Required";
 	_status_code_list[403] = "Forbidden";//used
-	_status_code_list[404] = "Not Found";
+	_status_code_list[404] = "Not Found";//used
 	_status_code_list[405] = "Method Not Allowed"; //used
-	_status_code_list[406] = "Not Acceptable";
+	_status_code_list[406] = "Not Acceptable";//add this one
 	_status_code_list[407] = "Proxy Authentication Required";
 	_status_code_list[408] = "Request Timeout";
 	_status_code_list[409] = "Conflict";
