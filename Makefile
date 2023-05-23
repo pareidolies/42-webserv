@@ -39,7 +39,7 @@ OBJS_DIR	=	objs
 
 SRCS_SOCKET	=	TcpServer.cpp \
 				Socket.cpp
-SRCS_CGI	=	
+SRCS_CGI	=	cgi.cpp
 
 SRCS_PARSER	=	parsing/Configuration.cpp \
 				parsing/Server.cpp \

@@ -4,6 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>   ///read file
+#include "webserv.hpp"
+
+using namespace std;
 
 class Response {
     public:
@@ -11,6 +14,14 @@ class Response {
         Response(Client client);	
 		~Response(void);
         bool send_response();
+		string		get_extension();
+        string		get_method();
+		string		get_path();
+		string 		get_content_type();
+		string		get_request_body();
+		Server 		*get_server();
+		std::map<std::string, std::string> get_cgi_map();
+
 
     private:
         Client								_client;
@@ -29,6 +40,7 @@ class Response {
         std::string                         _method;
         std::string                         _content_type;
         std::string                         _request_body;
+        std::map<std::string, std::string>  _cgi_map;
 
         void								init_code_msg();
         void								get_body();

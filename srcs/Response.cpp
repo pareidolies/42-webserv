@@ -24,6 +24,7 @@ Response::Response(Client client) : _client(client)
 	_method = _client.getMethod();
 	_content_type = _client.getContentType();
 	_request_body = _client.getBody();
+	_cgi_map = _client.getCgi();
 
 	init_code_msg();
 }
@@ -43,10 +44,60 @@ Response::~Response(void)
 }
 
 /******************************************************************************
+*                                   Getter                                    *
+******************************************************************************/
+
+std::string		Response::get_method()
+{
+	return _method;
+}
+
+std::string		Response::get_path()
+{
+	return _path;
+}
+
+std::string		Response::get_content_type()
+{
+	return _content_type;
+}
+
+std::string		Response::get_request_body()
+{
+	return _request_body;
+}
+
+Server 			*Response::get_server()
+{
+	return _server;
+}
+
+std::string		Response::get_extension()
+{
+	return _extension;
+}
+
+std::map<std::string, std::string> Response::get_cgi_map()
+{
+	return _cgi_map;
+}
+
+/******************************************************************************
 *                                 RESPONSE                                    *
 ******************************************************************************/
 
-//add cgi management here
+std::string getFileType(const std::string& filePath) {
+    std::size_t dotPosition = filePath.rfind(".");
+    
+    if (dotPosition != std::string::npos && dotPosition < filePath.length() - 1)
+	{
+        std::string fileType = filePath.substr(dotPosition);
+        return fileType;
+    }
+    return "";
+}
+
+//add cgi management here //yangchi
 
 bool Response::send_response()
 {
@@ -55,23 +106,34 @@ bool Response::send_response()
 		send_error_response();
 		return true;
 	}
-	if (_method == "GET")
+	this->_extension = getFileType(_path);
+	std::map<std::string, std::string>::iterator iterator = _cgi_map.find(this->_extension);
+	if (iterator != _cgi_map.end())
 	{
-		if (!_client.getReturn().empty() && _client.getRequestTarget() != _client.getReturn()) //redirection needed
-			_status_code = 307; //"temporary redirect"
-		else
-			get_body();
-		get_header_fields(_body.size());
+		CGI cgi(this);
+		cgi.execute();
+		_body = cgi.getBody();
+		cout << "CGI executed: " << endl << cgi.getBody() << endl;
 	}
-	else if (_method == "DELETE" && _delete)
-		delete_file();
-	else if (_method == "POST")
+	else
 	{
-		if (_status_code < 300)
+		if (_method == "GET")
 		{
-			//std::cout << "GGG" << std::endl;
-			_status_code = 201; //"created"
-			return post_body();
+			if (!_client.getReturn().empty() && _client.getRequestTarget() != _client.getReturn()) //redirection needed
+				_status_code = 307; //"temporary redirect"
+			else
+				get_body();
+			get_header_fields(_body.size());
+		}
+		else if (_method == "DELETE" && _delete)
+			delete_file();
+		else if (_method == "POST")
+		{
+			if (_status_code < 300)
+			{
+				_status_code = 201;
+				return post_body();
+			}
 		}
 	}
 	if (_status_code >= 308)
