@@ -6,9 +6,20 @@
 
 Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 					   _protocol(0), _interface(INADDR_ANY), \
-					   _backlog(200), _clientMaxBodySize(0), \
+					   _backlog(1024), _clientMaxBodySize(0), \
 					   _autoindex(false)
 {
+	_port = 80;
+	_host = "0.0.0.0";
+	_root = "";
+	_index = "";
+	_autoindex = false;
+	_upload = "";
+	_get = false;
+	_post = false;
+	_delete = false;
+	_return = "";
+
 	//initialize values
 }
 
@@ -18,15 +29,54 @@ Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 
 Server::Server(Server const & copy) : _locations(copy._locations)
 {
-	//to complete
+	_domain = copy._domain; //AF_INET, AF_INET6, AF_UNSPEC
+	_service = copy._service; //SOCK_STREAM, SOCK_DGRAM
+	_protocol = copy._protocol; //use 0 for "any"
+    _interface = copy._interface; //needs to be set to INADDR_ANY
+	_backlog = copy._backlog; //maximum number of queued clients
+	_locations = copy._locations;
+	_port = copy._port;
+	_host = copy._host;
+	_serverName = copy._serverName;
+	_clientMaxBodySize = copy._clientMaxBodySize;
+	_root = copy._root;
+	_index = copy._index;
+	_autoindex = copy._autoindex;
+	_cgiFileExtension = copy._cgiFileExtension;
+	_cgiPathToScript = copy._cgiPathToScript;
+	_cgi = copy._cgi;
+	_upload = copy._upload;
+	_get = copy._get;
+	_post = copy._post;
+	_delete = copy._delete;
+	_errorPages = copy._errorPages;
 }
 
 Server	&Server::operator=(Server const & rhs)
 {
 	if (this != &rhs)
 	{
-		_locations = rhs._locations;
-		//to complete
+		_domain = rhs._domain; //AF_INET, AF_INET6, AF_UNSPEC
+	    _service = rhs._service; //SOCK_STREAM, SOCK_DGRAM
+	    _protocol = rhs._protocol; //use 0 for "any"
+        _interface = rhs._interface; //needs to be set to INADDR_ANY
+	    _backlog = rhs._backlog; //maximum number of queued clients
+	    _locations = rhs._locations;
+	    _port = rhs._port;
+	    _host = rhs._host;
+	    _serverName = rhs._serverName;
+	    _clientMaxBodySize = rhs._clientMaxBodySize;
+	    _root = rhs._root;
+	    _index = rhs._index;
+	    _autoindex = rhs._autoindex;
+	    _cgiFileExtension = rhs._cgiFileExtension;
+	    _cgiPathToScript = rhs._cgiPathToScript;
+		_cgi = rhs._cgi;
+	    _upload = rhs._upload;
+	    _get = rhs._get;
+	    _post = rhs._post;
+	    _delete = rhs._delete;
+	    _errorPages = rhs._errorPages;
 	}
 	return (*this);
 }
@@ -60,9 +110,9 @@ bool	Server::check_client_max_body_size(std::string parameter)
 		if(!isdigit(str[i]))
 			return false;
 	}
-	long nbr = atol(str);
-	if (nbr > 2147483647)
-		return false;
+	// long nbr = atol(str);
+	// if (nbr > 2147483647)
+	// 	return false;
 	return true;
 }
 
@@ -142,6 +192,8 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		{
 			parameter = check_semicolon(parameter);
 			this->_index = parameter;
+			//std::cout << ANSI_YELLOW << this->_index << ANSI_RESET << std::endl;
+
 		}
 		else if (directive.compare("upload") == 0)
 		{
@@ -158,7 +210,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			parameter = check_semicolon(parameter);
 			while (!parameter.empty())
 			{
-				std::cout << parameter << std::endl;
+				//std::cout << parameter << std::endl;
 				find = parameter.find_first_of(whitespace);
 				if (find == string::npos)
 					find = parameter.end() - parameter.begin();
@@ -191,6 +243,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
 					throw Server::DirOrFileError();
 				}
+				_cgi.insert ( std::pair<std::string,std::string>(_cgiFileExtension,_cgiPathToScript) );
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -227,7 +280,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		{
 			parameter = check_semicolon(parameter);
 			if (check_client_max_body_size(parameter))
-				this->_clientMaxBodySize = atoi(parameter.c_str());
+				this->_clientMaxBodySize = atoll(parameter.c_str());
 		}
 		else
 		{
@@ -238,15 +291,20 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 	}
 	if (listening == false || _port < 0)
 		throw Server::NotListening();
-	if (_errorPages.empty()) //setting default page
-	{
-		std::string path = "www/site/errorPages/404.html";
-		this->_errorPages.insert(std::make_pair(404, path));
-	}
+	//if (_errorPages.empty()) //setting default page
+	//{
+	//	std::string path = "www/site/errorPages/404.html";
+	//	this->_errorPages.insert(std::make_pair(404, path));
+	//}
 	if (_upload.empty()) //setting default upload
-		this->_upload = "www/site";
+		this->_upload = "./www/site/files";
 	if (_root.empty()) //setting default root
-		this->_root = "www/site";
+		this->_root = "./www/site";
+	if (_index.empty())
+		this->_index = "/pages/index.html";
+	//print_server();
+	//if (_return.empty()) //setting default return
+	//	this->_return = "http://github.com;";
 }
 
 /******************************************************************************
@@ -269,8 +327,9 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
 	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
-	std::cout << ANSI_BLUE << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
-	std::cout << ANSI_BLUE << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
+	std::cout << ANSI_BLUE << "cgi: " << ANSI_RESET << std::endl;
+	for(std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
+		std::cout << "[" << it->first << "] " << it->second << std::endl;
 	std::cout << ANSI_BLUE << "maximum number of queued clients: " << ANSI_RESET << _backlog << std::endl;
 	std::cout << ANSI_BLUE << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_BLUE << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
@@ -304,6 +363,22 @@ const char *	Server::NotListening::what(void) const throw()
 const char *	Server::DirOrFileError::what(void) const throw()
 {
 	return (" directory or file or extension does not exist");
+}
+
+/******************************************************************************
+*                                     UTILS                                   *
+******************************************************************************/
+
+bool	Server::is_method_allowed(std::string method)
+{
+	//std::cout << "method " << method << std::endl;
+	if (method.compare("GET") == 0 && _get)
+		return true;
+	else if (method.compare("POST") == 0 && _post)
+		return true;
+	else if (method.compare("DELETE") == 0 && _delete)
+		return true;
+	return false;
 }
 
 /******************************************************************************
@@ -349,12 +424,21 @@ std::vector<Location*>				Server::getLocations()
 	return(_locations);
 }
 
+/*Location*				Server::getLocation(std::string str)
+{
+	for(std::vector<Location*>::iterator it = _locations.begin(); it != _locations.end(); it++)
+	{
+		if ((*it)->getLocate().compare("str") == 0)
+			return(*it);
+	}
+}*/
+
 std::vector<std::string>			Server::getServerName()
 {
 	return(_serverName);
 }
 
-int									Server::getClientMaxBodySize()
+long long unsigned int						Server::getClientMaxBodySize()
 {
 	return(_clientMaxBodySize);
 }
@@ -374,14 +458,14 @@ bool								Server::getAutoindex()
 	return(_autoindex);
 }
 
-std::string							Server::getCgiFileExtension()
+std::map<std::string, std::string> Server::getCgi()
 {
-	return(_cgiFileExtension);
+	return (_cgi);
 }
 
-std::string							Server::getCgiPathToScript()
+std::string							Server::getReturn()
 {
-	return(_cgiPathToScript);
+	return(_return);
 }
 
 std::string							Server::getUpload()
@@ -408,3 +492,10 @@ std::map<int, std::string>			Server::getErrorPages()
 {
 	return(_errorPages);
 }
+
+std::string			Server::getErrorPage(int code)
+{
+	return (_errorPages[code]);
+}
+
+void	Server::setAddress(std::string a) { this->_host = a; }

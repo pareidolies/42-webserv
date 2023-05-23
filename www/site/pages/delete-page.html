@@ -1,17 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #05022e;
+		}
+		h1 {
+			text-align: center;
+			margin-top: 50px;
+			color: #ffffff;
+		}
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 50px;
+			background-color: white;
+			padding: 20px;
+			border-radius: 5px;
+			box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+			max-width: 500px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		label {
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+		input[type="text"], textarea {
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			width: 100%;
+			margin-bottom: 20px;
+		}
+		.button {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			background-color: #008CBA;
+			color: white;
+			font-weight: bold;
+			text-decoration: none;
+			text-align: center;
+		}
+		.button:hover {
+			background-color: #004555;
+		}
+		nav ul li {
+			color: #591283; /* Remplacez cette valeur par la couleur souhaitée */
+		}
+		p {
+		    color: #FFFFFF; /* Remplacez cette valeur par la couleur souhaitée */
+		}
+    </style>
     <meta charset="UTF-8">
     <title>Supprimer un fichier</title>
     <script>
         function deleteFile() {
             var xhr = new XMLHttpRequest();
-            xhr.open('DELETE', '/www/site/files/example.txt', true);
+            xhr.open('DELETE', '/files/example.txt', true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        window.location.href = "/www/site/pages/delete_complete.html"; // Rediriger vers la page de confirmation de suppression
-                    } else {
+                        window.location.href = "/pages/delete_complete.html"; // Rediriger vers la page de confirmation de suppression
+                    } 
+					else 
+					{
                         alert('Erreur lors de la suppression du fichier.');
                     }
                 }
@@ -21,8 +77,8 @@
     </script>
 </head>
 <body>
-    <h1>Supprimer un fichier</h1>
-    <p>Cliquez sur le bouton ci-dessous pour supprimer le fichier "/www/site/files/example.txt".</p>
-    <button onclick="deleteFile()">Supprimer le fichier</button>
+    <h1>Delete a file</h1>
+    <p>Click on the button below to delete the file "/www/site/files/example.txt": </p> 
+    <button onclick="deleteFile()">Delete</button>
 </body>
 </html>

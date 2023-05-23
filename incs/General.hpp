@@ -70,21 +70,22 @@ class General
 
  // Structure pour stocker les informations de la requête
     struct Request {
-        std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
-        std::string uri;                             // URI de la ressource demandée
-        map<std::string, std::string> headers;  // en-têtes de la requête
+//        std::string method;                          // méthode HTTP utilisée (GET, POST, etc.)
+//        std::string uri;                             // URI de la ressource demandée
+        map<std::string, std::string> headers;  	 // en-têtes de la requête
         std::string body;                            // corps de la requête
 		std::string raw_request;
+		std::string	request_line;
     };
 
-	struct Response {
-		std::string full_response;
-		std::string body;
-		std::string cgi_path;
-		std::string body_size;
-		std::string content_type;
-        std::map<int, std::string> status_code_list;
-        int	status_code;
-	};
+	// struct Response {
+	// 	std::string full_response;
+	// 	std::string body;
+	// 	std::string cgi_path;
+	// 	std::string body_size;
+	// 	std::string content_type;
+    //     std::map<int, std::string> status_code_list;
+    //     int	status_code;
+	// };
 
 #endif

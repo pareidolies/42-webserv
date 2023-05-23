@@ -16,8 +16,8 @@
 #include "Location.hpp"
 #include "Server.hpp"
 #include "utils.hpp"
-#include "cgi.hpp"
-#include "Client.hpp"
+//#include "cgi.hpp"
+#include "Response.hpp"
 
 
 

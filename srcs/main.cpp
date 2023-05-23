@@ -34,10 +34,10 @@ int main(const int argc, const char** argv, char **env)
         conf.open_and_read_file();
         conf.init_config();
         // conf.print_all(); 
-        cout << "----------------------------------" << endl;
+        //cout << "----------------------------------" << endl;
         // CGI cgi(conf);
         // cgi.execute();
-        cout << "----------------------------------" << endl;
+        //cout << "----------------------------------" << endl;
         // TcpServer server = TcpServer("127.0.0.1", 8000);
         // server.startListen();
         // conf.print_all(); CGI cgi(conf);

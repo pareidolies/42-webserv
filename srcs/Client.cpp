@@ -1,16 +1,6 @@
 # include "webserv.hpp"
 # include <sstream> // pour std::ostringstream
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Response.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: sdesseau <sdesseau@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/05/02 18:44:28 by sdesseau          #+#    #+#             */
-/*   Updated: 2023/05/17 19:12:49 by sdesseau         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+# include <deque>
 
 /******************************************************************************
 *                              CONSTRUCTORS                                   *
@@ -21,9 +11,9 @@ Client::Client()
 	//initialize values
 }
 
-Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server)
+Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server) //needs to find right server with server_name
 {
-	_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
+    _domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
 	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
 	_protocol = _server->getProtocol(); //use 0 for "any"
     _interface = _server->getInterface(); //needs to be set to INADDR_ANY
@@ -36,14 +26,17 @@ Client::Client(int connection, Server *server) : m_new_socket(connection), _serv
 	_root = _server->getRoot();
 	_index = _server->getIndex();
 	_autoindex = _server->getAutoindex();
-	_cgiFileExtension = _server->getCgiFileExtension();
-	_cgiPathToScript = _server->getCgiPathToScript();
+	_cgi = _server->getCgi();
 	_upload = _server->getUpload();
 	_get = _server->getGet();
 	_post = _server->getPost();
 	_delete = _server->getDelete();
 	_errorPages = _server->getErrorPages();
+    _return = _server->getReturn();
 
+    _request_is_complete = false;
+    _status_code = 0;
+	_handle_headers = true;
 }
 
 /******************************************************************************
@@ -65,13 +58,25 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
 	_root = copy._root;
 	_index = copy._index;
 	_autoindex = copy._autoindex;
-	_cgiFileExtension = copy._cgiFileExtension;
-	_cgiPathToScript = copy._cgiPathToScript;
+	_cgi = copy._cgi;
 	_upload = copy._upload;
 	_get = copy._get;
 	_post = copy._post;
 	_delete = copy._delete;
 	_errorPages = copy._errorPages;
+    _request_is_complete = copy._request_is_complete;
+    _status_code = copy._status_code;
+	_handle_headers = copy._handle_headers;
+    _return = copy._return;
+
+    _method = copy._method;
+    _request_target = copy._request_target;
+	_query_string = copy._query_string;
+	_body_boundary = copy._body_boundary;
+    _path = copy._path;
+
+    _corresponding_location = copy._corresponding_location;
+    m_request = copy.m_request;
 
 }
 
@@ -94,20 +99,28 @@ Client	&Client::operator=(Client const & rhs)
 	    _root = rhs._root;
 	    _index = rhs._index;
 	    _autoindex = rhs._autoindex;
-	    _cgiFileExtension = rhs._cgiFileExtension;
-	    _cgiPathToScript = rhs._cgiPathToScript;
+	    _cgi = rhs._cgi;
 	    _upload = rhs._upload;
 	    _get = rhs._get;
 	    _post = rhs._post;
 	    _delete = rhs._delete;
 	    _errorPages = rhs._errorPages;
+        _request_is_complete = rhs._request_is_complete;
+        _status_code = rhs._status_code;
+	    _handle_headers = rhs._handle_headers;
+        _return = rhs._return;
+
+    	_method = rhs._method;
+    	_request_target = rhs._request_target;
+		_query_string = rhs._query_string;
+		_body_boundary = rhs._body_boundary;
+    	_path = rhs._path;
+
+    	_corresponding_location = rhs._corresponding_location;
+    	m_request = rhs.m_request;
+
 	}
 	return (*this);
-}
-
-Server *Client::getServer()
-{
-    return (this->_server);
 }
 
 /******************************************************************************
@@ -117,113 +130,18 @@ Server *Client::getServer()
 Client::~Client(void) {}
 
 /******************************************************************************
-*                             MEMBER FUNCTIONS                                *
+*                                   PRINTERS                                  *
 ******************************************************************************/
 
-void Client::getPayload()
+void    Client::general_log(int status)
 {
-    std::string request_raw;
-    std::string request_headers;
-    std::string request_body;
-    int content_length = 0;
-    int bytesReceived = 0;
-
-    // Read the request headers
-    while (true)
-    {
-        int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-        if (valread == -1)
-            General::exitWithError("Error in recv()");
-
-        request_raw += std::string(m_buffer, valread);
-        if (request_raw.find("\r\n\r\n") != std::string::npos)
-            break; // Found the end of headers
-    }
-
-    std::string receivedData(m_buffer);
-    size_t headerEndPos = receivedData.find("\r\n\r\n");
-    if (headerEndPos != std::string::npos)
-    {
-        request_headers = receivedData.substr(0, headerEndPos);
-        request_body = receivedData.substr(headerEndPos + 4);
-    } else
-        std::cerr << "Invalid HTTP request: Header and body separation not found." << std::endl;
-
-    std::cout << "Body: " << "request_body" << std::endl;
-
-
-    // Find the Content-Length header
-    std::string content_length_str = "Content-Length: ";
-    std::string::size_type content_length_pos = request_headers.find(content_length_str);
-    if (content_length_pos != std::string::npos)
-    {
-        content_length_pos += content_length_str.length();
-        std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
-        if (end_of_line_pos != std::string::npos)
-        {
-            std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
-            content_length = std::atoi(content_length_value.c_str());
-        }
-    }
-
-    cout << "Content length: " << content_length << endl;
-    cout << "Body length: " << request_body.length() << endl;
-
-    // Read the request body if content length is specified
-    if (content_length > 0 && request_body.length() != content_length)
-    {
-        request_body.resize(content_length);
-        int flags = fcntl(m_new_socket, F_GETFL, 0);
-        if (fcntl(m_new_socket, F_SETFL, flags | O_NONBLOCK) < 0)
-            General::exitWithError("Fnctl error: failed to set socket to non-blocking mode");
-        while (bytesReceived < content_length)
-        {
-            int bytesRead = recv(m_new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
-            if (bytesRead == -1)
-            {
-                if (errno == EWOULDBLOCK || errno == EAGAIN)
-                    continue;    // No data available yet, continue the loop or handle other tasks
-                else
-                    General::exitWithError("Error in recv() 2");
-            }
-            else if (bytesRead == 0)
-                break; // Connection closed, handle appropriately
-            bytesReceived += bytesRead;
-        }
-    }
-    // Process the received payload
-    m_request.raw_request = request_headers + request_body;
-    General::log("\nReceived message: \n" + m_request.raw_request);
+    std::cout << ANSI_BLUE << "client: " << _host << "; status code: " << status << "; request: " << m_request.request_line << "; host:" << m_request.headers["host"] << ANSI_RESET << std::endl;
 }
 
-bool Client::parse_request() {
-    std::stringstream request_stream;                                                                                   
-    request_stream << m_buffer;                                                                      
-    std::string line;                                                                               
-    bool headers_done = false;   
-    // std::cout << "BUFFER :::: "<< request_stream.str() << "END BUFFER          " << std::endl;  
-    if (std::getline(request_stream, line) && !line.empty())
-    {
-        m_request.method = line.substr(0, line.find(" "));
-                m_request.uri = line.substr(line.find(" ") + 1, line.rfind(" ") - line.find(" ") - 1); 
-    }                                                                 
-    while (std::getline(request_stream, line) && !line.empty()) {                 
-        // std::cout << "LINE = " << line << std::endl;
-            if (line.find(":") != std::string::npos) {
-                // std::cout << "rentre dans find" << std::endl;
-                std::string header_name = line.substr(0, line.find(":"));                           
-                std::string header_value = line.substr(line.find(":") + 1);                         
-                m_request.headers[header_name] = header_value;                             
-            }         
-    }
-    // std::cout << "URI : " << m_request.uri << ", METHOD : " << m_request.method << std::endl;
-    // print_headers(m_request.headers);
-    return (true);                                                                                  
+void    Client::error_log(int status)
+{
+    std::cerr << ANSI_RED << "client: " << _host << "; status code: " << status << "; request: " << m_request.request_line << "; host:" << m_request.headers["host"] << ANSI_RESET << std::endl;
 }
-
-/******************************************************************************
-*                                     REQUEST                                *
-******************************************************************************/
 
 void Client::print_headers(const std::map<std::string, std::string>& headers)
 {
@@ -244,525 +162,752 @@ void Client::print_headers(const std::map<std::string, std::string>& headers)
     std::cout << "Content-Type: " << it->second << std::endl;
 }
 
-bool delete_file(const std::string& filename)
-{
-    // Votre code pour supprimer le fichier ici
-    // Assurez-vous d'adapter cette fonction en fonction de votre système d'exploitation et de votre structure de fichiers
+/******************************************************************************
+*                                 SERVER NAME                                 *
+******************************************************************************/
 
-    int result = std::remove(filename.c_str());
+//to do
 
-    if (result == 0)
-    {
-        std::cout << "File deleted: " << filename << std::endl;
-        return true; // Suppression réussie
-    }
-    else
-    {
-        std::perror("Error deleting file");
-        return false; // Erreur lors de la suppression du fichier
-    }
-}
+/******************************************************************************
+*                                 LOCATIONS                                   *
+******************************************************************************/
 
-std::string Client::read_directory(const std::string& directory)
-{
-    std::string body = "<h1>Index of " + directory + "</h1>\r\n";
-    body += "<ul>\r\n";
+bool Client::check_if_corresponding_location(std::string &request_target) //this function compares each locate with request target
+{																			// and selects the closest one
+	std::vector<std::string> split_locate;
+	std::vector<std::string> split_target;
+	const char* c = "/";
 
-    DIR* dir = opendir(directory.c_str());
-    if (dir == NULL)
-        return read_file(this->getServer()->getErrorPages()[404]);
 
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL)
-    {
-        std::string filename = entry->d_name;
-        if (filename != "." && filename != "..")
-            body += "<li><a href=\"" + directory + "/" + filename + "\">" + filename + "</a></li>\r\n";
-    }
+	//std::cout << ANSI_RED << "request target: " << request_target << ANSI_RESET << std::endl;
+	if (!_server->getLocations().empty())
+	{
+        std::vector<Location*>::iterator it = _locations.begin();
+		int max = 0;
 
-    body += "</ul>\r\n";
-
-    closedir(dir);
-
-    return body;
-}
-
-std::string Client::format_body(std::string body)
-{
-    m_response.body = (body);
-    m_response.body_size = to_string_custom(m_response.body.size());
-    m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-    return (m_response.full_response);
-}
-
-std::string Client::process_get()
-{
-    // Traitement de la requête GET
-    if (m_request.uri == "/")
-    {
-        m_response.body = read_file("www/site/pages/index.html");
-        m_response.body_size = to_string_custom(m_response.body.size());
-        m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-    }
-    else
-    {
-        std::cout << "URI: " << m_request.uri << std::endl;
-        cout << this->getServer()->getHost() << ":" << this->getServer()->getPort() << endl;
-        // Si l'URI est différent de "/", renvoyer le fichier correspondant
-        std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
-        m_response.body = read_file(filename);
-        if (m_response.body == "") {
-            if (this->getServer()->getAutoindex() == true)
-                return (format_body(read_directory(filename)));
-            else
-                return (format_body(read_file(this->getServer()->getErrorPages()[404])));
+        for (; it != _locations.end(); it++)
+        {
+			//std::cout << "locate: " << (*it)->getLocate() << std::endl;
+			int	nb = 0;
+			split_locate = ft_split((*it)->getLocate().c_str(), c);
+			split_target = ft_split(request_target.c_str(), c);
+			std::vector<std::string>::iterator j = split_locate.begin();
+			std::vector<std::string>::iterator k = split_target.begin();
+			while (j != split_locate.end() && k != split_target.end() && ((*j).compare((*k)) == 0))
+			{
+				nb++;
+				j++;
+				k++;
+			}
+			if (k == split_target.end() && j != split_locate.end())
+				nb = 0;
+			if (k != split_target.end() && j != split_locate.end())
+				nb = 0;
+			if (nb > max)
+			{
+				//std::cout << "HERE" << std::endl;
+				_corresponding_location = (*it);
+				max = nb;
+			}
+            //if ((*it)->getLocate().compare(request_target) == 0)
+            //{
+            //    _corresponding_location = (*it);
+            //    //std::cout << "locate: " << _corresponding_location->getLocate() << std::endl;
+            //    set_location_data();
+            //    return true;
+            //}
         }
+		if (max > 0)
+		{
+			set_location_data();
+			return true;
+		}
         else
         {
-            m_response.content_type = search_content_type(filename);
-            m_response.body_size = to_string_custom(m_response.body.size());
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:";
-            m_response.full_response += m_response.content_type;
-            m_response.full_response += "\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
+            std::vector<Location*>::iterator it = _locations.begin();
+            for (; it != _locations.end(); it++)
+            {
+                if ((*it)->getLocate().compare("/") == 0)
+                {
+                    _corresponding_location = (*it);
+                    //std::cout << "locate: " << _corresponding_location->getLocate() << std::endl;
+                    set_location_data();
+                    return true;
+                }
+            }
         }
-    }
-    return (m_response.full_response);
+	}
+	return false;
 }
 
-std::string Client::process_delete()
+void Client::set_location_data()//this function sets data from corresponding location
 {
-    // Traitement de la requête DELETE
-    // Vérifier les autorisations
-    bool authorized = _delete;
-    std::cout << "authorized :: " << _delete << std::endl;
-    if (authorized)
-    {
-        // Supprimer le fichier ou la ressource spécifiée dans l'URI
-        std::string filename = m_request.uri.substr(1); // Supprimer le premier caractère "/"
-        bool deleted = delete_file(filename);
-        if (deleted)
-        {
-            // Le fichier a été supprimé avec succès
-            m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
-        }
-        else
-        {
-            // Erreur lors de la suppression du fichier
-            m_response.full_response = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
-        }
-    }
-    else
-    {
-        // Autorisation refusée
-        m_response.full_response = "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n";
-    }
-    return (m_response.full_response);
-}
-
-std::string Client::process_post()
-{
-    // Traitement de la requête POST
-    if (m_request.uri == "/upload")
-    {
-        // Extraire les données du corps de la requête
-        std::string boundary = get_boundary(m_request.raw_request);
-        m_request.body = find_body(m_request.raw_request, boundary);
-        std::string filename = get_filename(m_request.body);
-        removeFirstFourLines(m_request.body);
-
-        // Stocker le fichier dans un dossier spécifique
-        save_file("www/site/files/downloads/" + filename, m_request.body);
-
-        // Envoyer une réponse au client
-        m_response.body = read_file("www/site/pages/upload_complete.html");
-        m_response.body_size = to_string_custom(m_response.body.size());
-        m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-    }
-    else if (m_request.uri == "/form" || m_request.uri == "/comment")
-    {
-        m_response.body = read_file("www/site/pages/upload_complete.html");
-        m_response.body_size = to_string_custom(m_response.body.size());
-        m_response.full_response = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nContent-Length: " + m_response.body_size + "\r\n\r\n" + m_response.body;
-    }
-    else
-    {
-        // Si l'URI n'est pas "/upload", renvoyer une réponse 404
-        m_response.full_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-    }
-    return (m_response.full_response);
-}
-
-std::string Client::process_request() 
-{
-    init_code_msg();
-    if (m_request.method == "GET")
-    {
-        if (this->getServer()->getGet() == false)
-            return (format_body(read_file(this->getServer()->getErrorPages()[405])));
-       return process_get();
-    }
-    else if (m_request.method == "DELETE")
-    {
-        if (this->getServer()->getDelete() == false)
-            return (format_body(read_file(this->getServer()->getErrorPages()[405])));
-        return process_delete();
-    }
-    else if (m_request.method == "POST")
-    {
-        if (this->getServer()->getPost() == false)
-            return (format_body(read_file(this->getServer()->getErrorPages()[405])));
-        return process_post();
-    }
-    else
-    {
-        // Requête non prise en charge
-        m_response.full_response = "HTTP/1.1 501 Not Implemented\r\nContent-Length: 0\r\n\r\n";
-    }
-    return (m_response.full_response);
+    _root = _corresponding_location->getRoot();
+	_index = _corresponding_location->getIndex();
+	_autoindex = _corresponding_location->getAutoindex();
+	_cgi = _corresponding_location->getCgi();
+	_upload = _corresponding_location->getUpload();
+	_get = _corresponding_location->getGet();
+	_post = _corresponding_location->getPost();
+	_delete = _corresponding_location->getDelete();
+	_return = _corresponding_location->getReturn();
 }
 
 /******************************************************************************
-*                                  RESPONSE                                   *
+*                                   REQUEST                                   *
 ******************************************************************************/
 
-std::string Client::get_boundary(const std::string& request)
+// void Client::getPayload() //I could not use this function, I entered infinite loop 50% of the times
+// {
+//     std::string request_raw;
+//     std::string request_headers;
+//     std::string request_body;
+//     int content_length = 0;
+//     int bytesReceived = 0;
+
+//     // Read the request headers
+//     while (true)
+//     {
+//         int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+//         if (valread == -1)
+//             General::exitWithError("Error in recv()");
+
+//         request_raw += std::string(m_buffer, valread);
+//         if (request_raw.find("\r\n\r\n") != std::string::npos)
+//             break; // Found the end of headers
+//     }
+
+//     std::string receivedData(m_buffer);
+//     size_t headerEndPos = receivedData.find("\r\n\r\n");
+//     if (headerEndPos != std::string::npos)
+//     {
+//         request_headers = receivedData.substr(0, headerEndPos);
+//         request_body = receivedData.substr(headerEndPos + 4);
+//     } else
+//         std::cerr << "Invalid HTTP request: Header and body separation not found." << std::endl;
+
+//     std::cout << "Body: " << "request_body" << std::endl;
+
+
+//     // Find the Content-Length header
+//     std::string content_length_str = "Content-Length: ";
+//     std::string::size_type content_length_pos = request_headers.find(content_length_str);
+//     if (content_length_pos != std::string::npos)
+//     {
+//         content_length_pos += content_length_str.length();
+//         std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
+//         if (end_of_line_pos != std::string::npos)
+//         {
+//             std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
+//             content_length = std::atoi(content_length_value.c_str());
+//         }
+//     }
+
+//     cout << "Content length: " << content_length << endl;
+//     cout << "Body length: " << request_body.length() << endl;
+
+//     // Read the request body if content length is specified
+//     if (content_length > 0 && request_body.length() != content_length)
+//     {
+//         request_body.resize(content_length);
+//         int flags = fcntl(m_new_socket, F_GETFL, 0);
+//         if (fcntl(m_new_socket, F_SETFL, flags | O_NONBLOCK) < 0)
+//             General::exitWithError("Fnctl error: failed to set socket to non-blocking mode");
+//         while (bytesReceived < content_length)
+//         {
+//             int bytesRead = recv(m_new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
+//             if (bytesRead == -1)
+//             {
+//                 if (errno == EWOULDBLOCK || errno == EAGAIN)
+//                     continue;    // No data available yet, continue the loop or handle other tasks
+//                 else
+//                     General::exitWithError("Error in recv() 2");
+//             }
+//             else if (bytesRead == 0)
+//                 break; // Connection closed, handle appropriately
+//             bytesReceived += bytesRead;
+//         }
+//     }
+//     // handle the received payload
+//     m_request.raw_request = request_headers + "\r\n\r\n" + request_body;
+//     General::log("\nReceived message: \n" + m_request.raw_request);
+// }
+
+void Client::getPayload() //receives all request and puts it in a buffer
 {
-    // Chercher la clé "Content-Type" dans la requête
-    size_t pos = request.find("Content-Type: multipart/form-data;");
-    if (pos != std::string::npos)
+	int valread = 0;
+
+	valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
+
+	if (valread == 0) 
     {
-        // Extraire la valeur du paramètre "boundary"
-        pos = request.find("boundary=", pos);
-        if (pos != std::string::npos)
+		_request_is_complete = true;
+		return ;
+	}
+	if (valread < 0)
+    {
+		General::exitWithError("Error in recv()");
+	}
+	m_buffer[valread] = '\0';
+	m_request.raw_request.append(m_buffer, valread);
+}
+
+bool Client::parse_request() 
+{
+	if (m_request.raw_request.empty()) // no raw request so returns status code 400 "bad request"
+    {
+		_request_is_complete = true;
+		_status_code = 400;
+		//std::cout << "HERE" << std::endl;
+		return _request_is_complete;
+	}
+
+    //starts parsing
+	if (_method.empty()) //first recv --> important to keep this line in case of large file upload
+	{
+		int body_index = -1;
+		std::string raw_header;
+		body_index = m_request.raw_request.find("\r\n\r\n"); //finds start of body
+		if (body_index < 0) 
+    	{
+			_status_code = 400;//"bad request"
+			return true;
+		}
+		raw_header = m_request.raw_request.substr(0, body_index + 4);
+		m_request.raw_request.erase(0, body_index + 4);
+    	//std::cout << m_request.raw_request << std::endl;
+		std::deque<std::string>	lines;
+		lines = getlines(raw_header); //split headers
+		if (!lines.empty()) 
+    	{
+			try
+			{ 
+				parse_line(lines, raw_header); // if bad headers, sends error code exception
+			}
+			catch (int error_code)
+			{
+				_status_code = error_code;
+				return true;
+			}
+		}
+	}
+    
+	size_t content_len = 0;
+	std::stringstream ss;
+	ss << m_request.headers["content-length"];
+	ss >> content_len;
+
+	if (!m_request.raw_request.empty()) 
+    {
+				//std::cout << _clientMaxBodySize << std::endl;
+				//std::cout << content_len << std::endl;
+
+		//if (_clientMaxBodySize > 0) //Client Max Body Size set to 0 by default
+        //{
+
+		//https://linuxhint.com/what-is-client-max-body-size-nginx/
+		
+		if (m_request.raw_request.size() >= content_len) //checks if whole request has been received,
+		{												//if not, returns false and stays EPOLLIN
+			if (_clientMaxBodySize > 0 && content_len > _clientMaxBodySize) //request too big
+            {
+				_status_code = 413;//"payload too large"
+				_request_is_complete = true;
+				return (_request_is_complete);
+			}
+			handle_body(m_request.raw_request); //adds body
+		}
+		//}
+	}
+	return _request_is_complete;
+}
+
+std::deque<std::string> Client::getlines(std::string buf) 
+{
+	std::deque<std::string> lines;
+	_ss << buf;
+
+	std::string::size_type i = buf.find("\n");
+	while (!buf.empty()) 
+    {
+		std::string inter;
+		std::getline(_ss, inter);
+        std::cout << ANSI_YELLOW << inter << ANSI_RESET << std::endl; //print headers to check everything ok
+		lines.push_back(inter);
+        //std::cout << inter << std::endl;
+		buf.erase(0, i + 1);
+		i = buf.find("\n");
+		if (i == std::string::npos)
+			i = buf.size();
+	}
+	return lines;
+}
+
+void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request)
+{
+	remove_carriage_return_char(lines); //clear line
+
+	handle_request_line(lines.front());
+	lines.pop_front();
+
+	while (!lines.empty() && !_request_is_complete)
+    {
+		if (_handle_headers)
+		{
+			handle_field_line(lines.front());
+			lines.pop_front();
+		}
+		else 
         {
-            pos += 9;
-            size_t end_pos = request.find("\r\n", pos);
-            std::string boundary = request.substr(pos, end_pos - pos);
-            // std::cout << "BOUNDARY = " << boundary << std::endl;
-            return ("--" + boundary);
-        }
-    }
-    return ("");
+			handle_body(m_request.raw_request);
+			lines.clear();
+		}
+	}
 }
 
-std::string Client::get_filename(const std::string& content)
+void Client::handle_request_line(std::string &line)
 {
-    std::string filename;
+	m_request.request_line = line;
+	std::vector<std::string> words = ft_split(line.c_str(), "\t\v\r ");
+	std::vector<std::string>::iterator it = words.begin();
 
-    // Recherche de la ligne "Content-Disposition" qui contient le nom de fichier
-    std::string disposition = "Content-Disposition: form-data; name=\"file\"; filename=\"";
-    std::size_t dispositionStart = content.find(disposition);
-    if (dispositionStart != std::string::npos) {
-        // Recherche du début et de la fin du nom de fichier dans la ligne
-        std::size_t filenameStart = dispositionStart + disposition.length();
-        std::size_t filenameEnd = content.find("\"", filenameStart);
-        if (filenameEnd != std::string::npos) {
-            // Extrait le nom de fichier de la ligne
-            filename = content.substr(filenameStart, filenameEnd - filenameStart);
-        }
-    }
-    return (filename);
+	if (*it != "GET" && *it != "POST" && *it != "DELETE") //wrong method for our webserv
+		throw 501; //"not implemented"
+
+	_method = *it;
+
+	if (++it == words.end()) //check there is request target
+		throw 400; //bad request
+
+	_request_target = *it;
+	_query_string =  get_query_string(_request_target); //if query string to delete from request target
+
+	if (++it == words.end())
+		throw 400; //"bad request" because http version missing
+
+	if ((*it) != "HTTP/1.1")
+		throw 400;//"bad request" because wrong http version
 }
 
-void Client::save_file(const std::string& path, const std::string& content)
+void Client::handle_field_line(std::string &line)
 {
-    std::ofstream file(path.c_str());
-    if (file.is_open())
+	std::string					field_name;
+	std::vector<std::string>	field_values;
+
+	std::string::size_type i = line.find(":");
+	if (i != std::string::npos) 
     {
-        file << content;
-        file.close();
-    }
-}
+		field_name.assign(line.begin(), line.begin() + i);
+		if (field_name.empty() || field_name_has_whitespace(field_name))
+			throw 400; //"bad request"
+		str_to_lower(field_name);
+		line.erase(0, i + 1);
+		m_request.headers[field_name] = line;
 
-template <typename T>
-std::string to_string_custom(const T& value)
-{
-    std::ostringstream os;
-    os << value;
-    return (os.str());
-}
-
-std::string read_file(const std::string& filename) {
-    std::ifstream file(filename.c_str());
-    if (!file.is_open()) {
-        return ("");
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return (buffer.str());
-}
-
-std::string find_body(const std::string& request, const std::string& boundary)
-{
-    std::string data;
-
-    // Find the starting position of the first boundary
-    std::string::size_type start = request.find(boundary);
-    if (start == std::string::npos) {
-        // Boundary not found
-        return (data);
-    }
-
-    // Find the ending position of the first boundary
-    std::string::size_type end = request.find(boundary, start + boundary.length());
-    if (end == std::string::npos) {
-        // Boundary not found
-        return (data);
-    }
-
-    // Extract the data between the boundaries
-    data = request.substr(start + boundary.length(), end - (start + boundary.length()));
-
-    return (data);
-}
-
-void removeFirstFourLines(std::string& data)
-{
-    // Find the position of the fourth occurrence of "\r\n"
-    std::string::size_type lineStart = 0;
-    for (int i = 0; i < 4; ++i) {
-        lineStart = data.find("\r\n", lineStart);
-        if (lineStart == std::string::npos) {
-            // Not enough lines to skip
-            return ;
-        }
-        lineStart += 2; // Move past the current "\r\n"
-    }
-    // Erase the first 4 lines
-    if (lineStart != std::string::npos) {
-        data.erase(0, lineStart);
-    }
-}
-
-std::string get_file_extension(const std::string& filename)
-{
-    size_t dotIndex = filename.find_last_of(".");
-    if (dotIndex != std::string::npos && dotIndex < filename.length() - 1)
-    {
-        return filename.substr(dotIndex);
-    }
-    return "";
-}
-
-bool is_cgi_script(const std::string& uri)
-{
-    // Ajoutez ici la logique spécifique pour déterminer si l'URI correspond à un script CGI.
-    // Par exemple, vous pouvez vérifier si l'extension du fichier est associée à des scripts CGI, tels que .cgi ou .pl.
-    size_t queryIndex = uri.find("?");
-    if (queryIndex != std::string::npos)
-    {
-    std::string extension = get_file_extension(uri);
-
-    // Vérifie si l'extension du fichier est dans la liste des extensions CGI
-        if (extension == ".cgi" || extension == ".pl")
+		if (field_name == "content-type") 
         {
-            return true;
+			std::string::size_type boundary_index = line.find("boundary");
+			if (boundary_index != std::string::npos) 
+				_body_boundary = line.erase(0, boundary_index + 9);
+		}
+		return;
+	}
+	else if (line.empty()) //now check all headers
+    {
+		if (m_request.headers.count("host") == 0) //no host received
+			throw 400; //"bad request"
+		_handle_headers = false; //all headers have been received
+		if (_method != "POST") //no need for body
+			_request_is_complete = true;
+
+		check_if_corresponding_location(_request_target); //changes the data for the one in location
+		check_method(_method); //checks if method allowed
+		check_access(_request_target); //is resource requested in target accessible?
+
+		return;
+	}
+	throw 400; //"wrong header"
+}
+
+void Client::handle_body(std::string &raw_request) 
+{
+	if (_request_is_complete == true || m_request.raw_request.empty())
+		return ;
+
+	if (_method != "POST") //if method is not post, no need for body
+    {
+		_request_is_complete = true;
+		return;
+	}
+	if (m_request.headers.count("transfer-encoding") == 0 && \
+		m_request.headers.count("content-length") == 0) // if no transfer-encoding and no content-length, no body
+    { 
+		_request_is_complete = true;
+		return ;
+	}
+	m_request.body.append(m_request.raw_request); //adds body
+	if (upload_file(m_request.raw_request)) //tries to upload file
+		_request_is_complete = true;
+	return ;
+}
+
+/******************************************************************************
+*                                     UTILS                                   *
+******************************************************************************/
+
+bool	Client::is_method_allowed(std::string method)
+{
+	//std::cout << "method " << method << std::endl;
+	if (method.compare("GET") == 0 && _get)
+		return true;
+	else if (method.compare("POST") == 0 && _post)
+		return true;
+	else if (method.compare("DELETE") == 0 && _delete)
+		return true;
+	return false;
+}
+
+void Client::check_method(std::string &method)
+{
+	if(!_server->is_method_allowed(method))
+    {
+		_status_code = 405; //"method not allowed"
+		_request_is_complete = true;
+	}
+}
+
+void Client::remove_carriage_return_char(std::deque<std::string> &lines) 
+{
+	std::deque<std::string>::iterator it;
+
+	for (it = lines.begin(); it != lines.end(); it++)
+    {
+		if (!(*it).empty() && (*it)[(*it).size() - 1] == '\r') 
+			(*it).erase((*it).size() - 1, 1);
+	}
+}
+
+std::string Client::get_query_string(std::string &request_target)
+{
+	std::string str;
+
+	std::string::size_type i = request_target.find("?");
+	if (i != std::string::npos) 
+    {
+		str.assign(request_target.begin() + i + 1, request_target.end());
+		request_target.erase(i, request_target.size());
+	}
+	return str;
+}
+
+std::string Client::add_root(std::string request_target)
+{
+	if (request_target[0] != '/')
+		request_target = "/" + request_target;
+
+	return _server->getRoot() + request_target;
+}
+
+void Client::check_access(std::string request_target) 
+{
+	_path = add_root(request_target);
+	int val = access(_path.c_str(), 0);
+
+	if (val < 0 && (_return.empty())) //if return set, page redirected anyway
+    {
+		if (errno == ENOENT)
+        {
+            //std::cout << "path" << _path << std::endl;
+            error_log(404);
+			throw 404; //"not found"
         }
-    }
+		else
+		{
+        	error_log(500);
+			throw 500; //"internal error server"
+		}
+	}
+}
+
+bool Client::field_name_has_whitespace(std::string &field_name) const 
+{
+	if (field_name[field_name.size() - 1] == ' '  || 
+		field_name[field_name.size() - 1] == '\t' ||
+		field_name[field_name.size() - 1] == '\r' ||
+		field_name[field_name.size() - 1] == '\f' ||
+		field_name[field_name.size() - 1] == '\v')
+		return true;
+	return false;
+}
+
+bool Client::upload_file(std::string &raw_request) //check for bigger file
+{
+	std::string upload_path = "./www/site/files"; //default upload
+	std::string filename;
+	std::string file_body;
+
+	if (!_server->getUpload().empty())
+		upload_path = _server->getUpload();
+
+	//std::cout << upload_path << std::endl;
+
+	if (access(upload_path.c_str(), X_OK) != 0) 
+    {
+        error_log(500);
+		_status_code = 500;
+		_request_is_complete = true;
+		return false;
+	}
+
+	while (m_request.raw_request.find("filename") != std::string::npos) 
+    {
+		// check if "filename" exist.
+		int filename_index = 0;
+		if (m_request.raw_request.find("filename=") != std::string::npos)
+        {
+			filename_index = m_request.raw_request.find("filename=");
+			m_request.raw_request.erase(0, filename_index);
+		}
+
+		// get the filename
+		int n = 0;
+		if (m_request.raw_request.find("\n") != std::string::npos)
+        {
+			n = m_request.raw_request.find("\n");
+			filename = m_request.raw_request.substr(10, n - 12 );
+		}
+
+		// remove the chars before the real content
+		int content_start_index = 0;
+		if (m_request.raw_request.find("\r\n\r\n") != std::string::npos)
+        {
+			content_start_index = m_request.raw_request.find("\r\n\r\n");
+			m_request.raw_request.erase(0, content_start_index + 4);
+		}
+
+		// remove the end boundary
+		int content_end_index = 0;
+		if(m_request.raw_request.find(_body_boundary) != std::string::npos) 
+        {
+			content_end_index = m_request.raw_request.find(_body_boundary);
+			file_body = m_request.raw_request.substr(0, content_end_index - 5);
+			m_request.raw_request.erase(0, content_end_index + _body_boundary.size() + 8);
+		}
+
+		std::ofstream temp_file((upload_path + "/" + filename).c_str());
+		if (!temp_file.is_open()) 
+        {
+            error_log(500);
+			_status_code = 500;
+			_request_is_complete = true;
+			return false;
+		}
+		temp_file << file_body;
+		temp_file.close();
+		if (m_request.raw_request.empty() || \
+			m_request.raw_request.find(_body_boundary) == std::string::npos)
+        {
+			break ;
+		}
+	}
+	//std::cout << "size: " <<  m_request.raw_request.size() << std::endl;
+	_request_is_complete = true;
+	return true;
+}
+
+bool Client::is_whitespace(unsigned char c)
+{
+    if (c == ' ' || c == '\t' || c == '\n' ||
+        c == '\r' || c == '\v' || c == '\f')
+        return true;
     return false;
 }
 
-void Client::init_code_msg()
+//ft_split
+int		ft_check_charset(char c, const char *charset)
 {
-	m_response.status_code_list[200] = "OK";
-	m_response.status_code_list[201] = "Created";
-	m_response.status_code_list[202] = "Accepted";
-	m_response.status_code_list[203] = "Non-Authoritative Information";
-	m_response.status_code_list[204] = "No Content";
-	m_response.status_code_list[205] = "Reset Content";
-	m_response.status_code_list[206] = "Partial Content";
-	m_response.status_code_list[207] = "Multi-Status";
-	m_response.status_code_list[208] = "Already Reported";
-	m_response.status_code_list[226] = "IM Used";
-	m_response.status_code_list[300] = "Multiple Choices";
-	m_response.status_code_list[301] = "Moved Permanently";
-	m_response.status_code_list[302] = "Found";
-	m_response.status_code_list[303] = "See Other";
-	m_response.status_code_list[304] = "Not Modified";
-	m_response.status_code_list[305] = "Use Proxy";
-	m_response.status_code_list[306] = "Switch Proxy";
-	m_response.status_code_list[307] = "Temporary Redirect";
-	m_response.status_code_list[308] = "Permanent Redirect";
-	m_response.status_code_list[400] = "Bad Request";
-	m_response.status_code_list[401] = "Unauthorized";
-	m_response.status_code_list[402] = "Payment Required";
-	m_response.status_code_list[403] = "Forbidden";
-	m_response.status_code_list[404] = "Not Found";
-	m_response.status_code_list[405] = "Method Not Allowed";
-	m_response.status_code_list[406] = "Not Acceptable";
-	m_response.status_code_list[407] = "Proxy Authentication Required";
-	m_response.status_code_list[408] = "Request Timeout";
-	m_response.status_code_list[409] = "Conflict";
-	m_response.status_code_list[410] = "Gone";
-	m_response.status_code_list[411] = "Length Required";
-	m_response.status_code_list[412] = "Precondition Failed";
-	m_response.status_code_list[413] = "Payload Too Large";
-	m_response.status_code_list[414] = "URI Too Long";
-	m_response.status_code_list[415] = "Unsupported Media Type";
-	m_response.status_code_list[416] = "Range Not Satisfiable";
-	m_response.status_code_list[417] = "Expectation Failed";
-	m_response.status_code_list[418] = "I\'m a teapot";
-	m_response.status_code_list[421] = "Misdirected Request";
-	m_response.status_code_list[422] = "Unprocessable Entity";
-	m_response.status_code_list[423] = "Locked";
-	m_response.status_code_list[424] = "Failed Dependency";
-	m_response.status_code_list[425] = "Too Early";
-	m_response.status_code_list[426] = "Upgrade Required";
-	m_response.status_code_list[428] = "Precondition Required";
-	m_response.status_code_list[429] = "Too Many Requests";
-	m_response.status_code_list[431] = "Request Header Fields Too Large";
-	m_response.status_code_list[451] = "Unavailable For Legal Reasons";
-	m_response.status_code_list[500] = "Internal Server Error";
-	m_response.status_code_list[501] = "Not Implemented";
-	m_response.status_code_list[502] = "Bad Gateway";
-	m_response.status_code_list[503] = "Service Unavailable";
-	m_response.status_code_list[504] = "Gateway Timeout";
-	m_response.status_code_list[505] = "HTTP Version Not Supported";
-	m_response.status_code_list[506] = "Variant Also Negotiates";
-	m_response.status_code_list[507] = "Insufficient Storage";
-	m_response.status_code_list[508] = "Loop Detected";
-	m_response.status_code_list[510] = "Not Extended";
-	m_response.status_code_list[511] = "Network Authentication Required";
+	int i;
+
+	i = 0;
+	while (charset[i] != 0)
+	{
+		if (c == charset[i])
+			return (1);
+		i++;
+	}
+	return (0);
 }
 
-
-std::string search_content_type(std::string filename)
+int		ft_count_words(const char *str, const char *charset)
 {
-    std::string content_type = "text/html";
-    int i = filename.length();
-    
-    if (i >= 5)
-    {
-        // TEXT TYPE
-        if (filename.substr(i - 4, 4) == ".css" )
-           content_type = "text/css";
-        else if (filename.substr(i - 4, 4) == ".csv")
-            content_type = "text/csv";
-        else if (filename.substr(i - 5, 5) == ".html")
-            content_type = "text/html";
-        else if (filename.substr(i - 4, 4) == ".xml")
-            content_type = "text/xml";
-        else if (filename.substr(i - 5, 5) == ".scss")
-            content_type = "text/css";
-        else if (filename.substr(i - 4, 4) == ".txt")
-            content_type = "text/plain";
+	int len;
 
-        // IMAGE TYPE
-        if (filename.substr(i - 4, 4) == ".svg")
-            content_type = "image/svg+xml";
-        else if (filename.substr(i - 4, 4) == ".gif")
-            content_type = "image/gif";
-        else if (filename.substr(i - 5, 5) == ".jpeg")
-            content_type = "image/jpeg";
-        else if (filename.substr(i - 4, 4) == ".png")
-            content_type = "image/webp";                 // show png as a webp
-        else if (filename.substr(i - 5, 5) == ".tiff")
-            content_type = "image/tiff";
-        else if (filename.substr(i - 4, 4) == ".webp")
-            content_type = "image/webp";
-        else if (filename.substr(i - 4, 4) == ".ico")
-            content_type = "image/x-icon";
-        else if (filename.substr(i - 4, 4) == ".bmp")
-            content_type = "image/bmp";
-        else if (filename.substr(i - 4, 4) == ".jpg")
-            content_type = "image/jpeg";
-        else if (filename.substr(i - 4, 4) == ".jpe")
-            content_type = "image/jpeg";
-        else if (filename.substr(i - 4, 4) == ".jif")
-            content_type = "image/jif";
-        else if (filename.substr(i - 4, 4) == ".jfif")
-            content_type = "image/jfif";
-        else if (filename.substr(i - 4, 4) == ".jfi")
-            content_type = "image/jfi";
-        else if (filename.substr(i - 4, 4) == ".jpx")
-            content_type = "image/jpx";
-        else if (filename.substr(i - 4, 4) == ".jp2")
-            content_type = "image/jp2";
-        else if (filename.substr(i - 4, 4) == ".j2k")
-            content_type = "image/j2k";
-        else if (filename.substr(i - 4, 4) == ".j2c")
-            content_type = "image/j2c";
-        else if (filename.substr(i - 4, 4) == ".jpc")
-            content_type = "image/jpc";
-        
-        // AUDIO TYPE
-        if (filename.substr(i - 4, 4) == ".mp3")
-            content_type = "audio/mpeg";
-        else if (filename.substr(i - 4, 4) == ".wav")
-            content_type = "audio/wav";
-        else if (filename.substr(i - 5, 5) == ".flac")
-            content_type = "audio/flac";
-        else if (filename.substr(i - 4, 4) == ".aac")
-            content_type = "audio/aac";
-        else if (filename.substr(i - 4, 4) == ".ogg")
-            content_type = "audio/ogg";
-        else if (filename.substr(i - 4, 4) == ".oga")
-            content_type = "audio/oga";
-        else if (filename.substr(i - 4, 4) == ".m4a")
-            content_type = "audio/m4a";
-        else if (filename.substr(i - 4, 4) == ".m4b")
-            content_type = "audio/m4b";
-        else if (filename.substr(i - 4, 4) == ".m4p")
-            content_type = "audio/m4p";
-        else if (filename.substr(i - 4, 4) == ".m4r")
-            content_type = "audio/m4r";
-        else if (filename.substr(i - 4, 4) == ".m4v")
-            content_type = "audio/m4v";
-        else if (filename.substr(i - 4, 4) == ".m4s")
-            content_type = "audio/m4s";
-        else if (filename.substr(i - 4, 4) == ".m4a")
-            content_type = "audio/m4a";
-        
-        // VIDEO TYPE
-        if (filename.substr(i - 4, 4) == ".mp4")
-            content_type = "video/mp4";
-        else if (filename.substr(i - 4, 4) == ".m4v")
-            content_type = "video/m4v";
-        else if (filename.substr(i - 4, 4) == ".m4p")
-            content_type = "video/m4p";
-        else if (filename.substr(i - 4, 4) == ".m4b")
-            content_type = "video/m4b";
-        else if (filename.substr(i - 4, 4) == ".m4r")
-            content_type = "video/m4r";
-        else if (filename.substr(i - 4, 4) == ".m4s")
-            content_type = "video/m4s";
-        else if (filename.substr(i - 4, 4) == ".m4a")
-            content_type = "video/m4a";
-        else if (filename.substr(i - 4, 4) == ".m4v")
-            content_type = "video/m4v";
-        else if (filename.substr(i - 4, 4) == ".m4p")
-            content_type = "video/m4p";
-        else if (filename.substr(i - 4, 4) == ".m4b")
-            content_type = "video/m4b";
-        else if (filename.substr(i - 4, 4) == ".m4r")
-            content_type = "video/m4r";
-        else if (filename.substr(i - 4, 4) == ".m4s")
-            content_type = "video/m4s";
+	len = 0;
+	if (!(ft_check_charset(*str, charset)))
+		len++;
+	while (*str)
+	{
+		if (ft_check_charset(*str, charset))
+		{
+			while (ft_check_charset(*str, charset) && *str != 0)
+				str++;
+			len++;
+		}
+		else
+			str++;
+	}
+	if (ft_check_charset(*(str - 1), charset))
+		len--;
+	return (len);
+}
 
-        // APPLICATION TYPE
-        
-        if (filename.substr(i - 4, 4) == ".pdf")
-            content_type = "application/pdf";
-        else if (filename.substr(i - 4, 4) == ".doc")
-            content_type = "application/msword";
-        else if (filename.substr(i - 4, 4) == ".docx")
-            content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-        else if (filename.substr(i - 4, 4) == ".xls")
-            content_type = "application/vnd.ms-excel";
-        else if (filename.substr(i - 4, 4) == ".xlsx")
-            content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        else if (filename.substr(i - 4, 4) == ".ppt")
-            content_type = "application/vnd.ms-powerpoint";
-        else if (filename.substr(i - 4, 4) == ".pptx")
-            content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-        else if (filename.substr(i - 4, 4) == ".pps")
-            content_type = "application/vnd.ms-powerpoint";
-        else if (filename.substr(i - 4, 4) == ".ppsx")
-            content_type = "application/vnd.openxmlformats-officedocument.presentationml.slideshow";
-        else if (filename.substr(i - 4, 4) == ".odt")
-            content_type = "application/vnd.oasis.opendocument.text";
-        else if (filename.substr(i - 4, 4) == ".odp")
-            content_type = "application/vnd.oasis.opendocument.presentation";
-    }
-    return (content_type);
+std::vector<std::string> Client::ft_split(const char *str, const char *charset)
+{
+	int		i;
+	int		len;
+	std::vector<std::string> tokens;
+
+	while (*str != 0)
+	{
+		if (ft_check_charset(*str, charset))
+			str++;
+		else
+		{
+			len = 0;
+			while (!(ft_check_charset(str[len], charset)) && str[len] != 0)
+				len++;
+			i = 0;
+			std::string intermediate;
+			while (i < len) {
+				intermediate.push_back(*(str++));
+				i++;
+			}
+			tokens.push_back(intermediate);
+		}
+	}
+	return tokens;
+}
+
+void str_to_lower(std::string &str)
+{
+	std::string::iterator it = str.begin();
+	for (; it != str.end(); it++)
+		*it = std::tolower(*it);
+}
+
+void remove(std::string &str, char c)
+{
+	std::string result;
+	for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+	{
+		if (*it != c)
+		{
+			result += *it;
+		}
+	}
+	str = result;
+}
+
+/******************************************************************************
+*                                   GETTERS                                   *
+******************************************************************************/
+
+Server *Client::getServer()
+{
+    return (_server);
+}
+
+std::string Client::getPath()
+{
+    return (_path);
+}
+
+std::string Client::getRequestTarget()
+{
+    return (_request_target);
+}
+
+int Client::getStatusCode()
+{
+    return (_status_code);
+}
+
+std::string Client::getMethod()
+{
+    return (_method);
+}
+
+int Client::getFd()
+{
+    return(m_new_socket);
+}
+
+std::map<std::string, std::string> Client::getHeaders() const 
+{
+	return m_request.headers;
+}
+
+std::string		Client::getBody() const{
+	return m_request.body;
+}
+
+std::string		Client::getContentType()
+{
+	std::string result = m_request.headers["content-type"];
+	return result;
+}
+
+int         Client::getClientMaxBodySize()
+{
+    	return (_clientMaxBodySize);
+}
+
+std::string Client::getRoot()
+{
+    return(_root);
+}
+
+std::string Client::getIndex()
+{
+    return(_index);
+}
+
+bool Client::getAutoindex()
+{
+    return(_autoindex);
+}
+
+std::map<std::string, std::string> Client::getCgi()
+{
+	return (_cgi);
+}
+
+std::string Client::getUpload()
+{
+    return (_upload);
+}
+
+bool Client::getGet()
+{
+    return(_get);
+}
+
+bool Client::getPost()
+{
+    return(_post);
+}
+
+bool Client::getDelete()
+{
+    return(_delete);
+}
+
+std::map<int, std::string>	Client::getErrorPages()
+{
+    return(_errorPages);
+}
+
+std::string Client::getReturn()
+{
+    return (_return);
 }

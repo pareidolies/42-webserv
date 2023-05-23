@@ -6,12 +6,22 @@
 
 Location::Location(void)
 {
-	//initialize values
+	_get = false;
+	_post = false;
+	_delete = false;
 }
 
 Location::Location(std::string locate) : _locate(locate)
 {
-	//initialize values
+	_get = false;
+	_post = false;
+	_delete = false;
+	_clientMaxBodySize = 0;
+	_root = "";
+	_index = "";
+	_autoindex = false;
+	_upload = "";
+	_return = "";
 }
 
 /******************************************************************************
@@ -20,7 +30,21 @@ Location::Location(std::string locate) : _locate(locate)
 
 Location::Location(Location const & copy) : _root(copy._root)
 {
-
+	_locate = copy._locate;
+	_serverName = copy._serverName;
+	_clientMaxBodySize = copy._clientMaxBodySize;
+	_get= copy._get;
+	_post = copy._post;
+	_delete = copy._delete;
+	_root = copy._root;
+	_index = copy._index;
+	_autoindex = copy._autoindex;
+	_cgiFileExtension = copy._cgiFileExtension;
+	_cgiPathToScript = copy._cgiPathToScript;
+	_upload = copy._upload;
+	_errorPages = copy._errorPages;
+	_cgi = copy._cgi;
+	_return = copy._return;
 }
 
 Location	&Location::operator=(Location const & rhs)
@@ -28,6 +52,21 @@ Location	&Location::operator=(Location const & rhs)
 	if (this != &rhs)
 	{
 		_root = rhs._root;
+		_locate = rhs._locate;
+		_serverName = rhs._serverName;
+		_clientMaxBodySize = rhs._clientMaxBodySize;
+		_get= rhs._get;
+		_post = rhs._post;
+		_delete = rhs._delete;
+		_root = rhs._root;
+		_index = rhs._index;
+		_autoindex = rhs._autoindex;
+		_cgiFileExtension = rhs._cgiFileExtension;
+		_cgiPathToScript = rhs._cgiPathToScript;
+		_upload = rhs._upload;
+		_errorPages = rhs._errorPages;
+		_cgi = rhs._cgi;
+		_return = rhs._return;
 	}
 	return (*this);
 }
@@ -83,6 +122,11 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 			parameter = check_semicolon(parameter);
 			this->_index = parameter;
 		}
+		else if (directive.compare("return") == 0)
+		{
+			parameter = check_semicolon(parameter);
+			this->_return = parameter;
+		}
 		else if (directive.compare("upload") == 0)
 		{
 			parameter = check_semicolon(parameter);
@@ -98,7 +142,7 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 			parameter = check_semicolon(parameter);
 			while (!parameter.empty())
 			{
-				std::cout << parameter << std::endl;
+				//std::cout << parameter << std::endl;
 				find = parameter.find_first_of(whitespace);
 				if (find == string::npos)
 					find = parameter.end() - parameter.begin();
@@ -131,7 +175,7 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 					std::cout << ANSI_RED << "Error: [" << parameter << "]" << ANSI_RESET;
 					throw Location::DirOrFileError();
 				}
-				_cgiFile[_cgiFileExtension] = _cgiPathToScript;
+				_cgi.insert ( std::pair<std::string,std::string>(_cgiFileExtension,_cgiPathToScript) );
 			}
 			else
 				std::cout << ANSI_RED << "Error: cgi information missing" << ANSI_RESET << std::endl;
@@ -161,8 +205,9 @@ void			Location::print_location(void)
 {
 	std::cout << ANSI_CYAN << "location: " << ANSI_RESET << _locate << std::endl;
 	std::cout << ANSI_CYAN << "root: " << ANSI_RESET << _root << std::endl;
-	std::cout << ANSI_CYAN << "cgi file extension: " << ANSI_RESET << _cgiFileExtension << std::endl;
-	std::cout << ANSI_CYAN << "cgi path to script: " << ANSI_RESET << _cgiPathToScript << std::endl;
+	std::cout << ANSI_BLUE << "cgi: " << ANSI_RESET << std::endl;
+	for(std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
+		std::cout << "[" << it->first << "] " << it->second << std::endl;
 	std::cout << ANSI_CYAN << "GET: " << ANSI_RESET << (_get ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_CYAN << "POST: " << ANSI_RESET  << (_post ? "on" : "off" ) << std::endl;
 	std::cout << ANSI_CYAN << "DELETE: " << ANSI_RESET << (_delete ? "on" : "off" ) << std::endl;
@@ -184,6 +229,21 @@ const char *	Location::DirOrFileError::what(void) const throw()
 }
 
 /******************************************************************************
+*                                     UTILS                                   *
+******************************************************************************/
+
+bool	Location::is_method_allowed(std::string method)
+{
+	if (method.compare("GET") == 0 && _get)
+		return true;
+	else if (method.compare("POST") == 0 && _post)
+		return true;
+	else if (method.compare("DELETE") == 0 && _delete)
+		return true;
+	return false;
+}
+
+/******************************************************************************
 *                                  GETTERS                                    *
 ******************************************************************************/
 
@@ -197,7 +257,7 @@ std::vector<std::string>	Location::getServerName()
 	return(_serverName);
 }
 
-int							Location::getClientMaxBodySize()
+long long unsigned int					Location::getClientMaxBodySize()
 {
 	return(_clientMaxBodySize);
 }
@@ -242,9 +302,9 @@ std::string					Location::getCgiPathToScript()
 	return(_cgiPathToScript);
 }
 
-std::map<std::string, std::string>				Location::getCgiFile()
+std::map<std::string, std::string>				Location::getCgi()
 {
-	return(_cgiFile);
+	return(_cgi);
 }
 
 std::string					Location::getUpload()
@@ -255,4 +315,9 @@ std::string					Location::getUpload()
 std::map<int, std::string>	Location::getErrorPages()
 {
 	return(_errorPages);
+}
+
+std::string							Location::getReturn()
+{
+	return(_return);
 }

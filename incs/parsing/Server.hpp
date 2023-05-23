@@ -52,17 +52,22 @@ class Server
 		int									getBacklog();
 		std::vector<Location*>				getLocations();
 		std::vector<std::string>			getServerName();
-		int									getClientMaxBodySize();
+		long long unsigned int				getClientMaxBodySize();
 		std::string							getRoot();
 		std::string							getIndex();
 		bool								getAutoindex();
-		std::string							getCgiFileExtension();
-		std::string							getCgiPathToScript();
+		std::map<std::string, std::string>  getCgi();
 		std::string							getUpload();
 		bool								getGet();
 		bool								getPost();
 		bool								getDelete();
 		std::map<int, std::string>			getErrorPages();
+		bool								is_method_allowed(std::string string);
+		Location*				getLocation(std::string str);
+		std::string							getErrorPage(int code);
+		std::string							getReturn();
+		void								setAddress(std::string a);
+
 
 	private:
 
@@ -79,17 +84,19 @@ class Server
 		std::string							_host;
 		//-> both in server and location
 		std::vector<std::string>			_serverName;
-		int									_clientMaxBodySize;
+		long long unsigned int				_clientMaxBodySize;
 		std::string							_root;
 		std::string							_index;
 		bool								_autoindex;
 		std::string							_cgiFileExtension;
 		std::string							_cgiPathToScript;
+		std::map<std::string, std::string>	_cgi;
 		std::string							_upload;
 		bool								_get;
 		bool								_post;
 		bool								_delete;
 		std::map<int, std::string>			_errorPages;
+		std::string							_return;
 };
 
 #endif

@@ -23,6 +23,9 @@
 #include <sys/epoll.h>
 #include <sys/ioctl.h> // for ioctl
 #include <fcntl.h>
+# include <netinet/in.h>
+# include <sys/types.h>
+#include <netdb.h>
 
 #define BUFFER_SIZE 2056
 
@@ -73,6 +76,7 @@ class TcpServer
 		std::string							_root;
 		std::string							_index;
 		bool								_autoindex;
+		std::map<std::string, std::string>	_cgi;
 		std::string							_cgiFileExtension;
 		std::string							_cgiPathToScript;
 		std::string							_upload;
@@ -94,6 +98,6 @@ class TcpServer
 };
 
 bool parse_request(Request &m_request, char *m_buffer);
-std::string process_request(const Request& request);
+std::string handle_request(const Request& request);
 
 #endif

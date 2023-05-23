@@ -35,26 +35,28 @@ class Location
 		//getters
 		std::string					getLocate();
 		std::vector<std::string>	getServerName();
-		int							getClientMaxBodySize();
+		long long unsigned int		getClientMaxBodySize();
 		bool						getGet();
 		bool						getPost();
 		bool						getDelete();
 		std::string					getRoot();
 		std::string					getIndex();
 		bool						getAutoindex();
-		std::map<std::string, std::string>					getCgiFile();
-		std::string					getCgiPathToScript();
 		std::string					getCgiFileExtension();
-		//std::map<std::string, std::string>					getCgiFile();
+		std::string					getCgiPathToScript();
+		std::map<std::string, std::string>					getCgi();
 		std::string					getUpload();
 		std::map<int, std::string>	getErrorPages();
+		bool						is_method_allowed(std::string method);
+		std::string					getReturn();
+
 
 	private:
 
 		std::string					_locate;
 
 		std::vector<std::string>	_serverName;
-		int							_clientMaxBodySize;
+		long long unsigned int		_clientMaxBodySize;
 		bool						_get;
 		bool						_post;
 		bool						_delete;
@@ -67,7 +69,8 @@ class Location
 		std::map<std::string, std::string>		_cgiFile;
 		std::string					_upload;
 		std::map<int, std::string>	_errorPages;
-		//std::map<std::string, std::string>		_cgiFile;
+		std::map<std::string, std::string>		_cgi;
+		std::string					_return;
 };
 
 #endif
