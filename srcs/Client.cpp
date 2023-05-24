@@ -81,6 +81,8 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
     m_request = copy.m_request;
 	_close_connection = copy._close_connection;
 
+	_serversList = copy._serversList;
+
 }
 
 Client	&Client::operator=(Client const & rhs)
@@ -122,6 +124,9 @@ Client	&Client::operator=(Client const & rhs)
     	_corresponding_location = rhs._corresponding_location;
     	m_request = rhs.m_request;
 		_close_connection = rhs._close_connection;
+		
+		_serversList = rhs._serversList;
+
 
 	}
 	return (*this);
@@ -177,6 +182,7 @@ void		Client::select_server_block()
 		std::vector<std::string> vec = (*it)->getServerName();
 		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
 		{
+			std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
 			if (m_request.headers["host"].compare((*jt)) == 0 && _port == (*it)->getPort())
 			{
 				_server = (*it);
