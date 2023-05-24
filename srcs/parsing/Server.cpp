@@ -334,6 +334,7 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
 	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
+	std::cout << ANSI_BLUE << "index: " << ANSI_RESET << _index << std::endl;
 	std::cout << ANSI_BLUE << "cgi: " << ANSI_RESET << std::endl;
 	for(std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;

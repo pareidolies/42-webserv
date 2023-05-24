@@ -126,8 +126,6 @@ Client	&Client::operator=(Client const & rhs)
 		_close_connection = rhs._close_connection;
 		
 		_serversList = rhs._serversList;
-
-
 	}
 	return (*this);
 }
@@ -183,8 +181,11 @@ void		Client::select_server_block()
 		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
 		{
 			std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
-			if (m_request.headers["host"].compare((*jt)) == 0 && _port == (*it)->getPort())
+			std::string header = m_request.headers["host"].substr(1, header.size());
+			std::cout << header << std::endl;
+			if (header.compare((*jt)) == 0 && _port == (*it)->getPort())
 			{
+				std::cout << "HERE" << std::endl;
 				_server = (*it);
 				set_server_data();
 				return;
@@ -399,6 +400,7 @@ bool Client::getPayload() //receives all request and puts it in a buffer
 		return false;
 	}
 	m_buffer[valread] = '\0';
+	std::cout << m_buffer << std::endl;
 	m_request.raw_request.append(m_buffer, valread);
 	return true;
 }

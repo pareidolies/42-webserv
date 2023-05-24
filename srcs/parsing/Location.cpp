@@ -205,6 +205,8 @@ void			Location::print_location(void)
 {
 	std::cout << ANSI_CYAN << "location: " << ANSI_RESET << _locate << std::endl;
 	std::cout << ANSI_CYAN << "root: " << ANSI_RESET << _root << std::endl;
+	std::cout << ANSI_CYAN << "return: " << ANSI_RESET << _return << std::endl;
+
 	std::cout << ANSI_BLUE << "cgi: " << ANSI_RESET << std::endl;
 	for(std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;

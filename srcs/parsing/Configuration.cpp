@@ -11,12 +11,12 @@
 Configuration::Configuration(void)
 {
 	//initialize values
-	std::cout << ANSI_RED << "BUILD2" << ANSI_RESET << std::endl;
+	//std::cout << ANSI_RED << "BUILD2" << ANSI_RESET << std::endl;
 }
 
 Configuration::Configuration(std::string file) : _file(file)
 {
-		std::cout << ANSI_RED << "BUILD1" << ANSI_RESET << std::endl;
+		//std::cout << ANSI_RED << "BUILD1" << ANSI_RESET << std::endl;
 }
 
 /******************************************************************************
@@ -25,7 +25,7 @@ Configuration::Configuration(std::string file) : _file(file)
 
 Configuration::Configuration(Configuration const & copy) : _servers(copy._servers)
 {
-	//to complete
+
 }
 
 Configuration	&Configuration::operator=(Configuration const & rhs)
