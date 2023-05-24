@@ -180,12 +180,12 @@ void		Client::select_server_block()
 		std::vector<std::string> vec = (*it)->getServerName();
 		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
 		{
-			std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
+			//std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
 			std::string header = m_request.headers["host"].substr(1, header.size());
-			std::cout << header << std::endl;
-			if (header.compare((*jt)) == 0 && _port == (*it)->getPort())
+			//std::cout << header << std::endl;
+			if (header.compare((*jt)) == 0 && _port == (*it)->getPort() && _host.compare((*it)->getHost()) == 0)
 			{
-				std::cout << "HERE" << std::endl;
+				//std::cout << "HERE" << std::endl;
 				_server = (*it);
 				set_server_data();
 				return;
