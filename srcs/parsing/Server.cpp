@@ -87,15 +87,15 @@ Server	&Server::operator=(Server const & rhs)
 
 Server::~Server(void)
 {
-	if (g_shutdown == 1)
-	{
+	//if (g_shutdown == 1)
+	//{
 		for(std::vector<Location*>::iterator it = _locations.begin(); it != _locations.end(); it++)
 		{
 			// (*it)->print_location();
 			if (*it)
 				delete	*it;
 		}
-	}
+	//}
 }
 
 /******************************************************************************

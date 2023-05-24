@@ -38,7 +38,7 @@ class Server;
 class TcpServer
 {
 	public:
-		TcpServer(Configuration conf);
+		TcpServer(Configuration &conf);
 		~TcpServer();
 
 		void run();
@@ -57,6 +57,7 @@ class TcpServer
 
 		//int					m_socket;
 		//int					m_new_socket;
+		Configuration		_conf;
 		long				m_incomingMessage;
 		string				m_serverMessage;
 

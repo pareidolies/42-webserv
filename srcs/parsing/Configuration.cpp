@@ -11,11 +11,12 @@
 Configuration::Configuration(void)
 {
 	//initialize values
+	std::cout << ANSI_RED << "BUILD2" << ANSI_RESET << std::endl;
 }
 
 Configuration::Configuration(std::string file) : _file(file)
 {
-		std::cout << "BUILD" << std::endl;
+		std::cout << ANSI_RED << "BUILD1" << ANSI_RESET << std::endl;
 }
 
 /******************************************************************************
@@ -43,16 +44,16 @@ Configuration	&Configuration::operator=(Configuration const & rhs)
 
 Configuration::~Configuration(void)
 {	
-	std::cout << "DESTROY" << std::endl;
-	if (g_shutdown == 1)
-	{
+	//std::cout << ANSI_RED << "DESTROY" << ANSI_RESET << std::endl;
+	//if (g_shutdown == 1)
+	//{
 		for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
 		{
 			// (*it)->print_server();
 			if (*it)
 				delete	*it;
 		}
-	}
+	//}
 }
 
 /******************************************************************************

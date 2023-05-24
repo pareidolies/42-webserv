@@ -74,7 +74,7 @@ void TcpServer::init_var(Server *serv)
 	print_server();
 }
 
-TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
+TcpServer::TcpServer(Configuration &conf): _servers(conf.getServers())
 {
 	// create all sockets
 	std::vector<Server*>::iterator it = _servers.begin();
@@ -144,6 +144,7 @@ std::vector<Socket>::iterator TcpServer::check_event_fd(int event_fd)
 void	TcpServer::run(void)
 {
 	//session cookies ?
+	//std::cout << "run" << std::endl;
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients; //managing clients

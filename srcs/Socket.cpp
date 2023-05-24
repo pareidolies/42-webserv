@@ -32,6 +32,7 @@ Socket::Socket(string ip_address, int port, Server	*server) :
 		General::log(ss.str());
 	}
     startListen();
+	//std::cout << "listen" << std::endl;
 }
 
 Socket::~Socket()
