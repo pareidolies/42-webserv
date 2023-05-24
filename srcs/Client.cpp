@@ -568,7 +568,8 @@ void Client::handle_field_line(std::string &line)
 		select_server_block();
 		check_if_corresponding_location(_request_target); //changes the data for the one in location
 		check_method(_method); //checks if method allowed
-		check_access(_request_target); //is resource requested in target accessible?
+		if (_method.compare("GET") == 0)
+			check_access(_request_target); //is resource requested in target accessible?
 
 		return;
 	}
@@ -663,7 +664,7 @@ void Client::check_access(std::string request_target)
     {
 		if (errno == ENOENT)
         {
-            //std::cout << "path" << _path << std::endl;
+            std::cout << "path" << _path << std::endl;
             error_log(404);
 			throw 404; //"not found"
         }
