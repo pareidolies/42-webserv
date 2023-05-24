@@ -200,6 +200,7 @@ void	TcpServer::run(void)
 					if (close(events[n].data.fd) < 0) // ne pas close sauf au bout 3 minutes ou quand on quitte le serveur
 						General::exitWithError("close");
 					clients.erase(events[n].data.fd);
+					continue;
 				}
 				//std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
 				// cl:ients[events[n].data.fd].getServer()->print_server();

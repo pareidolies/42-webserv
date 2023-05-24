@@ -393,7 +393,7 @@ bool Client::getPayload() //receives all request and puts it in a buffer
 	if (valread == 0) 
     {
 		_request_is_complete = true;
-		return true ;
+		return false ;
 	}
 	if (valread < 0)
     {
