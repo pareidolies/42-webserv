@@ -21,6 +21,7 @@ Response::Response(Client client) : _client(client)
 
 	//for yang chi - CGI
 	_path = _client.getPath();
+	std::cout << ANSI_RED << _path << ANSI_RESET << std::endl;
 	_method = _client.getMethod();
 	_content_type = _client.getContentType();
 	_request_body = _client.getBody();
@@ -294,6 +295,9 @@ bool Response::send_successful_response()
 	response += _header_fields;
 	response += "\r\n";
 	response += _body;
+
+	//std::cout << response << std::endl;
+
 	if (send(_client.getFd(), response.c_str(), response.size(), 0) < 0)
 	{
         _client.error_log(500);

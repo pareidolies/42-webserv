@@ -169,8 +169,8 @@ void	TcpServer::run(void)
 
 		// Loop that handle events happening on server fd and connections fds
 		
-		for (int n = 0; n < event_fds; ++n) {
-
+		for (int n = 0; n < event_fds; ++n)
+		{
 			/*
     EPOLLHUP means that the peer closed their end of the connection. Writing to the connection is closed, and after any (possible) readable data is consumed, reading from the connection is closed, too.
     EDPOLLRDHUP only means that the peer closed their connection, or only half of their connection. If it's only halfway closed, the stream socket turns into a one-way, write-only connection. Writing to the connection may still be open, but after any (possible) readable data is consumed, reading from the connection is closed.
@@ -183,7 +183,7 @@ void	TcpServer::run(void)
 
 			// Accepting a new connection
 			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd);
-						
+
 			if (it != _socketList.end())
 			{
 				int connection = acceptConnection(events[n], epollfd);
@@ -196,7 +196,7 @@ void	TcpServer::run(void)
 			// Receiving request
 			else if (events[n].events & EPOLLIN) 
 			{
-				// std::cout << "COUCOU" << std::endl;
+				std::cout << "COUCOU" << std::endl;
 				if (clients[events[n].data.fd].getPayload() == false)
 				{
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
@@ -206,10 +206,10 @@ void	TcpServer::run(void)
 					clients.erase(events[n].data.fd);
 					continue;
 				}
-				//std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
+				std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
 				// cl:ients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
-				//std::cout << ANSI_RED << "hello1" << ANSI_RESET << std::endl;
+				std::cout << ANSI_RED << "hello1" << ANSI_RESET << std::endl;
 				//std::cout << done << std::endl;
 				// std::cout << "coucou2" << std::endl;
 				if (done)
@@ -231,12 +231,16 @@ void	TcpServer::run(void)
 				//std::cout << "coucou3" << std::endl;
 				if (done)
 				{
-					// clients[events[n].data.fd].buffer_memset();
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						General::exitWithError("epoll del");
 					if (close(events[n].data.fd) < 0)
 						General::exitWithError("close");
 					clients.erase(events[n].data.fd);
+			
+					//ev.events = EPOLLIN;
+					//ev.data.fd = events[n].data.fd;
+					//if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
+					//	General::exitWithError("epoll_create");
 					General::log("\n====== Waiting for a new connection ======");
 				}
 			}
