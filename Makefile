@@ -10,8 +10,8 @@ RM			=	rm -rf
 
 CC			=	c++
 
-CFLAGS		=	-Wall -Werror -Wextra 
-CFLAGS		=	-std=c++98
+CFLAGS		=	-Wall -Werror -Wextra
+CFLAGS		=	-std=c++98 -g3 -fsanitize=address
 CFLAGS		+=	-I $(INCS_DIR) -I $(PARSING_DIR)
 CFLAGS		+=	-g3 -MMD
 

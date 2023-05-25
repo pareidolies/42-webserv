@@ -540,7 +540,9 @@ void Client::handle_request_line(std::string &line)
 	std::vector<std::string> words = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = words.begin();
 
-	if (*it != "GET" && *it != "POST" && *it != "DELETE") //wrong method for our webserv
+	if (it == words.end())
+		throw 500;
+	if ((*it != "GET" && *it != "POST" && *it != "DELETE")) //wrong method for our webserv
 		throw 501; //"not implemented"
 
 	_method = *it;
