@@ -193,8 +193,7 @@ void Response::get_header_fields(int content_len)
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
 	}
-	headers["Content-Type"] = "text/html";
-	// headers["Content-Type"] = search_content_type(_client.getRequestTarget()); //note: the content type will be different if cgi
+	headers["Content-Type"] = search_content_type(_client.getRequestTarget()); //note: the content type will be different if cgi
 
 	if (_status_code >= 300 && _status_code < 400) //is directory so needs to be either redirected or set to index
 	{
