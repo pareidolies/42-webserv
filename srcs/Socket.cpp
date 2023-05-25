@@ -86,7 +86,7 @@ void Socket::startListen()
 		General::exitWithError("Socket listen failed");
 	ostringstream ss;
 	ss <<  ANSI_PURPLE << "\n*** Listening on ADDRESS: "  << _server->getHost() 
-		<< " PORT: "  << ntohs(m_socketAddress.sin_port) << " ***" << ANSI_RESET;
+		<< " PORT: "  << ntohs(m_socketAddress.sin_port) << " ***\n" << ANSI_RESET;
 	General::log(ss.str());
 }
 
