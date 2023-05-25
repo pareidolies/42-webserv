@@ -62,7 +62,6 @@ class Location
 		bool						_delete;
 		std::string					_root;
 		std::string					_index;
-		int		server_id;
 		bool						_autoindex;
 		std::string					_cgiFileExtension;
 		std::string					_cgiPathToScript;

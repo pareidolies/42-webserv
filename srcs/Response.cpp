@@ -341,7 +341,6 @@ bool Response::post_body()
 
 void Response::delete_file()
 {
-	Server *server = _client.getServer();
 	//_path = _client.getRoot() + _client.getRequestTarget();
 
 	struct stat sb;

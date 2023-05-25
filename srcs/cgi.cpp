@@ -105,7 +105,9 @@ void CGI::readFromPipe(int pipefd)
 	this->_body = "";
 
     while ((bytesRead = read(pipefd, buffer.data(), 4096)) > 0)
+	{
         this->_body.append(buffer.data(), bytesRead);
+	}
 
 	size_t startPos = this->_body.find("Status");
 
@@ -128,7 +130,6 @@ int CGI::execute()
 
     int pip[2];
 	int output_pipe[2];
-	char buffer[4096];
 	if (pipe(pip) == -1)
 		return (500);
 	if (pipe(output_pipe) == -1)

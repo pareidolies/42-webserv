@@ -149,7 +149,6 @@ void	TcpServer::run(void)
 	int event_fds, epollfd;
 	std::map<int, Client> clients; //managing clients
 	bool done = false; //check end of response & request
-	int		server_id;
 
 	//create the epoll instance
 	epollfd = epoll_create(1);
@@ -206,10 +205,10 @@ void	TcpServer::run(void)
 					clients.erase(events[n].data.fd);
 					continue;
 				}
-				std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
+				// std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
 				// cl:ients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
-				std::cout << ANSI_RED << "hello1" << ANSI_RESET << std::endl;
+				// std::cout << ANSI_RED << "hello1" << ANSI_RESET << std::endl;
 				//std::cout << done << std::endl;
 				// std::cout << "coucou2" << std::endl;
 				if (done)

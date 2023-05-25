@@ -11,7 +11,7 @@ Client::Client()
 	//initialize values
 }
 
-Client::Client(int connection, Server *server, std::vector<Server*>	serversList) : m_new_socket(connection), _server(server), _serversList(serversList) //needs to find right server with server_name
+Client::Client(int connection, Server *server, std::vector<Server*>	serversList) : m_new_socket(connection), _serversList(serversList), _server(server) //needs to find right server with server_name
 {
     _domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
 	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
@@ -476,7 +476,7 @@ std::cout << "HERE3" << std::endl;
 		if (m_request.raw_request.size() >= content_len && !m_request.headers["host"].empty()) //checks if whole request has been received,
 		{					
 			std::cout << "HERE11" << std::endl;							//if not, returns false and stays EPOLLIN
-			if (_clientMaxBodySize > 0 && content_len > _clientMaxBodySize) //request too big
+			if (_clientMaxBodySize > 0 && content_len > (size_t)_clientMaxBodySize) //request too big
             {
 				std::cout << "HERE12" << std::endl;
 				_status_code = 413;//"payload too large"
@@ -514,6 +514,7 @@ std::deque<std::string> Client::getlines(std::string buf)
 
 void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request)
 {
+	(void)raw_request;
 	remove_carriage_return_char(lines); //clear line
 
 	handle_request_line(lines.front());
@@ -602,6 +603,7 @@ void Client::handle_field_line(std::string &line)
 
 void Client::handle_body(std::string &raw_request) 
 {
+	(void)raw_request;
 	if (_request_is_complete == true || m_request.raw_request.empty())
 		return ;
 
@@ -714,6 +716,7 @@ bool Client::field_name_has_whitespace(std::string &field_name) const
 
 bool Client::upload_file(std::string &raw_request) //check for bigger file
 {
+	(void)raw_request;
 	std::string upload_path = "./www/site/files"; //default upload
 	std::string filename;
 	std::string file_body;
