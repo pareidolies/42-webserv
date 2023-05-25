@@ -181,7 +181,7 @@ void		Client::select_server_block()
 		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
 		{
 			//std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
-			std::string header = m_request.headers["host"].substr(1, header.size());
+			std::string header = m_request.headers["host"].substr(1, m_request.headers["host"].size());
 			//std::cout << header << std::endl;
 			if (header.compare((*jt)) == 0 && _port == (*it)->getPort() && _host.compare((*it)->getHost()) == 0)
 			{
@@ -390,13 +390,17 @@ bool Client::getPayload() //receives all request and puts it in a buffer
 
 	valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
 
+	std::cout << "getpayload" << std::endl;
+
 	if (valread == 0) 
     {
-		_request_is_complete = true;
-		return false ;
+		std::cout << "getpayload1" << std::endl;
+		_request_is_complete = false;
+		return true ;
 	}
 	if (valread < 0)
     {
+		std::cout << "getpayload2" << std::endl;
 		return false;
 	}
 	m_buffer[valread] = '\0';
@@ -407,32 +411,38 @@ bool Client::getPayload() //receives all request and puts it in a buffer
 
 bool Client::parse_request() 
 {
+	std::cout << "HERE1" << std::endl;
 	if (m_request.raw_request.empty()) // no raw request so returns status code 400 "bad request"
     {
 		_request_is_complete = true;
 		_status_code = 400;
-		//std::cout << "HERE" << std::endl;
+		std::cout << "HERE2" << std::endl;
 		return _request_is_complete;
 	}
-
+std::cout << "HERE3" << std::endl;
     //starts parsing
 	if (_method.empty()) //first recv --> important to keep this line in case of large file upload
 	{
+		std::cout << "HERE4" << std::endl;
 		int body_index = -1;
 		std::string raw_header;
 		body_index = m_request.raw_request.find("\r\n\r\n"); //finds start of body
 		if (body_index < 0) 
     	{
-			_status_code = 400;//"bad request"
-			return true;
+			std::cout << "HERE5" << std::endl;
+			//_status_code = 400;//"bad request"
+			return false;
 		}
+		std::cout << "HERE6" << std::endl;
 		raw_header = m_request.raw_request.substr(0, body_index + 4);
 		m_request.raw_request.erase(0, body_index + 4);
     	//std::cout << m_request.raw_request << std::endl;
 		std::deque<std::string>	lines;
 		lines = getlines(raw_header); //split headers
+		std::cout << "HERE7" << std::endl;
 		if (!lines.empty()) 
     	{
+			std::cout << "HERE8" << std::endl;
 			try
 			{ 
 				parse_line(lines, raw_header); // if bad headers, sends error code exception
@@ -450,8 +460,10 @@ bool Client::parse_request()
 	ss << m_request.headers["content-length"];
 	ss >> content_len;
 
+	std::cout << "HERE9" << std::endl;
 	if (!m_request.raw_request.empty()) 
     {
+		std::cout << "HERE10" << std::endl;
 				//std::cout << _clientMaxBodySize << std::endl;
 				//std::cout << content_len << std::endl;
 
@@ -460,14 +472,18 @@ bool Client::parse_request()
 
 		//https://linuxhint.com/what-is-client-max-body-size-nginx/
 		
-		if (m_request.raw_request.size() >= content_len) //checks if whole request has been received,
-		{												//if not, returns false and stays EPOLLIN
+		std::cout << "host : " << m_request.headers["host"] << std::endl;
+		if (m_request.raw_request.size() >= content_len && !m_request.headers["host"].empty()) //checks if whole request has been received,
+		{					
+			std::cout << "HERE11" << std::endl;							//if not, returns false and stays EPOLLIN
 			if (_clientMaxBodySize > 0 && content_len > _clientMaxBodySize) //request too big
             {
+				std::cout << "HERE12" << std::endl;
 				_status_code = 413;//"payload too large"
 				_request_is_complete = true;
 				return (_request_is_complete);
 			}
+			std::cout << "HERE13" << std::endl;
 			handle_body(m_request.raw_request); //adds body
 		}
 		//}
@@ -576,7 +592,7 @@ void Client::handle_field_line(std::string &line)
 		select_server_block();
 		check_if_corresponding_location(_request_target); //changes the data for the one in location
 		check_method(_method); //checks if method allowed
-		if (_method.compare("GET") == 0)
+		//if (_method.compare("GET") == 0)
 			check_access(_request_target); //is resource requested in target accessible?
 
 		return;
@@ -666,6 +682,7 @@ std::string Client::add_root(std::string request_target)
 void Client::check_access(std::string request_target) 
 {
 	_path = add_root(request_target);
+	std::cout << ANSI_RED << _path << ANSI_RESET << std::endl;
 	int val = access(_path.c_str(), 0);
 
 	if (val < 0 && (_return.empty())) //if return set, page redirected anyway
