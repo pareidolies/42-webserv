@@ -59,6 +59,7 @@ class Response {
 		void								set_default_error_page();
         std::string content_mime_type(std::string extension);
         void get_autoindex_body();
+        std::string search_content_type(std::string filename);
 };
 
 #endif
