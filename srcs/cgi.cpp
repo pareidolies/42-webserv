@@ -45,11 +45,11 @@ int	CGI::init_arg()
 	this->_file_path = this->_cwd + "/" + (this->_file_path.substr(2));
 
 	if (!(_argv[0] = strdup(this->_cgi_exe.c_str())))
-        return (500);
+        return (this->_status_code = 500);
     if (!(_argv[1] = strdup(this->_file_path.c_str())))
-        return (500);
+        return (this->_status_code = 500);
     _argv[2] = NULL;
-	return (200);
+	return (this->_status_code = 200);
 }
 
 int CGI::init_env()
@@ -67,15 +67,15 @@ int CGI::init_env()
 	if (this->_extension == ".php")
 		this->_cgi_env["REDIRECT_STATUS"] = "200";
 	if (this->_response.get_method() == "GET")
-		this->_cgi_env["QUERY_STRING"] = this->_req_body;
+		this->_cgi_env["QUERY_STRING"] = this->_response.get_query_string();
 	else if (this->_response.get_method() == "POST")
 	{
 		this->_cgi_env["CONTENT_LENGTH"] = General::to_string(this->_req_body.length());
 		this->_cgi_env["PAYLOAD"] = this->_req_body;
 	}
 	else 
-		return (400);
-	return (200);
+		return (this->_status_code = 400);
+	return (this->_status_code = 200);
 }
 
 
@@ -106,6 +106,19 @@ void CGI::readFromPipe(int pipefd)
 
     while ((bytesRead = read(pipefd, buffer.data(), 4096)) > 0)
         this->_body.append(buffer.data(), bytesRead);
+
+	size_t startPos = this->_body.find("Status");
+
+	if (startPos != std::string::npos) {
+		size_t digitPos = this->_body.find_first_of("0123456789", startPos);
+
+		if (digitPos != std::string::npos) {
+			std::stringstream ss(this->_body.substr(digitPos));
+			int statusCode;
+			ss >> statusCode;
+			this->_status_code = statusCode;
+		}
+	}
 }
 
 int CGI::execute()
@@ -133,7 +146,7 @@ int CGI::execute()
         // Child process: redirect STDIN to the read end of the pipe
         close(pip[WRITEEND]);
         if (dup2(pip[READEND], STDIN_FILENO) == -1)
-            return 500;
+            return (this->_status_code = 500);
         close(pip[READEND]);
 
         // Redirect STDOUT to a pipe
@@ -147,8 +160,9 @@ int CGI::execute()
 	{
         // Parent process: write the request body to the write end of the pipe
         close(pip[READEND]);
-        if (_req_body.length() && write(pip[WRITEEND], _req_body.c_str(), _req_body.length()) <= 0)
-            return (500);
+        if (this->_req_body.length() && \
+			write(pip[WRITEEND], this->_req_body.c_str(), this->_req_body.length()) <= 0)
+            return (this->_status_code = 500);
         close(pip[WRITEEND]);
 
         // Read the output of the child process from the pipe
@@ -158,9 +172,9 @@ int CGI::execute()
 
         int status;
         if (waitpid(pid, &status, 0) == -1)
-            return (500);
+            return (this->_status_code = 500);
         if (WIFEXITED(status) && WEXITSTATUS(status))
-            return (502);
+            return (this->_status_code = 502);
     }
-    return (200);
+    return (this->_status_code = 200);
 }

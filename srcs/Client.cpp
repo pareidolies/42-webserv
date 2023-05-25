@@ -966,3 +966,8 @@ std::string Client::getReturn()
 {
     return (_return);
 }
+
+std::string Client::getQueryString()
+{
+	return (_query_string);
+}

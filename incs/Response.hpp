@@ -19,6 +19,7 @@ class Response {
 		string		get_path();
 		string 		get_content_type();
 		string		get_request_body();
+        string      get_query_string();
 		Server 		*get_server();
 		std::map<std::string, std::string> get_cgi_map();
 
@@ -41,6 +42,7 @@ class Response {
         std::string                         _content_type;
         std::string                         _request_body;
         std::map<std::string, std::string>  _cgi_map;
+		std::string							_query_string;
 
         void								init_code_msg();
         void								get_body();

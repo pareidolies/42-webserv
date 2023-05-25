@@ -62,6 +62,7 @@ class Client
 		void		select_server_block();
 		void		set_server_data();
 		bool 		getCloseConnection();
+		string		getQueryString();
 
 
 //    struct Request {

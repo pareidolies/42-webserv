@@ -24,6 +24,7 @@ Response::Response(Client client) : _client(client)
 	_method = _client.getMethod();
 	_content_type = _client.getContentType();
 	_request_body = _client.getBody();
+	_query_string = _client.getQueryString();
 	_cgi_map = _client.getCgi();
 
 	init_code_msg();
@@ -82,6 +83,11 @@ std::map<std::string, std::string> Response::get_cgi_map()
 	return _cgi_map;
 }
 
+std::string      Response::get_query_string()
+{
+	return( _query_string);
+}
+
 /******************************************************************************
 *                                 RESPONSE                                    *
 ******************************************************************************/
@@ -101,7 +107,6 @@ std::string getFileType(const std::string& filePath) {
 
 bool Response::cgi_execution()
 {
-	cout << "request body: " << _request_body << endl;
 	std::string response_header;
 	std::string response;
 
@@ -123,7 +128,6 @@ bool Response::cgi_execution()
 	response += response_header;
 	response += "\r\n\r\n";
 	response += _body;
-	cout << "response: " << response << endl;
 	if (send(_client.getFd(), response.c_str(), response.size(), 0) < 0)
 		_client.error_log(500);
 	_client.general_log(_status_code);
