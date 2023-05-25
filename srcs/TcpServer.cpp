@@ -74,7 +74,7 @@ void TcpServer::init_var(Server *serv)
 	print_server();
 }
 
-TcpServer::TcpServer(Configuration conf): _servers(conf.getServers())
+TcpServer::TcpServer(Configuration &conf): _servers(conf.getServers())
 {
 	// create all sockets
 	std::vector<Server*>::iterator it = _servers.begin();
@@ -144,6 +144,7 @@ std::vector<Socket>::iterator TcpServer::check_event_fd(int event_fd)
 void	TcpServer::run(void)
 {
 	//session cookies ?
+	//std::cout << "run" << std::endl;
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients; //managing clients
@@ -170,6 +171,10 @@ void	TcpServer::run(void)
 		
 		for (int n = 0; n < event_fds; ++n) {
 
+			/*
+    EPOLLHUP means that the peer closed their end of the connection. Writing to the connection is closed, and after any (possible) readable data is consumed, reading from the connection is closed, too.
+    EDPOLLRDHUP only means that the peer closed their connection, or only half of their connection. If it's only halfway closed, the stream socket turns into a one-way, write-only connection. Writing to the connection may still be open, but after any (possible) readable data is consumed, reading from the connection is closed.
+			*/
 			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP)
 			{
 				General::exitWithError("event error");
@@ -196,9 +201,10 @@ void	TcpServer::run(void)
 				{
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						General::exitWithError("epoll del");
-					if (close(events[n].data.fd) < 0) // ne pas close sauf au bout 3 minutes ou quand on quitte le serveur
+					if (close(events[n].data.fd) < 0)
 						General::exitWithError("close");
 					clients.erase(events[n].data.fd);
+					continue;
 				}
 				//std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
 				// cl:ients[events[n].data.fd].getServer()->print_server();
@@ -228,7 +234,7 @@ void	TcpServer::run(void)
 					// clients[events[n].data.fd].buffer_memset();
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						General::exitWithError("epoll del");
-					if (close(events[n].data.fd) < 0) // ne pas close sauf au bout 3 minutes ou quand on quitte le serveur
+					if (close(events[n].data.fd) < 0)
 						General::exitWithError("close");
 					clients.erase(events[n].data.fd);
 					General::log("\n====== Waiting for a new connection ======");
@@ -247,7 +253,7 @@ void	TcpServer::run(void)
 	{
 		if (close((*jt).first) == -1)
 			General::exitWithError("close");
-	}	
+	}
 	if (close(epollfd) == -1)
 		General::exitWithError("close");
 	//for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)

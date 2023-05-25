@@ -322,7 +322,7 @@ bool Response::post_body()
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += _body;
-	if (send(_client.getFd(), response.c_str(), response.size(), 0) < 0)
+	if (send(_client.getFd(), response.c_str(), response.size(), 0) <= 0)
 	{
 		_client.error_log(500);
 	}

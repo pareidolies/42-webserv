@@ -81,6 +81,8 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
     m_request = copy.m_request;
 	_close_connection = copy._close_connection;
 
+	_serversList = copy._serversList;
+
 }
 
 Client	&Client::operator=(Client const & rhs)
@@ -122,7 +124,8 @@ Client	&Client::operator=(Client const & rhs)
     	_corresponding_location = rhs._corresponding_location;
     	m_request = rhs.m_request;
 		_close_connection = rhs._close_connection;
-
+		
+		_serversList = rhs._serversList;
 	}
 	return (*this);
 }
@@ -177,8 +180,12 @@ void		Client::select_server_block()
 		std::vector<std::string> vec = (*it)->getServerName();
 		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
 		{
-			if (m_request.headers["host"].compare((*jt)) == 0 && _port == (*it)->getPort())
+			//std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
+			std::string header = m_request.headers["host"].substr(1, header.size());
+			//std::cout << header << std::endl;
+			if (header.compare((*jt)) == 0 && _port == (*it)->getPort() && _host.compare((*it)->getHost()) == 0)
 			{
+				//std::cout << "HERE" << std::endl;
 				_server = (*it);
 				set_server_data();
 				return;
@@ -386,13 +393,14 @@ bool Client::getPayload() //receives all request and puts it in a buffer
 	if (valread == 0) 
     {
 		_request_is_complete = true;
-		return true ;
+		return false ;
 	}
 	if (valread < 0)
     {
 		return false;
 	}
 	m_buffer[valread] = '\0';
+	std::cout << m_buffer << std::endl;
 	m_request.raw_request.append(m_buffer, valread);
 	return true;
 }
@@ -568,7 +576,8 @@ void Client::handle_field_line(std::string &line)
 		select_server_block();
 		check_if_corresponding_location(_request_target); //changes the data for the one in location
 		check_method(_method); //checks if method allowed
-		check_access(_request_target); //is resource requested in target accessible?
+		if (_method.compare("GET") == 0)
+			check_access(_request_target); //is resource requested in target accessible?
 
 		return;
 	}
@@ -663,7 +672,7 @@ void Client::check_access(std::string request_target)
     {
 		if (errno == ENOENT)
         {
-            //std::cout << "path" << _path << std::endl;
+            std::cout << "path" << _path << std::endl;
             error_log(404);
 			throw 404; //"not found"
         }
