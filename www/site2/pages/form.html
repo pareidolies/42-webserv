@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Form 📝</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #9e5151;
+			margin: 0;
+			padding: 0;
+		}
+		header {
+			background-color: #ffffff;
+			padding: 5px;
+		}
+		h1 {
+			text-align: center;
+			margin-top: 0;
+			color: #9e5151;
+		}
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 50px;
+			background-color: white;
+			padding: 20px;
+			border-radius: 5px;
+			box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+			max-width: 500px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		label {
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+		input[type="text"], textarea {
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			width: 100%;
+			margin-bottom: 20px;
+		}
+		input[type="submit"] {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			background-color: #008CBA;
+			color: white;
+			font-weight: bold;
+			text-decoration: none;
+			text-align: center;
+			cursor: pointer;
+		}
+		input[type="submit"]:hover {
+			background-color: #004555;
+		}
+		nav ul li {
+			color: #a753d7;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<nav>
+			<ul>
+				<li><a href="/">Welcome page</a></li>
+				<li><a href="/pages/upload.html">Upload</a></li>
+			</ul>
+		</nav>
+		<h1>Form</h1>
+	</header>
+	<form action="/pages/form.php" method="post">
+		<label for="name">Name:</label>
+		<input type="text" id="name" name="name" required>
+		<label for="email">Email:</label>
+		<input type="text" id="email" name="email" required>
+		<label for="message">Message:</label>
+		<textarea id="message" name="message" required></textarea>
+		<input type="submit" value="Send">
+	</form>
+</body>
+</html>
