@@ -296,7 +296,7 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		}
 		it++;
 	}
-	if (listening == false || _port <= 0)
+	if (listening == false || _port <= 0 || _host.empty())
 		throw Server::NotListening();
 	//if (_errorPages.empty()) //setting default page
 	//{
