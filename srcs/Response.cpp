@@ -13,7 +13,7 @@
 Response::Response(Client client) : _client(client)
 {
 	_server = _client.getServer();
-	_server->print_server();
+	// _server->print_server();
     _status_code = _client.getStatusCode();
 	_get = _client.getGet();
 	_post = _client.getPost();
@@ -24,6 +24,8 @@ Response::Response(Client client) : _client(client)
 	_method = _client.getMethod();
 	_content_type = _client.getContentType();
 	_request_body = _client.getBody();
+	_query_string = _client.getQueryString();
+	_cgi_map = _client.getCgi();
 
 	init_code_msg();
 }
@@ -43,10 +45,94 @@ Response::~Response(void)
 }
 
 /******************************************************************************
+*                                   Getter                                    *
+******************************************************************************/
+
+std::string		Response::get_method()
+{
+	return _method;
+}
+
+std::string		Response::get_path()
+{
+	return _path;
+}
+
+std::string		Response::get_content_type()
+{
+	return _content_type;
+}
+
+std::string		Response::get_request_body()
+{
+	return _request_body;
+}
+
+Server 			*Response::get_server()
+{
+	return _server;
+}
+
+std::string		Response::get_extension()
+{
+	return _extension;
+}
+
+std::map<std::string, std::string> Response::get_cgi_map()
+{
+	return _cgi_map;
+}
+
+std::string      Response::get_query_string()
+{
+	return( _query_string);
+}
+
+/******************************************************************************
 *                                 RESPONSE                                    *
 ******************************************************************************/
 
-//add cgi management here
+std::string getFileType(const std::string& filePath) {
+    std::size_t dotPosition = filePath.rfind(".");
+    
+    if (dotPosition != std::string::npos && dotPosition < filePath.length() - 1)
+	{
+        std::string fileType = filePath.substr(dotPosition);
+        return fileType;
+    }
+    return "";
+}
+
+//add cgi management here //yangchi
+
+bool Response::cgi_execution()
+{
+	std::string response_header;
+	std::string response;
+
+	CGI cgi(this);
+	cgi.execute();
+	_status_code = cgi.getStatusCode();
+
+	size_t breaker = cgi.getBody().find("\r\n\r\n");
+	if (breaker != std::string::npos) {
+		response_header = cgi.getBody().substr(0, breaker);
+		this->_body = cgi.getBody().substr(breaker + 4);
+	}
+	response = "HTTP/1.1 ";
+	response += General::to_string(_status_code);
+	response += " ";
+	response += get_code_msg();
+	response += "\r\n";
+	response += "Content-Length:" + General::to_string(_body.size()) + "\n";
+	response += response_header;
+	response += "\r\n\r\n";
+	response += _body;
+	if (send(_client.getFd(), response.c_str(), response.size(), 0) <= 0)
+		_client.error_log(500);
+	_client.general_log(_status_code);
+	return true;
+}
 
 bool Response::send_response()
 {
@@ -55,23 +141,29 @@ bool Response::send_response()
 		send_error_response();
 		return true;
 	}
-	if (_method == "GET")
+	this->_extension = getFileType(_path);
+	std::map<std::string, std::string>::iterator iterator = _cgi_map.find(this->_extension);
+	if (iterator != _cgi_map.end())
+		return cgi_execution();
+	else
 	{
-		if (!_client.getReturn().empty() && _client.getRequestTarget() != _client.getReturn()) //redirection needed
-			_status_code = 307; //"temporary redirect"
-		else
-			get_body();
-		get_header_fields(_body.size());
-	}
-	else if (_method == "DELETE" && _delete)
-		delete_file();
-	else if (_method == "POST")
-	{
-		if (_status_code < 300)
+		if (_method == "GET")
 		{
-			//std::cout << "GGG" << std::endl;
-			_status_code = 201; //"created"
-			return post_body();
+			if (!_client.getReturn().empty() && _client.getRequestTarget() != _client.getReturn()) //redirection needed
+				_status_code = 307; //"temporary redirect"
+			else
+				get_body();
+			get_header_fields(_body.size());
+		}
+		else if (_method == "DELETE" && _delete)
+			delete_file();
+		else if (_method == "POST")
+		{
+			if (_status_code < 300)
+			{
+				_status_code = 201;
+				return post_body();
+			}
 		}
 	}
 	if (_status_code >= 308)
@@ -100,8 +192,7 @@ void Response::get_header_fields(int content_len)
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
 	}
-
-	headers["Content-Type"] = "text/html"; //note: the content type will be different if cgi
+	headers["Content-Type"] = search_content_type(_client.getRequestTarget()); //note: the content type will be different if cgi
 
 	if (_status_code >= 300 && _status_code < 400) //is directory so needs to be either redirected or set to index
 	{
@@ -129,8 +220,6 @@ void Response::get_header_fields(int content_len)
 void Response::get_body()
 {
 	struct stat s;
-
-    //std::cout << "*PATH* : " << _path << stat(_path.c_str(), &s) << std::endl;
 
 	if (stat(_path.c_str(), &s) == 0)
 	{
@@ -161,7 +250,9 @@ std::string Response::get_file_content(std::string content)
 		return std::string();
 	}
 	_status_code = 200; //"OK"
-	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+	std::string res = std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+	input_file.close();
+	return res;
 }
 
 // https://www.keycdn.com/support/nginx-directory-index
@@ -232,7 +323,7 @@ bool Response::post_body()
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += _body;
-	if (send(_client.getFd(), response.c_str(), response.size(), 0) < 0)
+	if (send(_client.getFd(), response.c_str(), response.size(), 0) <= 0)
 	{
 		_client.error_log(500);
 	}
@@ -246,7 +337,6 @@ bool Response::post_body()
 
 void Response::delete_file()
 {
-	Server *server = _client.getServer();
 	//_path = _client.getRoot() + _client.getRequestTarget();
 
 	struct stat sb;
@@ -292,7 +382,8 @@ bool Response::send_successful_response()
 	response += _header_fields;
 	response += "\r\n";
 	response += _body;
-	if (send(_client.getFd(), response.c_str(), response.size(), 0) < 0)
+
+	if (send(_client.getFd(), response.c_str(), response.size(), 0) <= 0)
 	{
         _client.error_log(500);
 	}
@@ -306,46 +397,32 @@ bool Response::send_successful_response()
 
 bool Response::send_error_response()
 {
-    //std::cout << "SEGFAUL1" << std::endl;
 	std::string response;
 	_body.clear();
-    //std::cout << "SEGFAULT2" << std::endl;
 	response = "HTTP/1.1 ";
 	response += General::to_string(_status_code);
-    //std::cout << "SEGFAULT3" << std::endl;
 	response += " ";
-    //std::cout << "SEGFAULT4" << std::endl;
 	response += get_code_msg();
 	response += "\r\n";
-    //std::cout << "SEGFAULT5" << std::endl;
 	if (set_defined_error_page() == false) //sees if there is an error page defined in config
 		set_default_error_page();//otherwise creates a default error page
-    //std::cout << "SEGFAULT6" << std::endl;
 	response += _header_fields;
 	response += "\r\n";
-    //std::cout << "SEGFAULT7" << std::endl;
 	response += _body;
 
-    //std::cout << "SEGFAULT?" << std::endl;
-
-	if (send(_client.getFd(), response.data(), response.size(), 0) < 0)
+	if (send(_client.getFd(), response.data(), response.size(), 0) <= 0)
 	{
 		_client.error_log(500);
 	}
-    //std::cout << "SEGFAULT?" << std::endl;
 	_client.error_log(_status_code);
 	return true;
 }
 
 bool Response::set_defined_error_page()
 {
-	//std::cout << _status_code << std::endl;
-	//_server->print_server();
 	if (!_server->getErrorPage(_status_code).empty())
 	{
-        //std::cout << "SEGFAULT8" << std::endl;
 		_path = _server->getErrorPage(_status_code);
-        //std::cout << "SEGFAULT9" << std::endl;
 
 		std::ifstream myfile(_path.c_str());
 		if (myfile.is_open())
@@ -388,7 +465,7 @@ void Response::init_code_msg()
 {
 	_status_code_list[200] = "OK"; //used
 	_status_code_list[201] = "Created"; //used
-	_status_code_list[202] = "Accepted";
+	_status_code_list[202] = "Accepted";//?
 	_status_code_list[203] = "Non-Authoritative Information";
 	_status_code_list[204] = "No Content";
 	_status_code_list[205] = "Reset Content";
@@ -409,9 +486,9 @@ void Response::init_code_msg()
 	_status_code_list[401] = "Unauthorized";
 	_status_code_list[402] = "Payment Required";
 	_status_code_list[403] = "Forbidden";//used
-	_status_code_list[404] = "Not Found";
+	_status_code_list[404] = "Not Found";//used
 	_status_code_list[405] = "Method Not Allowed"; //used
-	_status_code_list[406] = "Not Acceptable";
+	_status_code_list[406] = "Not Acceptable";//add this one
 	_status_code_list[407] = "Proxy Authentication Required";
 	_status_code_list[408] = "Request Timeout";
 	_status_code_list[409] = "Conflict";
@@ -447,7 +524,7 @@ void Response::init_code_msg()
 	_status_code_list[511] = "Network Authentication Required";
 }
 
-std::string search_content_type(std::string filename)
+std::string Response::search_content_type(std::string filename)
 {
     std::string content_type = "text/html";
     int i = filename.length();

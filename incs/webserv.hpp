@@ -16,10 +16,30 @@
 #include "Location.hpp"
 #include "Server.hpp"
 #include "utils.hpp"
-//#include "cgi.hpp"
+#include "cgi.hpp"
 #include "Response.hpp"
 
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <csignal>
 
+#include <arpa/inet.h>
+#include <sys/epoll.h> 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <cstdio>
+
+#include <algorithm>
+#include <signal.h>
 
 
 using namespace std;
@@ -31,6 +51,8 @@ using namespace std;
 /******************************************************************************
 *                                 COLORS                                      *
 ******************************************************************************/
+
+extern std::sig_atomic_t g_shutdown ;
 
 # define ANSI_PURPLE		"\x1b[95m"
 # define ANSI_BLUE			"\x1b[94m"

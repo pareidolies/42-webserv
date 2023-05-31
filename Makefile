@@ -11,9 +11,9 @@ RM			=	rm -rf
 CC			=	c++
 
 CFLAGS		=	-Wall -Werror -Wextra 
-CFLAGS		=	-std=c++98
+CFLAGS		+=	-std=c++98
 CFLAGS		+=	-I $(INCS_DIR) -I $(PARSING_DIR)
-CFLAGS		+=	-g3 -MMD
+CFLAGS		+=	-MMD
 
 Y			= "\033[33m"
 R			= "\033[31m"
@@ -39,7 +39,7 @@ OBJS_DIR	=	objs
 
 SRCS_SOCKET	=	TcpServer.cpp \
 				Socket.cpp
-SRCS_CGI	=	
+SRCS_CGI	=	cgi.cpp
 
 SRCS_PARSER	=	parsing/Configuration.cpp \
 				parsing/Server.cpp \

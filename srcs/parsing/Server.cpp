@@ -6,9 +6,20 @@
 
 Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 					   _protocol(0), _interface(INADDR_ANY), \
-					   _backlog(200), _clientMaxBodySize(0), \
+					   _backlog(1024), _clientMaxBodySize(0), \
 					   _autoindex(false)
 {
+	_port = 80;
+	_host = "0.0.0.0";
+	_root = "";
+	_index = "";
+	_autoindex = false;
+	_upload = "";
+	_get = false;
+	_post = false;
+	_delete = false;
+	_return = "";
+
 	//initialize values
 }
 
@@ -76,8 +87,15 @@ Server	&Server::operator=(Server const & rhs)
 
 Server::~Server(void)
 {
-	for(std::vector<Location*>::iterator it = _locations.begin(); it != _locations.end(); it++)
-		delete	*it;
+	//if (g_shutdown == 1)
+	//{
+		for(std::vector<Location*>::iterator it = _locations.begin(); it != _locations.end(); it++)
+		{
+			// (*it)->print_location();
+			if (*it)
+				delete	*it;
+		}
+	//}
 }
 
 /******************************************************************************
@@ -278,19 +296,19 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		}
 		it++;
 	}
-	if (listening == false || _port < 0)
+	if (listening == false || _port <= 0 || _host.empty())
 		throw Server::NotListening();
 	//if (_errorPages.empty()) //setting default page
 	//{
 	//	std::string path = "www/site/errorPages/404.html";
 	//	this->_errorPages.insert(std::make_pair(404, path));
 	//}
-	if (_upload.empty()) //setting default upload
-		this->_upload = "./www/site/files";
-	if (_root.empty()) //setting default root
-		this->_root = "./www/site";
-	if (_index.empty())
-		this->_index = "/pages/index.html";
+	//if (_upload.empty()) //setting default upload
+	//	this->_upload = "./www/site/files";
+	//if (_root.empty()) //setting default root
+	//	this->_root = "./www/site";
+	//if (_index.empty())
+	//	this->_index = "/pages/index.html";
 	//print_server();
 	//if (_return.empty()) //setting default return
 	//	this->_return = "http://github.com;";
@@ -316,6 +334,7 @@ void			Server::print_server(void)
 	std::cout << ANSI_BLUE << "protocol: " << ANSI_RESET << _protocol << std::endl;
 	std::cout << ANSI_BLUE << "interface: " << ANSI_RESET << _interface << std::endl;
 	std::cout << ANSI_BLUE << "upload: " << ANSI_RESET << _upload << std::endl;
+	std::cout << ANSI_BLUE << "index: " << ANSI_RESET << _index << std::endl;
 	std::cout << ANSI_BLUE << "cgi: " << ANSI_RESET << std::endl;
 	for(std::map<std::string, std::string>::iterator it = _cgi.begin(); it != _cgi.end(); it++)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;
@@ -329,7 +348,7 @@ void			Server::print_server(void)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;
 	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
 	{	
-		std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
+		// std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
 		(*it)->print_location();
 		std::cout << std::endl;
 	}
@@ -486,3 +505,5 @@ std::string			Server::getErrorPage(int code)
 {
 	return (_errorPages[code]);
 }
+
+void	Server::setAddress(std::string a) { this->_host = a; }

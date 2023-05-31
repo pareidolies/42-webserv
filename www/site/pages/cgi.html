@@ -59,26 +59,24 @@
     <h1>Formulaire de requête CGI</h1>
 
     <div class="container">
-        <form class="form" action="/cgi/php-cgi" method="get">
-            <h2>Requête GET</h2>
-            <label for="param1">Paramètre 1:</label>
-            <input type="text" id="param1" name="param1" value="valeur1">
-
-            <label for="param2">Paramètre 2:</label>
-            <input type="text" id="param2" name="param2" value="valeur2">
-
-            <input type="submit" value="Envoyer">
+        <form class="form" action="form.php" method="post">
+            <label for="name">Name :</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Email :</label>
+            <input type="text" id="email" name="email" required>
+            <label for="message">Message :</label>
+            <textarea id="message" name="message" required></textarea><br>
+        <input type="submit" value="Envoyer">
         </form>
 
-        <form class="form" action="/cgi/php-cgi" method="post">
-            <h2>Requête POST</h2>
-            <label for="param3">Paramètre 3:</label>
-            <input type="text" id="param3" name="param3" value="valeur3">
-
-            <label for="param4">Paramètre 4:</label>
-            <input type="text" id="param4" name="param4" value="valeur4">
-
-            <input type="submit" value="Envoyer">
+        <form class="form" action="form.php" method="get">
+            <label for="name">Name :</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Email :</label>
+            <input type="text" id="email" name="email" required>
+            <label for="message">Message :</label>
+            <textarea id="message" name="message" required></textarea><br>
+        <input type="submit" value="Envoyer">
         </form>
     </div>
 </body>

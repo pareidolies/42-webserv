@@ -63,9 +63,10 @@ class Server
 		bool								getDelete();
 		std::map<int, std::string>			getErrorPages();
 		bool								is_method_allowed(std::string string);
-		Location*				getLocation(std::string str);
+		Location*							getLocation(std::string str);
 		std::string							getErrorPage(int code);
 		std::string							getReturn();
+		void								setAddress(std::string a);
 
 
 	private:

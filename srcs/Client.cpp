@@ -11,7 +11,7 @@ Client::Client()
 	//initialize values
 }
 
-Client::Client(int connection, Server *server) : m_new_socket(connection), _server(server) //needs to find right server with server_name
+Client::Client(int connection, Server *server, std::vector<Server*>	serversList) : m_new_socket(connection), _serversList(serversList), _server(server) //needs to find right server with server_name
 {
     _domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
 	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
@@ -37,6 +37,8 @@ Client::Client(int connection, Server *server) : m_new_socket(connection), _serv
     _request_is_complete = false;
     _status_code = 0;
 	_handle_headers = true;
+
+	_close_connection = false;
 }
 
 /******************************************************************************
@@ -77,6 +79,9 @@ Client::Client(Client const & copy) : m_new_socket(copy.m_new_socket), _server(c
 
     _corresponding_location = copy._corresponding_location;
     m_request = copy.m_request;
+	_close_connection = copy._close_connection;
+
+	_serversList = copy._serversList;
 
 }
 
@@ -118,7 +123,9 @@ Client	&Client::operator=(Client const & rhs)
 
     	_corresponding_location = rhs._corresponding_location;
     	m_request = rhs.m_request;
-
+		_close_connection = rhs._close_connection;
+		
+		_serversList = rhs._serversList;
 	}
 	return (*this);
 }
@@ -166,7 +173,50 @@ void Client::print_headers(const std::map<std::string, std::string>& headers)
 *                                 SERVER NAME                                 *
 ******************************************************************************/
 
-//to do
+void		Client::select_server_block()
+{
+	for (std::vector<Server*>::iterator it = _serversList.begin(); it != _serversList.end(); it++)
+	{
+		std::vector<std::string> vec = (*it)->getServerName();
+		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
+		{
+			//std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
+			std::string header = m_request.headers["host"].substr(1, m_request.headers["host"].size());
+			//std::cout << header << std::endl;
+			if (header.compare((*jt)) == 0 && _port == (*it)->getPort() && _host.compare((*it)->getHost()) == 0)
+			{
+				_server = (*it);
+				set_server_data();
+				return;
+			}
+		}
+	}
+	return;
+}
+
+void		Client::set_server_data()
+{
+	_domain = _server->getDomain(); //AF_INET, AF_INET6, AF_UNSPEC
+	_service = _server->getService(); //SOCK_STREAM, SOCK_DGRAM
+	_protocol = _server->getProtocol(); //use 0 for "any"
+    _interface = _server->getInterface(); //needs to be set to INADDR_ANY
+	_backlog = _server->getBacklog(); //maximum number of queued clients
+	_locations = _server->getLocations();
+	_port = _server->getPort();
+	_host = _server->getHost();
+	_serverName = _server->getServerName();
+	_clientMaxBodySize = _server->getClientMaxBodySize();
+	_root = _server->getRoot();
+	_index = _server->getIndex();
+	_autoindex = _server->getAutoindex();
+	_cgi = _server->getCgi();
+	_upload = _server->getUpload();
+	_get = _server->getGet();
+	_post = _server->getPost();
+	_delete = _server->getDelete();
+	_errorPages = _server->getErrorPages();
+    _return = _server->getReturn();
+}
 
 /******************************************************************************
 *                                 LOCATIONS                                   *
@@ -205,7 +255,6 @@ bool Client::check_if_corresponding_location(std::string &request_target) //this
 				nb = 0;
 			if (nb > max)
 			{
-				//std::cout << "HERE" << std::endl;
 				_corresponding_location = (*it);
 				max = nb;
 			}
@@ -257,99 +306,26 @@ void Client::set_location_data()//this function sets data from corresponding loc
 *                                   REQUEST                                   *
 ******************************************************************************/
 
-// void Client::getPayload() //I could not use this function, I entered infinite loop 50% of the times
-// {
-//     std::string request_raw;
-//     std::string request_headers;
-//     std::string request_body;
-//     int content_length = 0;
-//     int bytesReceived = 0;
-
-//     // Read the request headers
-//     while (true)
-//     {
-//         int valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
-//         if (valread == -1)
-//             General::exitWithError("Error in recv()");
-
-//         request_raw += std::string(m_buffer, valread);
-//         if (request_raw.find("\r\n\r\n") != std::string::npos)
-//             break; // Found the end of headers
-//     }
-
-//     std::string receivedData(m_buffer);
-//     size_t headerEndPos = receivedData.find("\r\n\r\n");
-//     if (headerEndPos != std::string::npos)
-//     {
-//         request_headers = receivedData.substr(0, headerEndPos);
-//         request_body = receivedData.substr(headerEndPos + 4);
-//     } else
-//         std::cerr << "Invalid HTTP request: Header and body separation not found." << std::endl;
-
-//     std::cout << "Body: " << "request_body" << std::endl;
-
-
-//     // Find the Content-Length header
-//     std::string content_length_str = "Content-Length: ";
-//     std::string::size_type content_length_pos = request_headers.find(content_length_str);
-//     if (content_length_pos != std::string::npos)
-//     {
-//         content_length_pos += content_length_str.length();
-//         std::string::size_type end_of_line_pos = request_headers.find("\r\n", content_length_pos);
-//         if (end_of_line_pos != std::string::npos)
-//         {
-//             std::string content_length_value = request_headers.substr(content_length_pos, end_of_line_pos - content_length_pos);
-//             content_length = std::atoi(content_length_value.c_str());
-//         }
-//     }
-
-//     cout << "Content length: " << content_length << endl;
-//     cout << "Body length: " << request_body.length() << endl;
-
-//     // Read the request body if content length is specified
-//     if (content_length > 0 && request_body.length() != content_length)
-//     {
-//         request_body.resize(content_length);
-//         int flags = fcntl(m_new_socket, F_GETFL, 0);
-//         if (fcntl(m_new_socket, F_SETFL, flags | O_NONBLOCK) < 0)
-//             General::exitWithError("Fnctl error: failed to set socket to non-blocking mode");
-//         while (bytesReceived < content_length)
-//         {
-//             int bytesRead = recv(m_new_socket, &request_body[bytesReceived], content_length - bytesReceived, 0);
-//             if (bytesRead == -1)
-//             {
-//                 if (errno == EWOULDBLOCK || errno == EAGAIN)
-//                     continue;    // No data available yet, continue the loop or handle other tasks
-//                 else
-//                     General::exitWithError("Error in recv() 2");
-//             }
-//             else if (bytesRead == 0)
-//                 break; // Connection closed, handle appropriately
-//             bytesReceived += bytesRead;
-//         }
-//     }
-//     // handle the received payload
-//     m_request.raw_request = request_headers + "\r\n\r\n" + request_body;
-//     General::log("\nReceived message: \n" + m_request.raw_request);
-// }
-
-void Client::getPayload() //receives all request and puts it in a buffer
+bool Client::getPayload() //receives all request and puts it in a buffer
 {
 	int valread = 0;
 
 	valread = recv(m_new_socket, m_buffer, sizeof(m_buffer), 0);
 
+
 	if (valread == 0) 
     {
-		_request_is_complete = true;
-		return ;
+		_request_is_complete = false;
+		return true ;
 	}
 	if (valread < 0)
     {
-		General::exitWithError("Error in recv()");
+		return false;
 	}
 	m_buffer[valread] = '\0';
+	// std::cout << m_buffer << std::endl;
 	m_request.raw_request.append(m_buffer, valread);
+	return true;
 }
 
 bool Client::parse_request() 
@@ -358,10 +334,8 @@ bool Client::parse_request()
     {
 		_request_is_complete = true;
 		_status_code = 400;
-		//std::cout << "HERE" << std::endl;
 		return _request_is_complete;
 	}
-
     //starts parsing
 	if (_method.empty()) //first recv --> important to keep this line in case of large file upload
 	{
@@ -370,8 +344,8 @@ bool Client::parse_request()
 		body_index = m_request.raw_request.find("\r\n\r\n"); //finds start of body
 		if (body_index < 0) 
     	{
-			_status_code = 400;//"bad request"
-			return true;
+			//_status_code = 400;//"bad request"
+			return false;
 		}
 		raw_header = m_request.raw_request.substr(0, body_index + 4);
 		m_request.raw_request.erase(0, body_index + 4);
@@ -407,9 +381,10 @@ bool Client::parse_request()
 
 		//https://linuxhint.com/what-is-client-max-body-size-nginx/
 		
-		if (m_request.raw_request.size() >= content_len) //checks if whole request has been received,
-		{												//if not, returns false and stays EPOLLIN
-			if (_clientMaxBodySize > 0 && content_len > _clientMaxBodySize) //request too big
+		// std::cout << "host : " << m_request.headers["host"] << std::endl;
+		if (m_request.raw_request.size() >= content_len && !m_request.headers["host"].empty()) //checks if whole request has been received,
+		{					
+			if (_clientMaxBodySize > 0 && content_len > (size_t)_clientMaxBodySize) //request too big
             {
 				_status_code = 413;//"payload too large"
 				_request_is_complete = true;
@@ -432,7 +407,6 @@ std::deque<std::string> Client::getlines(std::string buf)
     {
 		std::string inter;
 		std::getline(_ss, inter);
-        std::cout << ANSI_YELLOW << inter << ANSI_RESET << std::endl; //print headers to check everything ok
 		lines.push_back(inter);
         //std::cout << inter << std::endl;
 		buf.erase(0, i + 1);
@@ -445,6 +419,7 @@ std::deque<std::string> Client::getlines(std::string buf)
 
 void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request)
 {
+	(void)raw_request;
 	remove_carriage_return_char(lines); //clear line
 
 	handle_request_line(lines.front());
@@ -520,9 +495,11 @@ void Client::handle_field_line(std::string &line)
 		if (_method != "POST") //no need for body
 			_request_is_complete = true;
 
+		select_server_block();
 		check_if_corresponding_location(_request_target); //changes the data for the one in location
 		check_method(_method); //checks if method allowed
-		check_access(_request_target); //is resource requested in target accessible?
+		//if (_method.compare("GET") == 0)
+			check_access(_request_target); //is resource requested in target accessible?
 
 		return;
 	}
@@ -531,6 +508,7 @@ void Client::handle_field_line(std::string &line)
 
 void Client::handle_body(std::string &raw_request) 
 {
+	(void)raw_request;
 	if (_request_is_complete == true || m_request.raw_request.empty())
 		return ;
 
@@ -617,7 +595,6 @@ void Client::check_access(std::string request_target)
     {
 		if (errno == ENOENT)
         {
-            //std::cout << "path" << _path << std::endl;
             error_log(404);
 			throw 404; //"not found"
         }
@@ -642,6 +619,7 @@ bool Client::field_name_has_whitespace(std::string &field_name) const
 
 bool Client::upload_file(std::string &raw_request) //check for bigger file
 {
+	(void)raw_request;
 	std::string upload_path = "./www/site/files"; //default upload
 	std::string filename;
 	std::string file_body;
@@ -910,4 +888,9 @@ std::map<int, std::string>	Client::getErrorPages()
 std::string Client::getReturn()
 {
     return (_return);
+}
+
+std::string Client::getQueryString()
+{
+	return (_query_string);
 }

@@ -23,6 +23,7 @@ class Socket
 		int		getSocketFd(void);
 		Server *getServer();
 		void	*ft_memset(void *s, int c, size_t n);
+		std::string		getAddressInfo(const struct sockaddr addr);
 
 	private:
 		string				m_ip_address;

@@ -23,6 +23,9 @@
 #include <sys/epoll.h>
 #include <sys/ioctl.h> // for ioctl
 #include <fcntl.h>
+# include <netinet/in.h>
+# include <sys/types.h>
+#include <netdb.h>
 
 #define BUFFER_SIZE 2056
 
@@ -35,7 +38,7 @@ class Server;
 class TcpServer
 {
 	public:
-		TcpServer(Configuration conf);
+		TcpServer(Configuration &conf);
 		~TcpServer();
 
 		void run();
@@ -54,6 +57,7 @@ class TcpServer
 
 		//int					m_socket;
 		//int					m_new_socket;
+		Configuration		_conf;
 		long				m_incomingMessage;
 		string				m_serverMessage;
 
