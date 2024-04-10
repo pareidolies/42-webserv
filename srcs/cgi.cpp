@@ -93,8 +93,6 @@ bool CGI::setCGIEnv()
 		i++;
 	}
 	_env[i] = NULL;
-	// for (int j = 0; _env[j]; j++)
-	// 	cout << _env[j] << endl;
 	return (true);
 }
 

@@ -180,9 +180,7 @@ void		Client::select_server_block()
 		std::vector<std::string> vec = (*it)->getServerName();
 		for (std::vector<std::string>::iterator jt = vec.begin(); jt != vec.end(); jt++)
 		{
-			//std::cout << ANSI_RED << *jt << ANSI_RESET << std::endl;
 			std::string header = m_request.headers["host"].substr(1, m_request.headers["host"].size());
-			//std::cout << header << std::endl;
 			if (header.compare((*jt)) == 0 && _port == (*it)->getPort() && _host.compare((*it)->getHost()) == 0)
 			{
 				_server = (*it);
@@ -228,8 +226,6 @@ bool Client::check_if_corresponding_location(std::string &request_target) //this
 	std::vector<std::string> split_target;
 	const char* c = "/";
 
-
-	//std::cout << ANSI_RED << "request target: " << request_target << ANSI_RESET << std::endl;
 	if (!_server->getLocations().empty())
 	{
         std::vector<Location*>::iterator it = _locations.begin();
@@ -237,7 +233,6 @@ bool Client::check_if_corresponding_location(std::string &request_target) //this
 
         for (; it != _locations.end(); it++)
         {
-			//std::cout << "locate: " << (*it)->getLocate() << std::endl;
 			int	nb = 0;
 			split_locate = ft_split((*it)->getLocate().c_str(), c);
 			split_target = ft_split(request_target.c_str(), c);
@@ -258,13 +253,6 @@ bool Client::check_if_corresponding_location(std::string &request_target) //this
 				_corresponding_location = (*it);
 				max = nb;
 			}
-            //if ((*it)->getLocate().compare(request_target) == 0)
-            //{
-            //    _corresponding_location = (*it);
-            //    //std::cout << "locate: " << _corresponding_location->getLocate() << std::endl;
-            //    set_location_data();
-            //    return true;
-            //}
         }
 		if (max > 0)
 		{
@@ -279,7 +267,6 @@ bool Client::check_if_corresponding_location(std::string &request_target) //this
                 if ((*it)->getLocate().compare("/") == 0)
                 {
                     _corresponding_location = (*it);
-                    //std::cout << "locate: " << _corresponding_location->getLocate() << std::endl;
                     set_location_data();
                     return true;
                 }
@@ -323,7 +310,6 @@ bool Client::getPayload() //receives all request and puts it in a buffer
 		return false;
 	}
 	m_buffer[valread] = '\0';
-	// std::cout << m_buffer << std::endl;
 	m_request.raw_request.append(m_buffer, valread);
 	return true;
 }
@@ -349,7 +335,6 @@ bool Client::parse_request()
 		}
 		raw_header = m_request.raw_request.substr(0, body_index + 4);
 		m_request.raw_request.erase(0, body_index + 4);
-    	//std::cout << m_request.raw_request << std::endl;
 		std::deque<std::string>	lines;
 		lines = getlines(raw_header); //split headers
 		if (!lines.empty()) 
@@ -373,15 +358,8 @@ bool Client::parse_request()
 
 	if (!m_request.raw_request.empty()) 
     {
-				//std::cout << _clientMaxBodySize << std::endl;
-				//std::cout << content_len << std::endl;
-
-		//if (_clientMaxBodySize > 0) //Client Max Body Size set to 0 by default
-        //{
-
 		//https://linuxhint.com/what-is-client-max-body-size-nginx/
 		
-		// std::cout << "host : " << m_request.headers["host"] << std::endl;
 		if (m_request.raw_request.size() >= content_len && !m_request.headers["host"].empty()) //checks if whole request has been received,
 		{					
 			if (_clientMaxBodySize > 0 && content_len > (size_t)_clientMaxBodySize) //request too big
@@ -408,7 +386,6 @@ std::deque<std::string> Client::getlines(std::string buf)
 		std::string inter;
 		std::getline(_ss, inter);
 		lines.push_back(inter);
-        //std::cout << inter << std::endl;
 		buf.erase(0, i + 1);
 		i = buf.find("\n");
 		if (i == std::string::npos)
@@ -498,8 +475,7 @@ void Client::handle_field_line(std::string &line)
 		select_server_block();
 		check_if_corresponding_location(_request_target); //changes the data for the one in location
 		check_method(_method); //checks if method allowed
-		//if (_method.compare("GET") == 0)
-			check_access(_request_target); //is resource requested in target accessible?
+		check_access(_request_target); //is resource requested in target accessible?
 
 		return;
 	}
@@ -535,7 +511,6 @@ void Client::handle_body(std::string &raw_request)
 
 bool	Client::is_method_allowed(std::string method)
 {
-	//std::cout << "method " << method << std::endl;
 	if (method.compare("GET") == 0 && _get)
 		return true;
 	else if (method.compare("POST") == 0 && _post)
@@ -688,7 +663,6 @@ bool Client::upload_file(std::string &raw_request) //check for bigger file
 			break ;
 		}
 	}
-	//std::cout << "size: " <<  m_request.raw_request.size() << std::endl;
 	_request_is_complete = true;
 	return true;
 }

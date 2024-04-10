@@ -13,7 +13,6 @@
 Response::Response(Client client) : _client(client)
 {
 	_server = _client.getServer();
-	// _server->print_server();
     _status_code = _client.getStatusCode();
 	_get = _client.getGet();
 	_post = _client.getPost();
@@ -199,13 +198,10 @@ void Response::get_header_fields(int content_len)
 		if (!_client.getReturn().empty())
 		{
 			headers["Location"] = _client.getReturn();
-			//std::cout << _client.getReturn() << std::endl;
-			//std::cout << "return" << std::endl;
 		}
 		else
 		{
 			headers["Location"] = _client.getIndex();
-			//std::cout << "not return" << std::endl;
 		}
 	}
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)// adds all headers
@@ -337,8 +333,6 @@ bool Response::post_body()
 
 void Response::delete_file()
 {
-	//_path = _client.getRoot() + _client.getRequestTarget();
-
 	struct stat sb;
 	if (stat(_path.c_str(), &sb) == -1)
 	{

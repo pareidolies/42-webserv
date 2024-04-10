@@ -43,7 +43,6 @@ void			TcpServer::print_server(void)
 		std::cout << "[" << it->first << "] " << it->second << std::endl;
 	for(std::vector<Location*>::iterator it = this->_locations.begin(); it != this->_locations.end(); it++)
 	{	
-		// std::cout << ANSI_YELLOW << "LOCATION:" << ANSI_RESET << std::endl;
 		(*it)->print_location();
 		std::cout << std::endl;
 	}
@@ -92,33 +91,7 @@ TcpServer::TcpServer(Configuration &conf): _servers(conf.getServers())
 
 }
 
-// TcpServer::TcpServer(string ip_address, int port) : 
-// 	m_ip_address(ip_address), \
-// 	m_port(port), m_new_socket(),\
-// 	m_incomingMessage(), \
-// 	m_socketAddress(),\
-// 	m_socketAddress_len(sizeof(m_socketAddress)),\
-// 	m_serverMessage(buildResponse())
-// {
-// 	// create all sockets
-// 	std::vector<Server*>::iterator it = _servers.begin();
-
-// 	std::cout << ANSI_GREEN << "Setting virtual servers:" << ANSI_RESET << std::endl;
-
-// 	int i = 1;
-// 	for (; it != _servers.end(); it++)
-// 	{
-// 		std::cout << ANSI_GREEN << i << ". "<< (*it)->getHost() << ":"
-// 				<< (*it)->getPort() << std::endl << ANSI_RESET;
-// 		_socketList.push_back(Socket((*it)->getHost(), (*it)->getPort()));
-// 		++i;
-// 	}
-// }
-
-TcpServer::~TcpServer()
-{
-	//cout << "Terminating the server." << endl;
-	//closeServer();
+TcpServer::~TcpServer() {
 }
 
 void TcpServer::add_event(int epollfd, int fd, int state)
@@ -144,7 +117,6 @@ std::vector<Socket>::iterator TcpServer::check_event_fd(int event_fd)
 void	TcpServer::run(void)
 {
 	//session cookies ?
-	//std::cout << "run" << std::endl;
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients; //managing clients
@@ -186,10 +158,8 @@ void	TcpServer::run(void)
 			if (it != _socketList.end())
 			{
 				int connection = acceptConnection(events[n], epollfd);
-				//std::cout << "coucou" << std::endl;
 				Client new_client(connection, (*it).getServer(), _servers);
 				clients[connection] = new_client;
-				// std::cout << "coucou1" << std::endl;
 			}
 
 			// Receiving request
@@ -204,12 +174,7 @@ void	TcpServer::run(void)
 					clients.erase(events[n].data.fd);
 					continue;
 				}
-				// std:cout << ANSI_RED << "hello" << ANSI_RESET << std::endl;
-				// cl:ients[events[n].data.fd].getServer()->print_server();
 				done = clients[events[n].data.fd].parse_request();
-				// std::cout << ANSI_RED << "hello1" << ANSI_RESET << std::endl;
-				//std::cout << done << std::endl;
-				// std::cout << "coucou2" << std::endl;
 				if (done)
 				{
 					ev.events = EPOLLOUT;
@@ -221,12 +186,8 @@ void	TcpServer::run(void)
 			// Sending response
 			else if (events[n].events & EPOLLOUT) 
 			{
-				//std::string response_str = clients[events[n].data.fd].process_request();
-				//done = sendResponse(response_str, events[n].data.fd);
 				Response response(clients[events[n].data.fd]);
-				//std::cout << "coucou2" << std::endl;
 				done = response.send_response();
-				//std::cout << "coucou3" << std::endl;
 				if (done)
 				{
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
@@ -235,11 +196,6 @@ void	TcpServer::run(void)
 						General::exitWithError("close");
 					clients.erase(events[n].data.fd);
 			
-					//ev.events = EPOLLIN;
-					//ev.data.fd = events[n].data.fd;
-					//if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
-					//	General::exitWithError("epoll_create");
-					// General::log("\n====== Waiting for a new connection ======");
 				}
 			}
 			else 
@@ -258,16 +214,6 @@ void	TcpServer::run(void)
 	}
 	if (close(epollfd) == -1)
 		General::exitWithError("close");
-	//for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
-    //{
-    //    for(std::vector<Location*>::iterator jt = (*it)->getLocations().begin(); jt != (*it)->getLocations().end(); jt++)
-	//    {
-	//    // (*it)->print_location();
-	//        if (*jt)
-	//        	delete	*jt;
-	//    }
-    //}
-
 }
 
 int	TcpServer::acceptConnection(struct epoll_event ev, int epollfd)
@@ -315,7 +261,6 @@ bool TcpServer::sendResponse(std::string response_str, int m_new_socket)
     else
     {
 	    General::log("------ Server Response sent to client ------\n");
-	    // General::log("Responsed message: \n" + response_str);
 		return (true);
     }
 }

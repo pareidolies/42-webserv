@@ -8,15 +8,10 @@
 *                              CONSTRUCTORS                                   *
 ******************************************************************************/
 
-Configuration::Configuration(void)
-{
-	//initialize values
-	//std::cout << ANSI_RED << "BUILD2" << ANSI_RESET << std::endl;
+Configuration::Configuration(void) {
 }
 
-Configuration::Configuration(std::string file) : _file(file)
-{
-		//std::cout << ANSI_RED << "BUILD1" << ANSI_RESET << std::endl;
+Configuration::Configuration(std::string file) : _file(file) {
 }
 
 /******************************************************************************
@@ -33,7 +28,6 @@ Configuration	&Configuration::operator=(Configuration const & rhs)
 	if (this != &rhs)
 	{
 		_servers = rhs._servers;
-		//to complete
 	}
 	return (*this);
 }
@@ -44,16 +38,11 @@ Configuration	&Configuration::operator=(Configuration const & rhs)
 
 Configuration::~Configuration(void)
 {	
-	//std::cout << ANSI_RED << "DESTROY" << ANSI_RESET << std::endl;
-	//if (g_shutdown == 1)
-	//{
-		for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
-		{
-			// (*it)->print_server();
-			if (*it)
-				delete	*it;
-		}
-	//}
+	for(std::vector<Server*>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		if (*it)
+			delete	*it;
+	}
 }
 
 /******************************************************************************
@@ -87,7 +76,7 @@ bool	Configuration::open_and_read_file(void)
 		std::string			whitespace = " \t\n\r\v\f";
 		std::size_t			bracket;
 		//splitting bracket from data and trimming spaces
-		if (line.find("#") != std::string::npos)//remove comments
+		if (line.find("#") != std::string::npos)
 			continue;
 		bracket = line.find("{");
   		if (bracket!=std::string::npos)
@@ -135,8 +124,6 @@ void	Configuration::init_config(void)
 	}
 	if (this->_servers.empty())
 		throw Configuration::NoServer();
-	//print_all();
-	//print_vector(_split);
 }
 
 /******************************************************************************
@@ -147,8 +134,6 @@ void	Configuration::print_all(void)
 {
 	for(std::vector<Server*>::iterator it = this->_servers.begin(); it != this->_servers.end(); it++)
 	{	
-		// std::cout << ANSI_YELLOW << "------ SERVER " << ++i <<" ------" << ANSI_RESET << std::endl;
-		// (*it)->print_server();
 		std::cout << std::endl;
 	}
 }

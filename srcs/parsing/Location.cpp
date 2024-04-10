@@ -75,9 +75,7 @@ Location	&Location::operator=(Location const & rhs)
 *                                DESTRUCTOR                                   *
 ******************************************************************************/
 
-Location::~Location(void)
-{
-
+Location::~Location(void) {
 }
 
 /******************************************************************************
@@ -89,16 +87,12 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 	it++;
 	while (it != split.end() && (*it).compare("}") != 0)
 	{
-		//std::stringstream ss(*it);
 		std::string 			directive;
 		std::string 			parameter;
 		std::string 			tmp;
 		size_t					find;
 
 		std::string	whitespace = " \t\n\r\v\f";
-
-		//getline(ss, directive, ' '); //check if it's a tab which separates data OK
-		//getline(ss, parameter);
 
 		find = (*it).find_first_of(whitespace);
 		if (find == string::npos) 
@@ -142,7 +136,6 @@ void	Location::init_location_config(std::vector<std::string>::iterator it, std::
 			parameter = check_semicolon(parameter);
 			while (!parameter.empty())
 			{
-				//std::cout << parameter << std::endl;
 				find = parameter.find_first_of(whitespace);
 				if (find == string::npos)
 					find = parameter.end() - parameter.begin();

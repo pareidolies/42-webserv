@@ -19,8 +19,6 @@ Server::Server(void) : _domain(AF_INET), _service(SOCK_STREAM), \
 	_post = false;
 	_delete = false;
 	_return = "";
-
-	//initialize values
 }
 
 /******************************************************************************
@@ -117,9 +115,6 @@ bool	Server::check_client_max_body_size(std::string parameter)
 		if(!isdigit(str[i]))
 			return false;
 	}
-	// long nbr = atol(str);
-	// if (nbr > 2147483647)
-	// 	return false;
 	return true;
 }
 
@@ -129,15 +124,12 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 	it++;
 	while (it != split.end() && (*it).compare("}") != 0)
 	{
-		//std::stringstream ss(*it);
 		std::string 			directive;
 		std::string 			parameter;
 		std::string 			tmp;
 		size_t					find;
 		std::string	whitespace = " \t\n\r\v\f";
 		std::string	type = "location";
-		//getline(ss, directive, ' '); //check if it's a tab which separates data OK
-		//getline(ss, parameter);
 		find = (*it).find_first_of(whitespace);
 		if (find == string::npos) 
 			find  = (*it).length();
@@ -199,8 +191,6 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		{
 			parameter = check_semicolon(parameter);
 			this->_index = parameter;
-			//std::cout << ANSI_YELLOW << this->_index << ANSI_RESET << std::endl;
-
 		}
 		else if (directive.compare("upload") == 0)
 		{
@@ -217,7 +207,6 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 			parameter = check_semicolon(parameter);
 			while (!parameter.empty())
 			{
-				//std::cout << parameter << std::endl;
 				find = parameter.find_first_of(whitespace);
 				if (find == string::npos)
 					find = parameter.end() - parameter.begin();
@@ -258,7 +247,6 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 		else if (directive.compare("error_page") == 0)
 		{
 			std::string	num_str;
-			//int			num;
 			std::string	path;
 			parameter = check_semicolon(parameter);
 			find = parameter.find_first_of(whitespace);
@@ -298,20 +286,6 @@ void	Server::init_server_config(std::vector<std::string>::iterator it, std::vect
 	}
 	if (listening == false || _port <= 0 || _host.empty())
 		throw Server::NotListening();
-	//if (_errorPages.empty()) //setting default page
-	//{
-	//	std::string path = "www/site/errorPages/404.html";
-	//	this->_errorPages.insert(std::make_pair(404, path));
-	//}
-	//if (_upload.empty()) //setting default upload
-	//	this->_upload = "./www/site/files";
-	//if (_root.empty()) //setting default root
-	//	this->_root = "./www/site";
-	//if (_index.empty())
-	//	this->_index = "/pages/index.html";
-	//print_server();
-	//if (_return.empty()) //setting default return
-	//	this->_return = "http://github.com;";
 }
 
 /******************************************************************************
@@ -379,7 +353,6 @@ const char *	Server::DirOrFileError::what(void) const throw()
 
 bool	Server::is_method_allowed(std::string method)
 {
-	//std::cout << "method " << method << std::endl;
 	if (method.compare("GET") == 0 && _get)
 		return true;
 	else if (method.compare("POST") == 0 && _post)
@@ -431,15 +404,6 @@ std::vector<Location*>				Server::getLocations()
 {
 	return(_locations);
 }
-
-/*Location*				Server::getLocation(std::string str)
-{
-	for(std::vector<Location*>::iterator it = _locations.begin(); it != _locations.end(); it++)
-	{
-		if ((*it)->getLocate().compare("str") == 0)
-			return(*it);
-	}
-}*/
 
 std::vector<std::string>			Server::getServerName()
 {
